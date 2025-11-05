@@ -2,6 +2,8 @@ package cn.piggy.spring6.test;
 
 import cn.piggy.spring6.bean.User;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
@@ -13,6 +15,19 @@ import java.util.Date;
 import java.util.logging.SimpleFormatter;
 
 public class FirstSpringTest {
+
+    @Test
+    public void testLogger() {
+        // 如何使用 log4j2记录日志信息？
+        // 1. 获取当前类FirstSpringTest类的日志记录器对象
+        //  也就是说只要是记录FirstSpringTest类中代码执行记录的话，就输出相关日志信息
+        Logger logger = LoggerFactory.getLogger(FirstSpringTest.class);
+
+        // 2. 记录日志，根据不同的级别来输出日志
+        logger.info("我是一条消息");
+        logger.debug("我是一条调试消息");
+        logger.error("我是一条错误消息");
+    }
 
     @Test
     public void testBeanFactory() {
