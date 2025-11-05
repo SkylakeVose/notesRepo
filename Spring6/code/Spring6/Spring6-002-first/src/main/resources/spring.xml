@@ -17,4 +17,7 @@
     -->
     <bean id="userBean" class="cn.piggy.spring6.bean.User"/>
 
+    <!--配置Date Bean-->
+    <bean id="nowDate" class="java.util.Date" />
+
 </beans>

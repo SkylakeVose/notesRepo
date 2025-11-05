@@ -407,3 +407,107 @@ Spring框架下的jar包：
 
 ## 3.4 第一个Spring程序详细剖析
 
+1. **bean标签的id属性可以重复嘛？**
+
+   不可以，在spring的配置文件中id是不能重名。
+
+   
+
+2. **底层是怎么创建对象的，是通过反射机制调用无参数构造方法吗？**
+
+   spring是通过调用类的无参数构造方法来创建对象的，所以要想让spring给你创建对象，必须保证无参数构造方法是存在的。
+
+   
+
+   Spring是如何创建对象的呢？原理是什么？
+
+   ```java
+   // dom4j解析beans.xml文件，从中获取class的全限定类名
+   // 通过反射机制调用无参数构造方法创建对象
+   Class clazz = Class.forName("com.powernode.spring6.bean.User");
+   Object obj = clazz.newInstance();
+   ```
+
+3. **把创建好的对象存储到一个什么样的数据结构当中了呢？**
+
+   ![image.png](Spring6.assets/1663829973365-59ca2f4c-4d81-471f-8e4c-aa272f8c2b81.png)
+
+   
+
+4. **spring配置文件的名字必须叫做beans.xml吗？**
+
+   可以自行定义名称。
+
+   
+
+5. **像这样的beans.xml文件可以有多个吗？**
+
+   我们新建了一个`vip类`和`vip.xml`的配置文件，在启动Spring的代码中将`vip.xml`添加进去，这样我们就能从spring容器中获取到vip类。![image-20251105154714463](Spring6.assets/image-20251105154714463.png)
+
+   从源码中也能看到，这个启动类方法的参数是个可变列表。
+
+   ![image-20251105154959243](Spring6.assets/image-20251105154959243.png)
+
+   
+
+6. **在配置文件中配置的类必须是自定义的吗，可以使用JDK中的类吗，例如：java.util.Date？**
+
+   可以。在spring配置文件中配置的bean可以任意类，只要这个类不是抽象的，并且提供了无参数构造方法。
+
+   ![image-20251105171555375](Spring6.assets/image-20251105171555375.png)
+
+   
+
+7. **getBean()方法调用时，如果指定的id不存在会怎样？**
+
+   直接报错。
+
+   ![image-20251105171955023](Spring6.assets/image-20251105171955023.png)
+
+   
+
+8. **getBean()方法返回的类型是Object，如果访问子类的特有属性和方法时，还需要向下转型，有其它办法可以解决这个问题吗？**
+
+   ![image-20251105172600540](Spring6.assets/image-20251105172600540.png)
+
+   
+
+9. **ClassPathXmlApplicationContext是从类路径中加载配置文件，如果没有在类路径当中，又应该如何加载配置文件呢？**
+
+   没有在类路径中的话，需要使用`FileSystemXmlApplicationContext`类进行加载配置文件。
+
+   这种方式较少用。一般都是将配置文件放到类路径当中，这样可移植性更强。
+
+   ![image-20251105173247482](Spring6.assets/image-20251105173247482.png)
+
+   
+
+10. **ApplicationContext的超级父接口BeanFactory**
+
+    + `ApplicationContext`接口的超级父接口是 `BeanFactory`。
+    + `BeanFactory`是IoC容器的顶级接口。
+    + Spring的IoC容器底层实际上使用了**工厂模式**。
+    + Spring底层的IoC实现：`XML解析 + 工厂模式 + 反射机制`。
+
+    ![image-20251105173743574](Spring6.assets/image-20251105173743574.png)
+
+    
+
+11. **创建Bean对象的时机**
+
+    ```java
+    @Test
+    public void testBeginInitBean() {
+        // 在执行下面这行代码的时候，就已经创建了Bean对象
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
+        
+        // getBean()只是获取该Bean对象
+        User user = applicationContext.getBean("userBean", User.class);
+        System.out.println(user);
+    }
+    ```
+
+
+
+## 3.5 Spring6启用Log4j2日志框架
+
