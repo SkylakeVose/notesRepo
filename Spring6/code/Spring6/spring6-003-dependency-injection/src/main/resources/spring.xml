@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--配置Dao-->
+    <bean id="userDaoBean" class="cn.piggy.spring6.dao.UserDao" />
+
+    <!--配置service-->
+    <bean id="userServiceBean" class="cn.piggy.spring6.service.UserService">
+        <!--想让spring调用对应的set方法，需要配置property标签-->
+        <!--name属性怎么指定值：set方法的方法名，方法名去掉set，然后首字母小写-->
+        <!--ref引用，ref后制定需要引入的bean的id-->
+        <property name="mySQLUserDao" ref="userDaoBean" />
+    </bean>
+
+</beans>

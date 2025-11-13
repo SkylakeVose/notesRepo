@@ -582,4 +582,203 @@ Spring框架下的jar包：
 
 
 
-# 第四章节 
+# 第四章节 Spring对IoC的实现
+
+## 4.1 IoC控制反转
+
++ 控制反转是一种思想。
++ 控制反转是为了降低程序耦合度，提高程序扩展力，达到OCP原则，达到DIP原则。
++ 控制反转，反转的是什么？
+
+- - 将对象的创建权利交出去，交给第三方容器负责。
+  - 将对象和对象之间关系的维护权交出去，交给第三方容器负责。
+
+- 控制反转这种思想如何实现呢？
+
+- - DI（Dependency Injection）：依赖注入
+
+
+
+## 4.2 依赖注入
+
+依赖注入实现了控制反转的思想。
+
+**Spring通过依赖注入的方式来完成Bean管理的。**
+
+**Bean管理说的是：Bean对象的创建，以及Bean对象中属性的赋值（或者叫做Bean对象之间关系的维护）。**
+
+依赖注入：
+
+- 依赖指的是对象和对象之间的关联关系。
+- 注入指的是一种数据传递行为，通过注入行为来让对象和对象产生关系。
+
+依赖注入常见的实现方式包括两种：
+
+- 第一种：set注入
+- 第二种：构造注入
+
+
+
+
+
+**准备工作：**
+
+1.  新建模块：`spring6-002-dependency-injection`
+
+   ![image-20251113174904560](Spring6.assets/image-20251113174904560.png)
+
+   
+
+2. 引入依赖，并写入配置文件
+
+   **pom.xml**
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <project xmlns="http://maven.apache.org/POM/4.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+       <modelVersion>4.0.0</modelVersion>
+   
+       <groupId>cn.piggy</groupId>
+       <artifactId>spring6-003-dependency-injection</artifactId>
+       <version>1.0-SNAPSHOT</version>
+       <packaging>jar</packaging>
+   
+       <!-- 配置多个仓库 -->
+       <repositories>
+           <!-- spring里程碑版本的仓库 -->
+           <repository>
+               <id>spring-milestones</id>
+               <name>Spring Milestones</name>
+               <url>https://repo.spring.io/milestone</url>
+               <snapshots>
+                   <enabled>false</enabled>
+               </snapshots>
+           </repository>
+       </repositories>
+   
+       <!-- 依赖 -->
+       <dependencies>
+           <!--spring context依赖-->
+           <dependency>
+               <groupId>org.springframework</groupId>
+               <artifactId>spring-context</artifactId>
+               <version>6.0.0-M2</version>
+           </dependency>
+   
+           <!-- junit依赖 -->
+           <dependency>
+               <groupId>junit</groupId>
+               <artifactId>junit</artifactId>
+               <version>4.13.2</version>
+               <scope>test</scope>
+           </dependency>
+   
+           <!--log4j2的依赖-->
+           <dependency>
+               <groupId>org.apache.logging.log4j</groupId>
+               <artifactId>log4j-core</artifactId>
+               <version>2.19.0</version>
+           </dependency>
+           <dependency>
+               <groupId>org.apache.logging.log4j</groupId>
+               <artifactId>log4j-slf4j2-impl</artifactId>
+               <version>2.19.0</version>
+           </dependency>
+       </dependencies>
+   
+       <properties>
+           <maven.compiler.source>17</maven.compiler.source>
+           <maven.compiler.target>17</maven.compiler.target>
+           <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+       </properties>
+   </project>
+   ```
+   **log4j2日志配置文件：**
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <configuration>
+       <loggers>
+           <!--
+               level指定日志级别，从低到高的优先级：
+                   ALL < TRACE < DEBUG < INFO < WARN < ERROR < FATAL < OFF
+           -->
+           <root level="DEBUG">
+               <appender-ref ref="spring6log"/>
+           </root>
+       </loggers>
+   
+       <appenders>
+           <!--输出日志信息到控制台-->
+           <console name="spring6log" target="SYSTEM_OUT">
+               <!--控制日志输出的格式-->
+               <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss SSS} [%t] %-3level %logger{1024} - %msg%n"/>
+           </console>
+       </appenders>
+   </configuration>
+   ```
+
+   
+
+3. 创建UserDao和UserService类
+
+   ```java
+   // UserDao.class
+   package cn.piggy.spring6.dao;
+   import org.slf4j.Logger;
+   import org.slf4j.LoggerFactory;
+   
+   public class UserDao {
+   
+       public static final Logger logger = LoggerFactory.getLogger(UserDao.class);
+   
+       public void insert() {
+           // System.out.println("数据库正在保存用户信息...");
+           // 使用下log4j2日志框架
+           logger.info("数据库正在保存用户信息...");
+       }
+   }
+   ```
+
+   ```java
+   package cn.piggy.spring6.service;
+   import cn.piggy.spring6.dao.UserDao;
+   
+   public class UserService {
+   
+       private UserDao userDao;
+   
+       public void saveUser() {
+           // 保存用户信息到数据库
+           userDao.insert();
+       }
+   }
+   ```
+
+   
+
+4. 创建测试类
+
+   ```java
+   package cn.piggy.spring6.test;
+   import cn.piggy.spring6.service.UserService;
+   import org.junit.Test;
+   import org.springframework.context.support.ClassPathXmlApplicationContext;
+   
+   public class SpringDITest {
+   
+       @Test
+       public void testSetDI() {
+           ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
+           UserService userService = applicationContext.getBean("userServiceBean", UserService.class);
+           userService.saveUser();
+       }
+   }
+   ```
+
+
+
+### 4.2.1 set注入
+
