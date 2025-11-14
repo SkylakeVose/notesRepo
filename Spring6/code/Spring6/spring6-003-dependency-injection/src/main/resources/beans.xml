@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="userDao" class="cn.piggy.spring6.dao.UserDao" />
+    <bean id="vipDao" class="cn.piggy.spring6.dao.VipDao" />
+    <bean id="csBean" class="cn.piggy.spring6.service.CustomerService" >
+        <!--构造注入-->
+        <!--制定构造方法的第一个参数，下标是0-->
+        <constructor-arg index="0" ref="userDao" />
+        <!--制定构造方法的第一个参数，下标是1-->
+        <constructor-arg index="1" ref="vipDao" />
+    </bean>
+
+    <!--指定构造方法的参数名字对应的类型-->
+    <bean id="csBean" class="cn.piggy.spring6.service.CustomerService" >
+        <constructor-arg name="userDao" ref="userDao" />
+        <constructor-arg name="vipDao" ref="vipDao" />
+    </bean>
+
+    <!--不指定下标和参数类型，由spring自行类型匹配-->
+    <bean id="csBean" class="cn.piggy.spring6.service.CustomerService">
+        <constructor-arg ref="userDao" />
+        <constructor-arg ref="vipDao" />
+    </bean>
+
+</beans>

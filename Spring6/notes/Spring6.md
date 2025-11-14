@@ -782,3 +782,116 @@ Spring框架下的jar包：
 
 ### 4.2.1 set注入
 
+set注入，基于set方法实现的，底层会通过反射机制调用属性对应的set方法然后给属性赋值。这种方式要求属性必须对外提供set方法。
+
+![image-20251114160714881](Spring6.assets/image-20251114160714881.png)
+
+**实现原理：**
+
++ 通过property标签获取到属性名：`userDao`
++ 通过属性名推断出set方法名：`setUserDao`
++ 通过反射机制调用`setUserDao()`方法给属性赋值
++ `property`标签的name是属性名。
++ `property`标签的`ref`是要注入的bean对象的id。**(通过ref属性来完成bean的装配，这是bean最简单的一种装配方式。装配指的是：创建系统组件之间关联的动作)**
+
+
+
+**总结：set注入的核心实现原理：通过反射机制调用set方法来给属性赋值，让两个对象之间产生关系。**
+
+
+
+### 4.2.2 构造注入
+
+核心原理：通过调用构造方法来给属性赋值。
+
+1. 新建`VipDao`类和`CustomerService`类
+
+   ```java
+   // VipDao.class
+   package cn.piggy.spring6.dao;
+   import org.slf4j.Logger;
+   import org.slf4j.LoggerFactory;
+   
+   public class VipDao {
+       public static final Logger logger = LoggerFactory.getLogger(VipDao.class);
+       public void insert() {
+           logger.info("正在保存vip信息...");
+       }
+   }
+   ```
+
+   ```java
+   // CustomerService.class
+   package cn.piggy.spring6.service;
+   import cn.piggy.spring6.dao.UserDao;
+   import cn.piggy.spring6.dao.VipDao;
+   
+   public class CustomerService {
+   
+       private UserDao userDao;
+       private VipDao vipDao;
+   
+       public CustomerService(UserDao userDao, VipDao vipDao) {
+           this.userDao = userDao;
+           this.vipDao = vipDao;
+       }
+   
+       public void save() {
+           userDao.insert();
+           vipDao.insert();
+       }
+   }
+   ```
+
+   
+
+2. 新建个测试方法
+
+   ```java
+   // SpringDITest.class
+   
+   public class SpringDITest {
+   	
+       //...
+   
+       @Test
+       public void testConstructorDI() {
+           ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("beans.xml");
+           CustomerService customerService = applicationContext.getBean("csBean", CustomerService.class);
+           customerService.save();
+       }
+   }
+   ```
+
+   
+
+3. 新建个spring配置文件 `beans.xml`
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+   
+       <bean id="userDao" class="cn.piggy.spring6.dao.UserDao" />
+       <bean id="vipDao" class="cn.piggy.spring6.dao.VipDao" />
+       <bean id="csBean" class="cn.piggy.spring6.service.CustomerService" >
+           <!--构造注入-->
+           <!--制定构造方法的第一个参数，下标是0-->
+           <constructor-arg index="0" ref="userDao" />
+           <!--制定构造方法的第一个参数，下标是1-->
+           <constructor-arg index="1" ref="vipDao" />
+       </bean>
+   </beans>
+   ```
+
+4. 测试
+
+   <img src="Spring6.assets/image-20251114163816831.png" alt="image-20251114163816831" style="zoom:80%;" />
+
+5. 实际上，构造方法默认的格式还有两种：根据参数名和自行匹配：
+
+   ![image-20251114163958455](Spring6.assets/image-20251114163958455.png)
+
+
+

@@ -8,10 +8,15 @@
 
     <!--配置service-->
     <bean id="userServiceBean" class="cn.piggy.spring6.service.UserService">
-        <!--想让spring调用对应的set方法，需要配置property标签-->
-        <!--name属性怎么指定值：set方法的方法名，方法名去掉set，然后首字母小写-->
-        <!--ref引用，ref后制定需要引入的bean的id-->
-        <property name="mySQLUserDao" ref="userDaoBean" />
+        <property name="userDao" ref="userDaoBean"/>
     </bean>
+
+    <!--配置service-->
+    <!--<bean id="userServiceBean" class="cn.piggy.spring6.service.UserService">
+        &lt;!&ndash;想让spring调用对应的set方法，需要配置property标签&ndash;&gt;
+        &lt;!&ndash;name属性怎么指定值：set方法的方法名，方法名去掉set，然后首字母小写&ndash;&gt;
+        &lt;!&ndash;ref引用，ref后制定需要引入的bean的id&ndash;&gt;
+        <property name="mySQLUserDao" ref="userDaoBean"/>
+    </bean>-->
 
 </beans>
