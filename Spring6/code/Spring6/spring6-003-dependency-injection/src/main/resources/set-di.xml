@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--让Spring来管理数据源-->
+    <bean id="myDataSource" class="cn.piggy.spring6.jdbc.MyDataSource">
+        <property name="driver" value="com.mysql.cj.jdbc.driver" />
+        <property name="url" value="jdbc:mysql://localhost:3306/spring6" />
+        <property name="username" value="root" />
+        <property name="password" value="123456" />
+    </bean>
+
+    <!--测试简单类型的set注入-->
+    <bean id="svt" class="cn.piggy.spring6.bean.SimpleValueType">
+        <property name="age" value="20" />
+        <property name="age2" value="22" />
+        <property name="username" value="zhangsan" />
+        <property name="season" value="WINTER" />
+        <property name="flag" value="false" />
+        <property name="flag2" value="true" />
+        <property name="c" value="男" />
+        <property name="c2" value="女" />
+        <property name="clazz" value="java.lang.String" />
+        <!--使用value赋值，必须严格符合Date类型的默认输出格式-->
+        <property name="birth" value="Sat Nov 15 17:13:08 CST 2025" />
+    </bean>
+
+
+    <!--注入简单数据类型-->
+    <bean id="userBean" class="cn.piggy.spring6.bean.User">
+        <!--重点：如果是给简单数据类型赋值，就不能使用ref，只能使用value-->
+        <property name="username" value="张三"/>
+        <property name="password" value="123456"/>
+        <property name="age" value="20"/>
+    </bean>
+
+    <!--定义/声明Bean-->
+    <bean id="orderDaoBean" class="cn.piggy.spring6.dao.OrderDao"/>
+
+    <bean id="orderServiceBean" class="cn.piggy.spring6.service.OrderService">
+        <!--使用ref属性来引入，这就是注入外部Bean-->
+        <property name="orderDao" ref="orderDaoBean"/>
+    </bean>
+
+    <!--<bean id="orderServiceBean" class="cn.piggy.spring6.service.OrderService">
+        <property name="orderDao">
+            &lt;!&ndash;在property标签中使用嵌套的bean标签，这就是内部Bean&ndash;&gt;
+            <bean class="cn.piggy.spring6.dao.OrderDao"/>
+        </property>
+    </bean>-->
+
+</beans>
