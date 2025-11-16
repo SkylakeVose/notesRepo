@@ -1,17 +1,34 @@
 package cn.piggy.spring6.test;
 
+import cn.piggy.spring6.bean.QianDaYe;
 import cn.piggy.spring6.bean.SimpleValueType;
-import cn.piggy.spring6.bean.User;
+import cn.piggy.spring6.bean.Student;
 import cn.piggy.spring6.jdbc.MyDataSource;
 import cn.piggy.spring6.service.CustomerService;
 import cn.piggy.spring6.service.OrderService;
 import cn.piggy.spring6.service.UserService;
 import org.junit.Test;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.util.Date;
 
 public class SpringDITest {
+
+    @Test
+    public void testArray() {
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-array.xml");
+        QianDaYe yuQian = applicationContext.getBean("yuQian", QianDaYe.class);
+        System.out.println(yuQian);
+
+    }
+
+    @Test
+    public void testCascade() {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("cascade.xml");
+
+        Student studentBean = applicationContext.getBean("studentBean", Student.class);
+        System.out.println(studentBean);
+    }
 
     @Test
     public void testMyDataSource() {
