@@ -1086,5 +1086,165 @@ Spring在装配方面做的还是比较健壮的。
 
 
 
-### 4.3.6 注入List集合
+### 4.3.6 - 4.3.7 注入List及Set集合
+
+1. 创建`Person`类和spring配置文件`spring-collection.xml`
+
+   ![image-20251117194729249](Spring6.assets/image-20251117194729249.png)
+
+2. 编写测试程序，运行结果
+
+   ![image-20251117194758853](Spring6.assets/image-20251117194758853.png)
+
+
+
+**要点：**
+
++ 注入List集合的时候使用`<list>`标签，注入Set集合的时候使用`<set>`标签。
++ 如果List或Set集合中是简单类型使用`<value>`标签，反之使用`<ref>`标签。
+
+
+
+
+
+### 4.3.8注入Map集合
+
+新加Map对象`phones`，并配置赋值。
+
+![image-20251117221952694](Spring6.assets/image-20251117221952694.png)
+
+
+
+**要点：**
+
+- **使用`<map>`标签**
+- **如果key是简单类型，使用` key` 属性，反之使用 `key-ref` 属性。**
+- **如果value是简单类型，使用` value `属性，反之使用 `value-ref `属性。**
+
+
+
+
+
+### 4.3.9 注入Properties属性类对象
+
+java.util.Properties继承java.util.Hashtable，所以Properties也是一个Map集合。
+
+![image-20251117222154528](Spring6.assets/image-20251117222154528.png)
+
+
+
+新加Properties对象`properties`，并配置赋值。
+
+![image-20251117222339823](Spring6.assets/image-20251117222339823.png)
+
+
+
+**要点：**
+
+- **使用`<props>`标签嵌套`<prop>`标签完成。**
+- key和value都只能是**String**类型。
+
+
+
+### 4.3.10 注入null和空字符串
+
+创建Cat类：
+
+```java
+public class Cat {
+
+    private String name;
+
+    private int age;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return "Cat{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
+}
+```
+
+
+
+1. 注入null
+
+   ![image-20251117224429697](Spring6.assets/image-20251117224429697.png)
+
+   > 注意：
+   >
+   > + 不给属性注入，属性的默认是就是`null`。
+   >
+   > + 下列配置信息相当于给`name`属性赋值了一条字符串“null”，并不是真的null。
+   >
+   >   ```xml
+   >   <property name="name" value="null"/>
+   >   ```
+   >
+   > + 手动注入null可使用`<null/>`
+
+2. 注入空字符串
+
+   ![image-20251117224805142](Spring6.assets/image-20251117224805142.png)
+
+   > 注意：
+   >
+   > + 下列配置信息相当于给`name`属性赋值了一条空字符串。
+   >
+   >   ```xml
+   >   <property name="name" value=""/>
+   >   ```
+   >
+   > + 手动注入空字符串可使用`<value/>`
+
+
+
+### 4.3.11 注入的值中还有特殊符号
+
+XML中有5个特殊字符，分别是：`<`、`>`、`'`、`"`、`&`。
+
+以上5个特殊符号在XML中会被特殊对待，会被当做XML语法的一部分进行解析，如果这些特殊符号直接出现在注入的字符串当中，会报错。
+
+![image-20251117230742567](Spring6.assets/image-20251117230742567.png)
+
+
+
+**解决方案包括两种：**
+
+- 第一种：特殊符号使用转义字符代替。
+- 第二种：将含有特殊符号的字符串放到：`<![CDATA[]]> `当中。因为放在CDATA区中的数据不会被XML文件解析器解析。
+
+
+
+5个特殊字符对应的转义字符分别是：
+
+| **特殊字符** | **转义字符** |
+| ------------ | ------------ |
+| >            | `&gt;`       |
+| <            | `&lt;`       |
+| '            | `&apos;`     |
+| "            | `&quot;`     |
+| &            | `&amp;`      |
+
+
+
+**演示：**
+
+![image-20251117231058131](Spring6.assets/image-20251117231058131.png)
+
+
+
+
+
+## 4.4 p命名空间注入
 

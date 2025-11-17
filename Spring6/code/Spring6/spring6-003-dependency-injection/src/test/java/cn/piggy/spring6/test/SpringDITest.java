@@ -1,8 +1,6 @@
 package cn.piggy.spring6.test;
 
-import cn.piggy.spring6.bean.QianDaYe;
-import cn.piggy.spring6.bean.SimpleValueType;
-import cn.piggy.spring6.bean.Student;
+import cn.piggy.spring6.bean.*;
 import cn.piggy.spring6.jdbc.MyDataSource;
 import cn.piggy.spring6.service.CustomerService;
 import cn.piggy.spring6.service.OrderService;
@@ -13,6 +11,27 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 
 public class SpringDITest {
+
+    @Test
+    public void testSepcial() {
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("set-di.xml");
+        MathBean mathBean = applicationContext.getBean("mathBean", MathBean.class);
+        System.out.println(mathBean);
+    }
+
+    @Test
+    public void testNull() {
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("set-di.xml");
+        Cat catBean = applicationContext.getBean("catBean", Cat.class);
+        System.out.println(catBean);
+    }
+
+    @Test
+    public void testCollection() {
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-collection.xml");
+        Person personBean = applicationContext.getBean("personBean", Person.class);
+        System.out.println(personBean);
+    }
 
     @Test
     public void testArray() {

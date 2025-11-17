@@ -3,6 +3,42 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+    <bean id="mathBean" class="cn.piggy.spring6.bean.MathBean">
+        <!--直接写 2 < 3 会被xml解析，会报错-->
+        <!--<property name="result" value="2 < 3" />-->
+
+        <!--第一种方案：使用实体符号代替特殊符号-->
+        <!--<property name="result" value="2 &lt; 3" />-->
+
+        <!--第二种方案：使用-->
+        <property name="result">
+            <!--只能使用value标签-->
+            <value><![CDATA[2 < 3]]></value>
+        </property>
+    </bean>
+
+    <bean id="catBean" class="cn.piggy.spring6.bean.Cat">
+
+        <!--不给属性注入，属性的默认值就是null-->
+        <!--<property name="name" value="tom"/>-->
+
+        <!--手动注入null-->
+        <!--<property name="name">
+            <null/>
+        </property>-->
+
+        <!--注入空字符串 - 第1种方法-->
+        <!--<property name="name" value=""/>-->
+
+        <!--注入空字符串 - 第2种方法-->
+        <property name="name">
+            <value/>
+        </property>
+
+        <property name="age" value="3"/>
+    </bean>
+
+
     <!--让Spring来管理数据源-->
     <bean id="myDataSource" class="cn.piggy.spring6.jdbc.MyDataSource">
         <property name="driver" value="com.mysql.cj.jdbc.driver" />
