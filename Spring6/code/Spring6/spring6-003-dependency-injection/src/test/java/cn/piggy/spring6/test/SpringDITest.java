@@ -13,6 +13,20 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class SpringDITest {
 
     @Test
+    public void testC() {
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-c.xml");
+        People peopleBean = applicationContext.getBean("peopleBean", People.class);
+        System.out.println(peopleBean);
+    }
+
+    @Test
+    public void testP() {
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-p.xml");
+        Dog dogBean = applicationContext.getBean("dogBean", Dog.class);
+        System.out.println(dogBean);
+    }
+
+    @Test
     public void testSepcial() {
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext("set-di.xml");
         MathBean mathBean = applicationContext.getBean("mathBean", MathBean.class);

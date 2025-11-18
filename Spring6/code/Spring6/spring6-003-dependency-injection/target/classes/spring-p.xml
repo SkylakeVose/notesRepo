@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+        <bean id="dogBean" class="cn.piggy.spring6.bean.Dog" p:name="小花" p:age="3" p:birth-ref="birthBean"/>
+
+        <!--调用Date无参数构造方法，获取当前系统时间-->
+        <bean id="birthBean" class="java.util.Date"/>
+
+</beans>

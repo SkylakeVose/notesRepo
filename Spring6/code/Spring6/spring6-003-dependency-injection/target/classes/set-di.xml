@@ -4,6 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="mathBean" class="cn.piggy.spring6.bean.MathBean">
+        <!--直接写 2 < 3 会被xml解析，会报错-->
         <!--<property name="result" value="2 < 3" />-->
 
         <!--第一种方案：使用实体符号代替特殊符号-->
@@ -14,7 +15,6 @@
             <!--只能使用value标签-->
             <value><![CDATA[2 < 3]]></value>
         </property>
-
     </bean>
 
     <bean id="catBean" class="cn.piggy.spring6.bean.Cat">
