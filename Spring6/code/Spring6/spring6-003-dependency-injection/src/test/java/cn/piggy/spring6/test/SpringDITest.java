@@ -2,6 +2,8 @@ package cn.piggy.spring6.test;
 
 import cn.piggy.spring6.bean.*;
 import cn.piggy.spring6.jdbc.MyDataSource;
+import cn.piggy.spring6.jdbc.MyDataSource1;
+import cn.piggy.spring6.jdbc.MyDataSource2;
 import cn.piggy.spring6.service.CustomerService;
 import cn.piggy.spring6.service.OrderService;
 import cn.piggy.spring6.service.UserService;
@@ -11,6 +13,15 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 
 public class SpringDITest {
+
+    @Test
+    public void testUtil() {
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-util.xml");
+        MyDataSource1 ds1 = applicationContext.getBean("ds1", MyDataSource1.class);
+        MyDataSource2 ds2 = applicationContext.getBean("ds2", MyDataSource2.class);
+        System.out.println(ds1);
+        System.out.println(ds2);
+    }
 
     @Test
     public void testC() {

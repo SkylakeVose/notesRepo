@@ -1269,6 +1269,8 @@ XML中有5个特殊字符，分别是：`<`、`>`、`'`、`"`、`&`。
 
 **c命名空间是简化构造方法注入的，所以需要依赖构造方法。**
 
+
+
 使用c命名空间的两个前提条件：
 
 1. 需要在xml配置文件头部添加信息：`xmlns:c="http://www.springframework.org/schema/c"`
@@ -1279,7 +1281,57 @@ XML中有5个特殊字符，分别是：`<`、`>`、`'`、`"`、`&`。
 
 
 
+**c命名空间注入有两种方式：**
+
++ 根据构造器下标注入
++ 根据构造器参数名称注入
 
 
-## 4.6
+
+## 4.6 util命名空间
+
+使用util命名空间可以让**配置复用**
+
+
+
+**演示：**
+
+我们创建两个数据源类`MyDataSource1`和`MyDataSource2`，并在配置文件中注入Bean信息。
+
+![image-20251119160848869](Spring6.assets/image-20251119160848869.png)
+
+可以看到两个配置对象是一样的配置信息，但是要做两次Bean的配置。使用util命名空间则可以制作一次配置，需要的时候直接复用就可以了。
+
+
+
+**util命名空间使用：**
+
++ 在配置文件头添加utiil命名空间和约束
+
+  + `xmlns:util="http://www.springframework.org/schema/util"`
+  + `http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd`
+
++ 配置可复用信息，包含多种集合。
+
+  ![image-20251119180631760](Spring6.assets/image-20251119180631760.png)
+
++ 使用的时候通过`ref`引入。
+
+
+
+![image-20251119180334503](Spring6.assets/image-20251119180334503.png)
+
+
+
+
+
+## 4.7 基于XML的自动装配
+
+Spring还可以完成自动化的注入，自动化注入又被称为自动装配。
+
+它可以根据**名字**进行自动装配，也可以根据**类型**进行自动装配。
+
+
+
+### 4.7.1 根据名称自动装配
 
