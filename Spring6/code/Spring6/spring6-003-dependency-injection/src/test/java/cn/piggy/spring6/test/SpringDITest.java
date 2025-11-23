@@ -15,6 +15,23 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class SpringDITest {
 
     @Test
+    public void testProperties(){
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-properties.xml");
+        MyDataSource ds = applicationContext.getBean("ds", MyDataSource.class);
+        System.out.println(ds);
+    }
+
+    @Test
+    public void testAutowire(){
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-autowire.xml");
+        /*OrderService orderService = applicationContext.getBean("orderService", OrderService.class);
+        orderService.generate();*/
+
+        CustomerService customerService = applicationContext.getBean("cs", CustomerService.class);
+        customerService.save();
+    }
+
+    @Test
     public void testUtil() {
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-util.xml");
         MyDataSource1 ds1 = applicationContext.getBean("ds1", MyDataSource1.class);
