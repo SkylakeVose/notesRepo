@@ -1404,5 +1404,102 @@ public class VipDao {
 
 
 
-# 5. Bean的作用域
+# 第五章节 Bean的作用域
+
+## 5.1 singleton
+
+默认情况下，Spring的IoC容器创建的Bean对象是单例的。来测试一下：
+
+![image-20251124165423989](Spring6.assets/image-20251124165423989.png)
+
+
+
+## 5.2 prototype
+
+如果想要创建多例不同的SpringBean对象，可以在配置中使用`scope="prototype"`：
+
+![image-20251124165806798](Spring6.assets/image-20251124165806798.png)
+
+
+
+**Spring是怎么管理Bean的？**
+
++ 默认情况下Bean是单例的（不配置 或者 `scope:"singleton"`）：
+  + 在Spring上下文初始化的时候实例化。
+  + 每一次调用`getBean()`方法的时候，都会返回这个单例对象。
++ 当Bean被设置为多例模式（`scope="prototype"`）：
+  + Spring上下文初始化的时候，并不会初始化这些`prototype`的bean。
+  + 每一次调用`getBean()`方法时，会实例化该bean对象。
+  + prototype翻译为：原型。
+
+
+
+## 5.3 scope的其他值
+
+**scope属性的值不止两个，它一共包括8个选项：**
+
+- `singleton`：默认的，单例。
+- `prototype`：原型。每调用一次getBean()方法则获取一个新的Bean对象。或每次注入的时候都是新对象。
+- `request`：一个请求对应一个Bean。**仅限于在WEB应用中使用**。
+- `session`：一个会话对应一个Bean。**仅限于在WEB应用中使用**。
+- `global session`：**portlet应用中专用的**。如果在Servlet的WEB应用中使用global session的话，和session一个效果。（portlet和servlet都是规范。servlet运行在servlet容器中，例如Tomcat。portlet运行在portlet容器中。）
+- `application`：一个应用对应一个Bean。**仅限于在WEB应用中使用。**
+- `websocket`：一个websocket生命周期对应一个Bean。**仅限于在WEB应用中使用。**
+- 自定义scope：很少使用。
+
+
+
+## 5.4 自定义Scope（了解）
+
+需求：
+
++ 测试程序中有两个线程，每个线程各自调用getBean()方法，要求同一个线程获取的SpringBean对象是一样的，不同线程获取的SpringBean对象是不一样的。
+
++ 在默认情况下SpringBean是单例，两个线程获取到的bean对象都是一样的：
+
+  ![image-20251124173650553](Spring6.assets/image-20251124173650553.png)
+
+
+
+我们需要自定义一个scope，线程级别的Scope，在同一个线程中获取的Bean都是同一个，跨线程获取的则是不同的对象：
+
++ 自定义scope（实现scope接口）：
+
+  spring内置了线程范围的类：`org.springframework.context.support.SimpleThreadScope`，可以直接使用。
+
++ 将自定义的Scope注册到Spring容器中：
+
+  ```xml
+  <!--配置自定义的作用域-->
+  <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+      <property name="scopes">
+          <map>
+              <entry key="threadScope">
+                  <!--这个Scope接口的实现类使用的是Spring框架内置的。也可以自定义-->
+                  <bean class="org.springframework.context.support.SimpleThreadScope"/>
+              </entry>
+          </map>
+      </property>
+  </bean>
+  ```
+
++ 使用Scope：
+
+  ```xml
+  <bean id="sb" class="cn.piggy.spring6.bean.SpringBean" scope="threadScope"></bean>
+  ```
+
+这样我们就能实现这个功能了：
+
+![image-20251124174615274](Spring6.assets/image-20251124174615274.png)
+
+
+
+# 第六章节 GoF之工厂模式
+
+
+
+
+
+
 

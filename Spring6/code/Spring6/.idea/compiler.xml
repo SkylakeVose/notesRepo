@@ -6,9 +6,10 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="Spring6-002-first" />
         <module name="spring6-001-revelation" />
         <module name="spring6-003-dependency-injection" />
-        <module name="Spring6-002-first" />
+        <module name="spring6-004-scope" />
       </profile>
     </annotationProcessing>
   </component>
