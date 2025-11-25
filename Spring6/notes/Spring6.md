@@ -1497,9 +1497,309 @@ public class VipDao {
 
 # 第六章节 GoF之工厂模式
 
+- 设计模式：一种可以被重复利用的解决方案。
+
+- **GoF**（Gang of Four），中文名——四人组。
+- 《Design Patterns: Elements of Reusable Object-Oriented Software》（即《设计模式》一书），1995年由 Erich Gamma、Richard Helm、Ralph Johnson 和 John Vlissides 合著。这几位作者常被称为"四人组（Gang of Four）"。
+- 该书中描述了23种设计模式。我们平常所说的设计模式就是指这23种设计模式。
+- 不过除了GoF23种设计模式之外，还有其它的设计模式，比如：JavaEE的设计模式（DAO模式、MVC模式等）。
+- GoF23种设计模式可分为三大类：
+  - 创建型（5个）：解决对象创建问题。
+    - 单例模式
+    - 工厂方法模式
+    - 抽象工厂模式
+    - 建造者模式
+    - 原型模式
+  - 结构性（7个）：一些类或对象组合在一起的经典结构。
+    - 代理模式
+    - 装饰模式
+    - 适配器模式
+    - 组合模式
+    - 享元模式
+    - 外观模式
+    - 桥接模式
+  - 行为性（11个）：解决类或对象之间的交互问题。
+    - 策略模式
+    - 模板方法模式
+    - 责任链模式
+    - 观察者模式
+    - 迭代子模式
+    - 命令模式
+    - 备忘录模式
+    - 状态模式
+    - 访问者模式
+    - 中介者模式
+    - 解释器模式
+- 工厂模式是解决对象创建问题的，所以工厂模式属于创建型设计模式。这里为什么学习工厂模式呢？这是因为Spring框架底层使用了大量的工厂模式。
+
+
+
+## 6.1 工厂模式的三种形态
+
+工厂模式通常有三种形态：
+
+- 第一种：**简单工厂模式（Simple Factory）：不属于23种设计模式之一。简单工厂模式又叫做：静态 工厂方法模式。简单工厂模式是工厂方法模式的一种特殊实现。**
+- 第二种：工厂方法模式（Factory Method）：是23种设计模式之一。
+- 第三种：抽象工厂模式（Abstract Factory）：是23种设计模式之一。
+
+
+
+## 6.2 简单工厂模式
+
+简单工厂模式的角色包括三个：
+
+- 抽象产品角色
+- 具体产品角色
+- 工厂类角色
+
+
+
+**抽象产品角色：**
+
+```java
+// Weapon.class
+public abstract class Weapon {
+    // 武器攻击方式
+    public abstract void attack();
+}
+```
+
+
+
+**具体产品角色：**
+
+```java
+// Tank.class
+public class Tank extends Weapon{
+    @Override
+    public void attack() {
+        System.out.println("坦克炮击!");
+    }
+}
+
+// Fighter.class
+public class Fighter extends Weapon{
+    @Override
+    public void attack() {
+        System.out.println("战斗机投弹!");
+    }
+}
+
+// Dagger.class
+public class Dagger extends Weapon{
+    @Override
+    public void attack() {
+        System.out.println("短刀劈砍！");
+    }
+}
+```
+
+
+
+**工厂类角色：**
+
+```java
+// WeaponFactory.class
+public class WeaponFactory {
+    /*
+        静态方法，需要获取什么产品？根据不同的武器类型生产武器
+        简单工厂模式中有一个静态方法，所以被称为：静态工厂方法模式
+     */
+    public static Weapon get(String weaponType) {
+        if("TANK".equals(weaponType)) {
+            return new Tank();
+        } else if("DAGGER".equals(weaponType)) {
+            return new Dagger();
+        } else if("FIGHTER".equals(weaponType)) {
+            return new Fighter();
+        } else {
+            throw new RuntimeException("不支持该武器生产.");
+        }
+    }
+}
+```
+
+
+
+测试程序（客户端程序）：
+
+```java
+public class Test {
+    public static void main(String[] args) {
+
+        // 对于工厂来说，坦克类的创建细节我不需要了解，只需要向工厂索要就好
+
+        // 需要坦克
+        Weapon tank = WeaponFactory.get("TANK");
+        tank.attack();
+
+        // 需要匕首
+        Weapon dagger = WeaponFactory.get("DAGGER");
+        dagger.attack();
+
+        // 需要战斗机
+        Weapon fighter = WeaponFactory.get("FIGHTER");
+        fighter.attack();
+    }
+}
+```
+
+
+
+执行结果：
+
+![image-20251125170443506](Spring6.assets/image-20251125170443506.png)
+
+
+
+**简单工厂模式的优缺点：**
+
++ 优点：客户端程序不需要关心对象的创建细节，需要哪个对象时，只需要向工厂索要即可，初步实现了责任的分离。客户端只负责“消费”，工厂负责“生产”。生产和消费分离。
++ 缺点：
+  + 工厂类集中了所有产品的创造逻辑，形成一个无所不知的全能类，有人把它叫做上帝类。显然工厂类非常关键，不能出问题，一旦出问题，整个系统瘫痪。
+  + 不符合OCP开闭原则，在进行系统扩展时，需要修改工厂类。
+
+**Spring中的BeanFactory就使用了简单工厂模式。**
+
+
+
+## 6.3 工厂方法模式
+
+工厂方法模式可以解决简单工厂模式当中的OCP问题。
+
+一个工厂对应生产一种产品，这样工厂就不是全能类了，同时也符合了OCP原则。
+
+
+
+**工厂方法模式中的角色：**
+
++ 抽象产品角色：Weapon
++ 具体产品角色：Dagger、Gun
++ 抽象工厂角色：WeaponFactory
++ 具体工厂角色：DaggerFactory、GunFactory
+
+
+
+**抽象产品角色：**
+
+```java
+// Weapon.class
+public abstract class Weapon {
+    public abstract void attack();
+}
+```
+
+
+
+**具体产品角色：**
+
+```java
+// Dagger.class
+public class Dagger extends Weapon{
+    @Override
+    public void attack() {
+        System.out.println("短刀劈砍！");
+    }
+}
+
+// Gun.class
+public class Gun extends Weapon{
+    @Override
+    public void attack() {
+        System.out.println("开枪射击！");
+    }
+}
+```
+
+
+
+**抽象工厂角色：**
+
+```java
+// WeaponFactory.class
+public abstract class WeaponFactory {
+    // 这个方法不是静态的，是实例方法
+    public abstract Weapon get();
+}
+```
+
+
+
+**具体工厂角色：**
+
+```java
+// DaggerFactory.class
+public class DaggerFactory extends WeaponFactory{
+    @Override
+    public Weapon get() {
+        return new Dagger();
+    }
+}
+
+// GunFactory.class
+public class GunFactory extends WeaponFactory{
+    @Override
+    public Weapon get() {
+        return new Gun();
+    }
+}
+```
+
+
+
+**测试代码（客户端程序）：**
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        WeaponFactory daggerFactory = new DaggerFactory();
+        Weapon dagger = daggerFactory.get();
+        dagger.attack();
+
+        WeaponFactory gunFactory = new GunFactory();
+        Weapon gun = gunFactory.get();
+        gun.attack();
+    }
+}
+```
+
+
+
+**运行结果：**
+
+![image-20251125174209070](Spring6.assets/image-20251125174209070.png)
+
+
+
+如果想扩展一个新的产品，只要新增一个产品类，再新增一个该产品对应的工厂即可。
+
+
+
+我们可以看到在进行功能扩展的时候，不需要修改之前的源代码，显然工厂方法模式符合OCP原则。
+
+**工厂方法模式的优点：**
+
+- 一个调用者想创建一个对象，只要知道其名称就可以了。 
+- 扩展性高，如果想增加一个产品，只要扩展一个产品类和一个其工厂类就可以。
+- 屏蔽产品的具体实现，调用者只关心产品的接口。
+
+
+
+**工厂方法模式的缺点：**
+
+- 每次增加一个产品时，都需要增加一个具体类和对象实现工厂，使得系统中类的个数成倍增加，在一定程度上增加了系统的复杂度，同时也增加了系统具体类的依赖。这并不是什么好事。
 
 
 
 
 
+## 6.4 抽象工厂模式（了解）
+
+// TODO
+
+
+
+
+
+# 第七章节 Bean的实例化方式
 
