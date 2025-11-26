@@ -13,5 +13,7 @@
     <file url="file://$PROJECT_DIR$/spring6-003-dependency-injection/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/spring6-004-scope/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/spring6-004-scope/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring6-005-bean-instantiation/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring6-005-bean-instantiation/src/main/resources" charset="UTF-8" />
   </component>
 </project>

@@ -10,6 +10,7 @@
         <option value="$PROJECT_DIR$/spring6-004-scope/pom.xml" />
         <option value="$PROJECT_DIR$/simple-factory/pom.xml" />
         <option value="$PROJECT_DIR$/factory-method/pom.xml" />
+        <option value="$PROJECT_DIR$/spring6-005-bean-instantiation/pom.xml" />
       </list>
     </option>
   </component>
