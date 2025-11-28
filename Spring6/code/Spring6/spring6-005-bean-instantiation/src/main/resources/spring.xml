@@ -7,5 +7,12 @@
         Spring提供的第一种实例化方式：
         在spring配置文件中直接配置类全路径，Spring会自动调用该类的无参数构造方法来实例化Bean
     -->
-    <bean id="sb" class="cn.piggy.spring6.bean.SpringBean" />
+    <!--<bean id="sb" class="cn.piggy.spring6.bean.SpringBean" />-->
+
+    <!--
+        Spring提供的第二种实例化方式：
+        通过简单工厂模式，需要在Spring配置文件中高速框架，嗲用哪个类的哪个方法获取Bean
+    -->
+    <!--factory-method 属性制定的是工厂类当中的静态方法，也就是告诉框架调用哪个方法可以获取Bean-->
+    <bean id="starBean" class="cn.piggy.spring6.bean.StarFactory" factory-method="get"/>
 </beans>

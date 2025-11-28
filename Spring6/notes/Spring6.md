@@ -1814,3 +1814,70 @@ Spring为Bean提供了多种实例化方式，通常包括4种方式。（也就
 
 ## 7.1 通过构造方法实例化
 
+我们之前一直使用的就是这种方式。默认情况下，会调用Bean的无参数构造方法。
+
+![image-20251128144415333](Spring6.assets/image-20251128144415333.png)
+
+
+
+## 7.2 通过简单工厂模式实例化
+
+1. 定义一个实体类：Star
+
+   ```java
+   public class Star {
+       public Star() {
+           System.out.println("Star类的无参构造函数被调用...");
+       }
+   }
+   ```
+
+2. 定义一个工厂类：StarFactory
+
+   ```java
+   // 简单工厂模式中的工厂类角色
+   public class StarFactory {
+   
+       // 工厂类中有一个静态方法
+       // 简单工厂模式又叫做：静态工厂方法模式
+       public static Star get() {
+           // 这个Star对象最终还是工厂类负责new对象
+           return new Star();
+       }
+   }
+   ```
+
+3. 在spring.xml配置Bean
+
+   ```xml
+   <!--
+       Spring提供的第二种实例化方式：
+       通过简单工厂模式，需要在Spring配置文件中高速框架，嗲用哪个类的哪个方法获取Bean
+   -->
+   <!--factory-method 属性制定的是工厂类当中的静态方法，也就是告诉框架调用哪个方法可以获取Bean-->
+   <bean id="starBean" class="cn.piggy.spring6.bean.StarFactory" factory-method="get"/>
+   ```
+
+4. 测试代码
+
+   ```java
+   @Test
+   public void testInstantiation2() {
+       ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
+       Star star = applicationContext.getBean("starBean", Star.class);
+       System.out.println(star);
+   }
+   ```
+
+5. 运行结果
+
+   ![image-20251128175215517](Spring6.assets/image-20251128175215517.png)
+
+
+
+
+
+## 7.3 通过factory-bean实例化
+
+
+
