@@ -3,6 +3,25 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+
+    <!--通过工厂Bean:DateFactoryBean 来返回普通Bean:java.util.Date-->
+    <bean id="date" class="cn.piggy.spring6.bean.DateFactoryBean">
+        <constructor-arg index="0" value="1980-10-11"/>
+    </bean>
+    <bean id="student" class="cn.piggy.spring6.bean.Student">
+        <property name="birth" ref="date"/>
+    </bean>
+
+    <!--这种方式只能获取系统当前时间，不能用作生日-->
+    <!--<bean id="nowTime" class="java.util.Date"/>
+
+    <bean id="student" class="cn.piggy.spring6.bean.Student">
+        &lt;!&ndash;把时间当做简单类型&ndash;&gt;
+        &lt;!&ndash;<property name="birth" value="Mon Dec 01 17:33:50 CST 2025"/>&ndash;&gt;
+        &lt;!&ndash;把时间当做非简单类型&ndash;&gt;
+        <property name="birth" ref="nowTime"/>
+    </bean>-->
+
     <!--
         Spring提供的第一种实例化方式：
         在spring配置文件中直接配置类全路径，Spring会自动调用该类的无参数构造方法来实例化Bean
@@ -15,4 +34,22 @@
     -->
     <!--factory-method 属性制定的是工厂类当中的静态方法，也就是告诉框架调用哪个方法可以获取Bean-->
     <bean id="starBean" class="cn.piggy.spring6.bean.StarFactory" factory-method="get"/>
+
+    <!--
+        Spring提供的第三种实例化方法：
+        通过factory-bean属性 + factory-method属性来共同完成
+    -->
+    <!--告诉Spring框架，调用哪个对象的哪个方法来获取Bean-->
+    <bean id="gunFactory" class="cn.piggy.spring6.bean.GunFactory"/>
+    <!--factory-bean属性告诉Spring调用哪个对象， factory-method属性告诉Spring调用该对象的哪个方法-->
+    <bean id="gun" factory-bean="gunFactory" factory-method="get"/>
+
+    <!--
+        Spring提供的第四种实例化方法：
+        这个方式实际上就是第三种方式的简化。
+        由于编写的类已经实现了FactoryBean接口，所以这个类是一个特殊的类，不需要再手动指定factory-bean和factory-method。
+    -->
+    <!--通过一个特殊的Bean：工厂Bean。来返回一个普通的Bean Person对象-->
+    <!--通过FactoryBean这个工厂类，主要是想对普通Bean进行加工处理-->
+    <bean id="person" class="cn.piggy.spring6.bean.PersonFactoryBean"/>
 </beans>

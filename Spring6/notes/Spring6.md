@@ -1879,5 +1879,278 @@ Spring为Bean提供了多种实例化方式，通常包括4种方式。（也就
 
 ## 7.3 通过factory-bean实例化
 
+这种方式本质上是：通过工厂方法模式进行实例化。
+
+1. 定义具体产品类：`Gun`
+
+   ```java
+   // 具体产品角色
+   public class Gun {
+       public Gun() {
+           System.out.println("Gun的无参数构造方法执行...");
+       }
+   }
+   ```
+
+2. 定义具体工厂类：`GunFactory`
+
+   ```java
+   // 具体工厂角色
+   public class GunFactory {
+   
+       // 具体工厂橘色中的方法是：实例方法
+       public Gun get() {
+           // 实际上new的这个对象还是我们自己new的
+           return new Gun();
+       }
+   }
+   ```
+
+3. 填写相关配置文件信息：
+
+   ```xml
+   <!--
+       Spring提供的第三种实例化方法：
+       通过factory-bean属性 + factory-method属性来共同完成
+   -->
+   <!--告诉Spring框架，调用哪个对象的哪个方法来获取Bean-->
+   <bean id="gunFactory" class="cn.piggy.spring6.bean.GunFactory"/>
+   <!--factory-bean属性告诉Spring调用哪个对象， factory-method属性告诉Spring调用该对象的哪个方法-->
+   <bean id="gun" factory-bean="gunFactory" factory-method="get"/>
+   ```
+
+4. 测试代码：
+
+   ```java
+   @Test
+   public void testInstantiation3() {
+       ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
+       Gun gun = applicationContext.getBean("gun", Gun.class);
+       System.out.println(gun);
+   }
+   ```
+
+![image-20251201155929011](Spring6.assets/image-20251201155929011.png)
+
+![image-20251201160311094](Spring6.assets/image-20251201160311094.png)
 
 
+
+## 7.4 通过FactoryBean接口实例化
+
+以上的第三种方式中，`factory-bean`是我们自定义的，`factory-method`也是我们自己定义的。
+
+在Spring中，当你编写的类直接实现FactoryBean接口之后，`factory-bean`不需要指定了，`factory-method`也不需要指定了。
+
+`factory-bean`会自动指向实现FactoryBean接口的类，`factory-method`会自动指向getObject()方法。
+
+通过FactoryBean接口实现实例化实际上是对第三种方式（通过factory-bean）的一种简化。
+
+
+
+1. 定义一个Bean：
+
+   ```java
+   public class Person {
+       public Person() {
+           System.out.println("Person的无参数构造方法执行...");
+       }
+   }
+   ```
+
+2. 定义一个实现FactoryBean接口的工厂类：
+
+   ```java
+   // PersonFactoryBean也是一个Bean，但是比较特殊，叫做工厂Bean
+   // 通过工厂Bean这个特殊的Bean可以获取一个普通的Bean
+   public class PersonFactoryBean implements FactoryBean<Person> {
+       @Override
+       public Person getObject() throws Exception {
+           // 最终这个Bean的创建还是程序员自己new的
+           return new Person();
+       }
+   
+       @Override
+       public Class<?> getObjectType() {
+           return null;
+       }
+   
+       // 这个方法在接口中有默认实现，默认返回true（表示单例）
+       // 如果想多例，可以将该方法返回值修改为false
+       @Override
+       public boolean isSingleton() {
+           return FactoryBean.super.isSingleton();
+       }
+   }
+   ```
+
+3. 配置相关信息：
+
+   ```xml
+   <!--
+       Spring提供的第四种实例化方法：
+       这个方式实际上就是第三种方式的简化。
+       由于编写的类已经实现了FactoryBean接口，所以这个类是一个特殊的类，不需要再手动指定factory-bean和factory-method。
+   -->
+   <!--通过一个特殊的Bean：工厂Bean。来返回一个普通的Bean Person对象-->
+   <!--通过FactoryBean这个工厂类，主要是想对普通Bean进行加工处理-->
+   <bean id="person" class="cn.piggy.spring6.bean.PersonFactoryBean"/>
+   ```
+
+4. 测试函数：
+
+   ```java
+   @Test
+   public void testInstantiation4() {
+       ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
+       Person person = applicationContext.getBean("person", Person.class);
+       System.out.println(person);
+   }
+   ```
+
+
+
+**FactoryBean在Spring中是一个接口。被称为“工厂Bean”。**
+
+**“工厂Bean”是一种特殊的Bean。所有的“工厂Bean”都是用来协助Spring框架来创建其他Bean对象的。**
+
+
+
+![image-20251201165055089](Spring6.assets/image-20251201165055089.png)
+
+![image-20251201165123154](Spring6.assets/image-20251201165123154.png)
+
+
+
+
+
+## 7.5 BeanFactory和FactoryBean的区别
+
+### 7.5.1 BeanFactory
+
+Spring IoC容器的顶级对象，BeanFactory被翻译为“Bean工厂”，在Spring的IoC容器中，“Bean工厂”负责创建Bean对象。
+
+BeanFactory是工厂。
+
+我们常用的ApplicationContext的父接口就是BeanFactory。
+
+![image-20251201172538628](Spring6.assets/image-20251201172538628.png)
+
+
+
+### 7.5.2 FactoryBean
+
+FactoryBean：它是一个Bean，是一个能够**辅助Spring**实例化其它Bean对象的一个Bean。
+
+在Spring中，Bean可以分为两类：
+
+- 第一类：普通Bean
+- 第二类：工厂Bean（记住：工厂Bean也是一种Bean，只不过这种Bean比较特殊，它可以辅助Spring实例化其它Bean对象。）
+
+
+
+## 7.6 注入自定义Date
+
+我们前面说过，`java.util.Date`在Spring中被当做简单类型，简单类型在注入的时候可以直接使用`value`属性或`value`标签来完成。
+
+但我们之前已经测试过了，对于Date类型来说，采用value属性或value标签赋值的时候，对日期字符串的格式要求非常严格，必须是这种格式的：Mon Oct 10 14:30:26 CST 2022。其他格式是不会被识别的。以下为演示部分：
+
+1. 定义一个Bean：Student，里面有Date属性
+
+   ```java
+   public class Student {
+   
+       // java.util.Date 在Spring当中被当做简单类型，但是注入的日期格式有要求。
+       // java.util.Date 在Spring当中也可以被当成非简单类型。
+       private Date birth;
+   
+       public void setBirth(Date birth) {
+           this.birth = birth;
+       }
+   
+       @Override
+       public String toString() {
+           return "Student{" +
+               "birth=" + birth +
+               '}';
+       }
+   }
+   ```
+
+2. 填写配置信息：
+
+   ```xml
+   <!--这种方式只能获取系统当前时间，不能用作生日-->
+   <bean id="nowTime" class="java.util.Date"/>
+   
+   <bean id="student" class="cn.piggy.spring6.bean.Student">
+       <!--把时间当做简单类型-->
+       <!--<property name="birth" value="Mon Dec 01 17:33:50 CST 2025"/>-->
+       <!--把时间当做非简单类型-->
+       <property name="birth" ref="nowTime"/>
+   </bean>
+   ```
+
+3. 测试函数：
+
+   ```java
+   @Test
+   public void testDate() {
+       ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
+       Student student = applicationContext.getBean("student", Student.class);
+       System.out.println(student);
+   }
+   ```
+
+使用之间的方法，使用简单类型注入，只能按照规定的日期格式，否则报错；使用非简单类型注入，则只能获取当前日期，不能用作生日字段。
+
+因为我们可以使用工厂Bean的方式进行处理：
+
+1. 添加工厂Bean：DateFactoryBean
+
+   ```java
+   public class DateFactoryBean implements FactoryBean<Date> {
+   
+       // DateFactoryBean这个工厂Bean协助我们Spring创建这个普通的Bean：Date
+   
+       private String strDate;
+   
+       public DateFactoryBean(String strDate) {
+           this.strDate = strDate;
+       }
+   
+       @Override
+       public Date getObject() throws Exception {
+           SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+           Date date = sdf.parse(strDate);
+           return date;
+       }
+   
+       @Override
+       public Class<?> getObjectType() {
+           return null;
+       }
+   }
+   ```
+
+2. 修改配置文件
+
+   ```xml
+   <!--通过工厂Bean:DateFactoryBean 来返回普通Bean:java.util.Date-->
+   <bean id="date" class="cn.piggy.spring6.bean.DateFactoryBean">
+       <constructor-arg index="0" value="1980-10-11"/>
+   </bean>
+   <bean id="student" class="cn.piggy.spring6.bean.Student">
+       <property name="birth" ref="date"/>
+   </bean>
+   ```
+
+3. 进行测试
+
+   ![image-20251201175018086](Spring6.assets/image-20251201175018086.png)
+
+
+
+
+
+# 8. Bean的生命周期
