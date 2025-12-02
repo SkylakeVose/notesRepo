@@ -2153,4 +2153,363 @@ FactoryBean：它是一个Bean，是一个能够**辅助Spring**实例化其它B
 
 
 
-# 8. Bean的生命周期
+# 第八章节 Bean的生命周期
+
+## 8.1 什么是Bean的生命周期
+
+Spring其实就是一个管理Bean对象的工厂。它负责对象的创建，对象的销毁等。
+
+所谓的生命周期就是：对象从创建开始到最终销毁的整个过程。
+
+什么时候创建Bean对象？
+
+创建Bean对象的前后会调用什么方法？
+
+Bean对象什么时候销毁？
+
+Bean对象的销毁前后调用什么方法？
+
+
+
+## 8.2 为什么要知道Bean的生命周期
+
+其实生命周期的本质是：在哪个时间节点上调用了哪个类的哪个方法。
+
+我们需要充分的了解在这个生命线上，都有哪些特殊的时间节点。
+
+只有我们知道了特殊的时间节点都在哪，到时我们才可以确定代码写到哪。
+
+我们可能需要在某个特殊的时间点上执行一段特定的代码，这段代码就可以放到这个节点上。当生命线走到这里的时候，自然会被调用。
+
+
+
+## 8.3 Bean生命周期之5步
+
+Bean生命周期的管理，可以参考Spring的源码：**AbstractAutowireCapableBeanFactory类的doCreateBean()方法****。
+
+Bean生命周期可以粗略的划分为五大步：
+
+- 第一步：实例化Bean（调用无参数构造方法）
+- 第二步：给Bean赋值（调用set方法）
+- 第三步：初始化Bean（会调用Bean的init方法，注意该方法需要自己写，自己配）
+- 第四步：使用Bean
+- 第五步：销毁Bean（会调用Bean的destroy方法，注意该方法需要自己写，自己配）
+
+![img](Spring6.assets/1665388735200-444405f6-283d-4b3a-8cdf-8c3e01743618.png)
+
+
+
+**编写一个测试程序：**
+
+1. 定义一个Bean：
+
+   ```java
+   public class User {
+   
+       private String name;
+   
+       public void setName(String name) {
+           System.out.println("第二步：给对象的属性赋值...");
+           this.name = name;
+       }
+   
+       public User() {
+           System.out.println("第一步：无参构造方法执行...");
+       }
+   
+       public void initBean() {
+           System.out.println("第三步：初始化Bean...");
+       }
+   
+       public void destroyBean() {
+           System.out.println("第五步：销毁Bean...");
+       }
+   }
+   ```
+
+2. 编写配置信息：
+
+   ```xml
+   <!--需要手动指定初始化方法 和销毁方法-->
+   <bean id="user" class="cn.piggy.spring6.bean.User"
+         init-method="initBean" destroy-method="destroyBean">
+       <property name="name" value="zhangsan"/>
+   </bean>
+   ```
+
+3. 测试函数：
+
+   ```java
+   public class BeanLifecycleTest {
+   
+       @Test
+       public void testBeanLifecycleFive() {
+           ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
+           User user = applicationContext.getBean("user", User.class);
+           System.out.println("第四步：使用Bean:" + user);
+   
+           // 注意：必须手动关闭Spring容器，这样Spring容器才会销毁Bean
+           ClassPathXmlApplicationContext context = (ClassPathXmlApplicationContext) applicationContext;
+           context.close();
+       }
+   }
+   ```
+
+4. 运行结果：
+
+   ![image-20251202113216794](Spring6.assets/image-20251202113216794.png)
+
+
+
+## 8.4 Bean生命周期之7步
+
+在以上的5步中，第3步是初始化Bean，如果你还想在初始化前和初始化后添加代码，可以加入“Bean后处理器”。
+
+如果加上Bean后处理器，其两个方法会在初始化Bean的前后执行，这样Bean的生命周期就是7步了。
+
+![image.png](Spring6.assets/1665393936765-0ea5dcdd-859a-4ac5-9407-f06022c498b9.png)
+
+
+
+**演示：**
+
+1. 编写一个类实现BeanPostProcessor类，并且重写before和after方法：
+
+   ```java
+   public class LogBeanPostProcessor implements BeanPostProcessor {
+   
+       @Override
+       public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+           System.out.println("执行Bean后处理器的before方法...");
+           return BeanPostProcessor.super.postProcessBeforeInitialization(bean, beanName);
+       }
+   
+       @Override
+       public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+           System.out.println("执行Bean后处理器的after方法...");
+           return BeanPostProcessor.super.postProcessAfterInitialization(bean, beanName);
+       }
+   }
+   ```
+
+2. 在spring.xml文件中配置“Bean后处理器”：
+
+   ```xml
+   <!--配置Bean后处理器。这个后处理器将作用于当前配置文件中所有的bean。-->
+   <bean class="com.powernode.spring6.bean.LogBeanPostProcessor"/>
+   ```
+
+   **一定要注意：在spring.xml文件中配置的Bean后处理器将作用于当前配置文件中所有的Bean。**
+
+   
+
+3. 测试结果：
+
+   ![image-20251202114919545](Spring6.assets/image-20251202114919545.png)
+
+
+
+
+
+## 8.5 Bean生命周期之10步
+
+如果根据源码跟踪，可以划分更细粒度的步骤，10步：
+
+![image.png](Spring6.assets/1665394697870-15de433a-8d50-4b31-9b75-b2ca7090c1c6.png)
+
+Bean的生命周期10步相较于7步，添加了三步：
+
++ **点位1：在Bean后处理器的before方法之前：**
+
+  检查了Bean是否实现了`Aware`相关的接口，如果实现了则调用。
+
+  调用这些方法的目的是为了传递一些数据，以方便你使用开发。
+
++ **点位2：在Bean后处理器的before方法之后：**
+
+  检查Bean是否实现了`InitializingBean`接口，如果实现了则调用。
+
++ **点位3：在使用Bean之后，亦或说是在Bean销毁之前：**
+
+  检查Bean是否实现了DisposableBean接口，如果实现了则调用。
+
+
+
+演示：
+
+1. 点位1：实现Aware接口
+
+   ![image-20251202141818268](Spring6.assets/image-20251202141818268.png)
+
+2. 点位2：实现InitializingBean接口
+
+   ![image-20251202142315625](Spring6.assets/image-20251202142315625.png)
+
+3. 点位3：实现DisposableBean接口
+
+   ![image-20251202142623617](Spring6.assets/image-20251202142623617.png)
+
+
+
+## 8.6 Bean的作用域不同，管理方式不同
+
+Spring 根据Bean的作用域来选择管理方式。
+
+- 对于`singleton`作用域的Bean，Spring 能够精确地知道该Bean何时被创建，何时初始化完成，以及何时被销毁；
+- 而对于 `prototype` 作用域的 Bean，Spring 只负责创建，当容器创建了 Bean 的实例后，Bean 的实例就交给客户端代码管理，Spring 容器将不再跟踪其生命周期。
+
+
+
+我们把之前User类的spring.xml文件中的配置scope设置为prototype：
+
+![image-20251202160046218](Spring6.assets/image-20251202160046218.png)
+
+
+
+## 8.7 自己new的对象如何让Spring管理
+
+有些时候可能会遇到这样的需求，某个java对象是我们自己new的，然后我们希望这个对象被Spring容器管理，怎么实现？
+
+
+
+测试代码：
+
+```java
+// Student.java
+public class Student {
+}
+```
+
+```java
+// BeanLifecycleTest.java
+@Test
+public void testRegisterBean() {
+    // 自己new对象
+    Student student = new Student();
+    System.out.println(student);
+
+    // 将以上自己new的对象纳入Spring容器来管理
+    DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+    factory.registerSingleton("studentBean",student);
+
+    // 从Spring容器中获取
+    Object studentBean = factory.getBean("studentBean");
+    System.out.println(studentBean);
+}
+```
+
+运行结果：
+
+![image-20251202160758121](Spring6.assets/image-20251202160758121.png)
+
+
+
+
+
+# 第九章节 Bean的循坏依赖问题
+
+## 9.1 什么是Bean的循环依赖
+
+A对象中有B属性。B对象中有A属性。这就是循环依赖。我依赖你，你也依赖我。
+
+比如：丈夫类Husband，妻子类Wife。Husband中有Wife的引用。Wife中有Husband的引用。
+
+![image.png](Spring6.assets/1665452274046-82594b87-2974-4e08-a6ab-2218d001d14f.png)
+
+代码如下：
+
+```java
+// Husband.java
+public class Husband {
+    private String name;
+    private Wife wife;
+}
+
+// Wife.java
+public class Wife {
+    private String name;
+    private Husband husband;
+}
+```
+
+
+
+
+
+## 9.2 singleton下的set注入产生的循环依赖
+
+我们来编写程序，测试一下在singleton+setter的模式下产生的循环依赖，Spring是否能够解决？
+
+1. 编写Husband和Wife类
+
+   ![image-20251202173409205](Spring6.assets/image-20251202173409205.png)
+
+2. 编写配置文件
+
+   ![image-20251202173611465](Spring6.assets/image-20251202173611465.png)
+
+3. 测试输出
+
+   ![image-20251202173628000](Spring6.assets/image-20251202173628000.png)
+
+
+
+**通过测试得知：在singleton + set注入的情况下，循环依赖是没有问题的。Spring可以解决这个问题。**
+
+
+
+**在singleton + setter的模式下，为什么循环依赖不会出现问题？Spring是如何应对的？**
+
+主要的原因是，在这种模式下Spring对Bean的管理主要分为清晰的两个阶段：
+
+1. 在Spring容器加载的时候，实例化Bean，只要其中任意一个Bean实例化会后，会马上进行“曝光”（不等属性赋值就曝光）。
+2. Bean“曝光”之后，在进行属性的赋值（调用set方法）。
+
+核心解决方案：实例化对象和对象的属性赋值分成了两个阶段来完成。
+
+注意：只有在scope属性为`singleton`的时候，Bean才会采取提前“曝光”的措施。
+
+
+
+
+
+## 9.3 prototype下的set注入产生的循环依赖
+
+我们再来测试一下：prototype+set注入的方式下，循环依赖会不会出现问题？
+
+![image-20251202175330040](Spring6.assets/image-20251202175330040.png)
+
+执行测试程序：发生了异常，异常信息如下：
+
+> Caused by: org.springframework.beans.factory.**BeanCurrentlyInCreationException**: Error creating bean with name 'husbandBean': Requested bean is currently in creation: Is there an unresolvable circular reference?
+>
+> ​	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:265)
+>
+> ​	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199)
+>
+> ​	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:325)
+>
+> ​	... 44 more
+
+翻译为：创建名为“husbandBean”的bean时出错：请求的bean当前正在创建中：是否存在无法解析的循环引用？
+
+通过测试得知，当循环依赖的所有Bean的scope="prototype"的时候，产生的循环依赖，Spring是无法解决的，会出现**BeanCurrentlyInCreationException**异常。
+
+
+
+大家可以测试一下，以上两个Bean，如果其中一个是singleton，另一个是prototype，是没有问题的。
+
+![image-20251202175449550](Spring6.assets/image-20251202175449550.png)
+
+
+
+为什么两个Bean都是prototype时会出错呢？
+
+![image.png](Spring6.assets/1665454469042-69668f45-5d71-494f-8537-18142d354abd.png)
+
+
+
+
+
+## 9.4 singleton下的构造注入产生的循环依赖
+
