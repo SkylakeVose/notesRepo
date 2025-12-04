@@ -2513,3 +2513,100 @@ public class Wife {
 
 ## 9.4 singleton下的构造注入产生的循环依赖
 
+我们再来测试一下singleton + 构造注入的方式下，spring是否能够解决这种循环依赖。
+
+1. 编写实体类，并添加有参构造函数：
+
+   ![image-20251204145625139](Spring6.assets/image-20251204145625139.png)
+
+2. 编写配置文件及测试代码：
+
+   ![image-20251204145732203](Spring6.assets/image-20251204145732203.png)
+
+3. 运行结果：
+
+   ![image-20251204145807114](Spring6.assets/image-20251204145807114.png)
+
+
+
+和上一个测试结果相同，都是提示产生了循环依赖，并且Spring是无法解决这种循环依赖的。
+
+主要原因是因为通过构造方法注入导致的：因为构造方法注入会导致**实例化对象**的过程和**对象属性赋值**的过程没有分离开，必须在一起完成导致的。
+
+![image-20251204150137639](Spring6.assets/image-20251204150137639.png)
+
+
+
+
+
+## 9.5 Spring解决循环依赖的机理
+
+### 9.5.1 根本原因
+
+Spring为什么可以解决set + singleton模式下循环依赖？
+
+根本的原因在于：这种方式可以做到将“实例化Bean”和“给Bean属性赋值”这两个动作分开去完成。
+
+实例化Bean的时候：调用无参数构造方法来完成。**此时可以先不给属性赋值，可以提前将该Bean对象“曝光”给外界。**
+
+给Bean属性赋值的时候：调用setter方法来完成。
+
+
+
+两个步骤是完全可以分离开去完成的，并且这两步不要求在同一个时间点上完成。
+
+也就是说，Bean都是单例的，我们可以先把所有的单例Bean实例化出来，放到一个集合当中（我们可以称之为缓存），所有的单例Bean全部实例化完成之后，以后我们再慢慢的调用setter方法给属性赋值。这样就解决了循环依赖的问题。
+
+
+
+### 9.5.2 源码分析
+
+我们观察`AbstractAutowireCapableBeanFactory`类中的`doCreateBean`方法，以下是实例化Bean的过程：
+
+![image-20251204174353746](Spring6.assets/image-20251204174353746.png)
+
+
+
+在实例化Bean对象之后，会将该对象加入到缓存中，我们点入addSingletonFactory方法中：
+
+![image-20251204174821522](Spring6.assets/image-20251204174821522.png)
+
+
+
+我们进入`DefaultSingletonBeanRegistry`类中，首先认识三个比较重要的缓存：
+
+![image-20251204175333993](Spring6.assets/image-20251204175333993.png)
+
+这三个缓存都是Map集合，它们的key存储的都是Bean对象的name（bean id）：
+
++ 一级缓存`singletonObjects`：完整的单例Bean对象，也就是说这个缓存中的Bean对象的属性都已经被赋值。
++ 二级缓存`earlySingletonObjects`：早期的单例Bean对象。这个缓存中的Bean对象的属性没有被赋值，只是一个早期的单例Bean对象。
++ 三级缓存`singletonFactories`：单例工厂对象。这个缓存里面存储了大量的“工厂对象”，每一个单例的Bean对象都会对应一个单例工厂对象。这个缓存存储的是 创建这些单例对象是对应的单例工厂对象。
+
+
+
+重新回到addSingletonFactory方法：
+
+![image-20251204180334890](Spring6.assets/image-20251204180334890.png)
+
+
+
+后续可以通过populateBean方法来给Bean填充属性。
+
+
+
+Bean对象在进行赋值的时候，如果需要赋值另一个Bean对象，通过getSingleton方法会依次查询这三个缓存：
+
+![image-20251204180929757](Spring6.assets/image-20251204180929757.png)
+
+从源码中可以看到，spring会先从一级缓存中获取Bean，如果获取不到，则从二级缓存中获取Bean，如果二级缓存还是获取不到，则从三级缓存中获取之前曝光的ObjectFactory对象，通过ObjectFactory对象获取Bean实例，这样就解决了循环依赖的问题。
+
+
+
+### 9.5.3 总结
+
+**Spring只能解决setter方法注入的单例bean之间的循环依赖**。
+
+ClassA依赖ClassB，ClassB又依赖ClassA，形成依赖闭环。
+
+Spring在创建ClassA对象后，不需要等给属性赋值，直接将其曝光到bean缓存当中。在解析ClassA的属性时，又发现依赖于ClassB，再次去获取ClassB，当解析ClassB的属性时，又发现需要ClassA的属性，但此时的ClassA已经被提前曝光加入了正在创建的bean的缓存中，则无需创建新的的ClassA的实例，直接从缓存中获取即可。从而解决循环依赖问题。
