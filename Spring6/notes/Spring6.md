@@ -2610,3 +2610,83 @@ Bean对象在进行赋值的时候，如果需要赋值另一个Bean对象，通
 ClassA依赖ClassB，ClassB又依赖ClassA，形成依赖闭环。
 
 Spring在创建ClassA对象后，不需要等给属性赋值，直接将其曝光到bean缓存当中。在解析ClassA的属性时，又发现依赖于ClassB，再次去获取ClassB，当解析ClassB的属性时，又发现需要ClassA的属性，但此时的ClassA已经被提前曝光加入了正在创建的bean的缓存中，则无需创建新的的ClassA的实例，直接从缓存中获取即可。从而解决循环依赖问题。
+
+
+
+
+
+# 第十章节 回顾反射机制
+
+## 10.1 分析方法四要素
+
+我们先来看一下，不使用反射机制调用一个方法需要几个要素的参与。
+
+![image-20251205164336926](Spring6.assets/image-20251205164336926.png)
+
+
+
+调用一个方法，需要四个要素：
+
++ 第一要素：调用哪个对象
++ 第二要素：调用哪个方法
++ 第三要素：调用方法传进什么参数
++ 第四要素：方法执行后返回的结果
+
+
+
+## 10.2 & 10.3 获取Method和调用Mehtod
+
+1. 首先要获取类：
+
+   ```java
+   Class<?> clazz = Class.forName("cn.piggy.reflect.SomeService");
+   ```
+
+2. 获取Method方法：
+
+   ```java
+   // 获取doSome(String s, int i)方法
+   Method doSomeMethod = clazz.getDeclaredMethod("doSome", String.class, int.class);
+   
+   // 获取doSome()方法
+   clazz.getDeclaredMethod("doSome");
+   ```
+
+3. 调用Method（需要提前创建类对象）：
+
+   ```java
+   Object obj = clazz.newInstance();
+   Object retValue = doSomeMethod.invoke(obj, "李四", 120);
+   ```
+
+运行结果：
+
+![image-20251205165558349](Spring6.assets/image-20251205165558349.png)
+
+
+
+## 10.4 通过属性名调用方法
+
+现在已知以下信息：
+
+1. 有一个类，全类名：`cn.piggy.reflect.User`
+2. 这个类符合javabean规范：属性私有化，对外提供setter和getter方法
+3. 这个类当中有一个属性`age`
+4. 且这个属性`age`的类型是`int`
+
+代码实现：
+
+![image-20251205174632972](Spring6.assets/image-20251205174632972.png)
+
+
+
+假设如果我们未能知道该属性的类型，也可以先获取该属性，再通过该属性获取其属性类型：
+
+![image-20251205175012974](Spring6.assets/image-20251205175012974.png)
+
+
+
+
+
+# 第十一章节 手写Spring框架
+

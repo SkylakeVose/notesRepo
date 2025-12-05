@@ -11,6 +11,7 @@
         <module name="spring6-007-circular-dependency" />
         <module name="spring6-003-dependency-injection" />
         <module name="spring6-006-bean-lifecycle" />
+        <module name="revice-reflect" />
         <module name="spring6-005-bean-instantiation" />
         <module name="Spring6-002-first" />
         <module name="spring6-001-revelation" />
