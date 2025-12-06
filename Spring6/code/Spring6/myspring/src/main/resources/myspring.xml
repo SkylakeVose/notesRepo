@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--这个配置文件是使用myspring框架的开发人员提供的-->
+<beans>
+    <bean id="user" class="cn.piggy.myspring.bean.User">
+        <property name="name" value="张三"/>
+        <property name="age" value="18"/>
+    </bean>
+
+    <bean id="userDaoBean" class="cn.piggy.myspring.bean.UserDao"/>
+
+    <bean id="userService" class="cn.piggy.myspring.bean.UserService">
+        <property name="userDao" ref="userDaoBean"/>
+    </bean>
+</beans>
