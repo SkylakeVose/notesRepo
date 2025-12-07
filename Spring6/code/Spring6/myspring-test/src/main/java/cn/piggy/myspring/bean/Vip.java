@@ -1,9 +1,9 @@
 package cn.piggy.myspring.bean;
 
-public class User {
-
+public class Vip {
     private String name;
     private int age;
+    private double height;
 
     public void setName(String name) {
         this.name = name;
@@ -13,11 +13,16 @@ public class User {
         this.age = age;
     }
 
+    public void setHeight(double height) {
+        this.height = height;
+    }
+
     @Override
     public String toString() {
-        return "User{" +
+        return "Vip{" +
                 "name='" + name + '\'' +
                 ", age=" + age +
+                ", height=" + height +
                 '}';
     }
 }

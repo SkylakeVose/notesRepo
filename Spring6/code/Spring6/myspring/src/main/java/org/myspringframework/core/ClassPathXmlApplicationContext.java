@@ -59,7 +59,7 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
                     singletonObjects.put(id, bean);
 
                     // 记录日志
-                    logger.info(singletonObjects.toString());
+                    // logger.info(singletonObjects.toString());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -83,7 +83,8 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
                             // 获取属性名
                             String propertyName = property.attributeValue("name");
                             // 获取属性类型
-                            Field field = aClass.getDeclaredField(propertyName);logger.info("属性名:" + propertyName);
+                            Field field = aClass.getDeclaredField(propertyName);
+                            // logger.info("属性名:" + propertyName);
                             // 获取set方法名
                             String setMethodName = "set" + propertyName.toUpperCase().charAt(0) + propertyName.substring(1);
                             // 获取set方法
@@ -91,9 +92,10 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 
                             // 获取参数具体的值
                             String value = property.attributeValue("value");
+                            Object actualValue = null;  // 真值
                             String ref = property.attributeValue("ref");
                             if(value != null) {
-                                // 说明该值是简单类型
+                                // 对简单类型进行判断赋值
                                 /* 我们声明一下：mySpring框架只支持以下为简单类型:
                                  *  byte short int long float double boolean char
                                  *  Byte Short Integer Long Float Double Boolean Character
@@ -103,25 +105,59 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
                                 String propertyTypeSimpleName = field.getType().getSimpleName();
                                 switch (propertyTypeSimpleName) {
                                     case "byte":
+                                        actualValue = Byte.parseByte(value);
+                                        break;
                                     case "short":
+                                        actualValue = Short.parseShort(value);
+                                        break;
                                     case "int":
+                                        actualValue = Integer.parseInt(value);
+                                        break;
                                     case "long":
+                                        actualValue = Long.parseLong(value);
+                                        break;
                                     case "float":
+                                        actualValue = Float.parseFloat(value);
+                                        break;
                                     case "double":
+                                        actualValue = Double.parseDouble(value);
+                                        break;
                                     case "boolean":
+                                        actualValue = Boolean.parseBoolean(value);
+                                        break;
                                     case "char":
+                                        actualValue = value.charAt(0);
+                                        break;
                                     case "Byte":
+                                        actualValue = Byte.valueOf(value);
+                                        break;
                                     case "Short":
+                                        actualValue = Short.valueOf(value);
+                                        break;
                                     case "Integer":
+                                        actualValue = Integer.valueOf(value);
+                                        break;
                                     case "Long":
+                                        actualValue = Long.valueOf(value);
+                                        break;
                                     case "Float":
-                                    case "d":
-                                    case "boolean":
-                                    case "char":
+                                        actualValue = Float.valueOf(value);
+                                        break;
+                                    case "Double":
+                                        actualValue = Double.valueOf(value);
+                                        break;
+                                    case "Boolean":
+                                        actualValue = Boolean.valueOf(value);
+                                        break;
+                                    case "Character":
+                                        actualValue = Character.valueOf(value.charAt(0));
+                                        break;
+                                    case "String":
+                                        actualValue = value;
                                 }
                             }
                             if(ref != null) {
-                                // 说明该值是非简单类型
+                                // 对非简单类型进行查询缓存赋值
                                 // 调用set方法(set方法没有返回值）
                                 setMethod.invoke(singletonObjects.get(id), singletonObjects.get(ref));
                             }

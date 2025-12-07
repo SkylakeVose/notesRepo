@@ -5,4 +5,9 @@
         <property name="age" value="18"/>
         <property name="height" value="1.8"/>
     </bean>
+
+    <bean id="orderDaoBean" class="cn.piggy.myspring.bean.OrderDao"/>
+    <bean id="orderServiceBean" class="cn.piggy.myspring.bean.OrderService">
+        <property name="orderDao" ref="orderDaoBean"/>
+    </bean>
 </beans>

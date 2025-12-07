@@ -2975,5 +2975,285 @@ public ClassPathXmlApplicationContext(String configLocation) {
 
 ## 11.9 给Bean的属性赋值
 
+通过反射机制调用set方法，给Bean的属性赋值。
+
+继续在ClassPathXmlApplicationContext构造方法中编写代码，主要是对简单或非简单类型参数的赋值处理。
+
+```java
+public ClassPathXmlApplicationContext(String configLocation) {
+    // 解析myspring.xml文件，然后实例化Bean，将Bean存放到singletonObjects集合中
+
+    try {
+        // 这是dom4j解析XML文件的核心对象
+        SAXReader reader = new SAXReader();
+        // 获取一个输入流，指向配置文件
+        InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(configLocation);
+        // 读文件
+        Document document = reader.read(in);
+        // 获取所有的bean标签
+        List<Node> nodes = document.selectNodes("//bean");
+        // 遍历Bean标签
+        nodes.forEach(node -> {
+            // System.out.println(node);
+            try {
+                // 向下转型的目的是为了使用Element接口里更加丰富的方法
+                Element beanElt = (Element) node;
+                // 获取id属性
+                String id = beanElt.attributeValue("id");
+                // 获取class属性
+                String className = beanElt.attributeValue("class");
+                // logger.info("beanName={}, beanClass:{}", id, className);
+
+                // 通过反射机制创建对象，将其放到Map集合中，使其提前曝光
+                // 获取Class
+                Class<?> aClass = Class.forName(className);
+                // 获取无参数构造方法
+                Constructor<?> defaultCon = aClass.getDeclaredConstructor();
+                // 调用无参数构造方法实例化Bean
+                Object bean = defaultCon.newInstance();
+                // 将Bean曝光，加入Map集合
+                singletonObjects.put(id, bean);
+
+                // 记录日志
+                logger.info(singletonObjects.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        // 再次重新把所有的bean标签遍历一次，这一次主要是给对象的属性赋值
+        nodes.forEach(node -> {
+            try {
+                Element beanElt = (Element) node;
+                // 获取id
+                String id = beanElt.attributeValue("id");
+                // 获取className
+                String className = beanElt.attributeValue("class");
+                // 获取Class
+                Class<?> aClass = Class.forName(className);
+                // 获取该bean标签下所有的属性property标签
+                List<Element> properties = beanElt.elements("property");
+                // 遍历所有的属性标签
+                properties.forEach(property -> {
+                    try {
+                        // 获取属性名
+                        String propertyName = property.attributeValue("name");
+                        // 获取属性类型
+                        Field field = aClass.getDeclaredField(propertyName);logger.info("属性名:" + propertyName);
+                        // 获取set方法名
+                        String setMethodName = "set" + propertyName.toUpperCase().charAt(0) + propertyName.substring(1);
+                        // 获取set方法
+                        Method setMethod = aClass.getDeclaredMethod(setMethodName, field.getType());
+
+                        // 获取参数具体的值
+                        String value = property.attributeValue("value");
+                        Object actualValue = null;  // 真值
+                        String ref = property.attributeValue("ref");
+                        if(value != null) {
+                            // 对简单类型进行判断赋值
+                            /* 我们声明一下：mySpring框架只支持以下为简单类型:
+                                 *  byte short int long float double boolean char
+                                 *  Byte Short Integer Long Float Double Boolean Character
+                                 *  String
+                                */
+                            // 获取属性类型名, getSimpleName不带包名
+                            String propertyTypeSimpleName = field.getType().getSimpleName();
+                            switch (propertyTypeSimpleName) {
+                                case "byte":
+                                    actualValue = Byte.parseByte(value);
+                                    break;
+                                case "short":
+                                    actualValue = Short.parseShort(value);
+                                    break;
+                                case "int":
+                                    actualValue = Integer.parseInt(value);
+                                    break;
+                                case "long":
+                                    actualValue = Long.parseLong(value);
+                                    break;
+                                case "float":
+                                    actualValue = Float.parseFloat(value);
+                                    break;
+                                case "double":
+                                    actualValue = Double.parseDouble(value);
+                                    break;
+                                case "boolean":
+                                    actualValue = Boolean.parseBoolean(value);
+                                    break;
+                                case "char":
+                                    actualValue = value.charAt(0);
+                                    break;
+                                case "Byte":
+                                    actualValue = Byte.valueOf(value);
+                                    break;
+                                case "Short":
+                                    actualValue = Short.valueOf(value);
+                                    break;
+                                case "Integer":
+                                    actualValue = Integer.valueOf(value);
+                                    break;
+                                case "Long":
+                                    actualValue = Long.valueOf(value);
+                                    break;
+                                case "Float":
+                                    actualValue = Float.valueOf(value);
+                                    break;
+                                case "Double":
+                                    actualValue = Double.valueOf(value);
+                                    break;
+                                case "Boolean":
+                                    actualValue = Boolean.valueOf(value);
+                                    break;
+                                case "Character":
+                                    actualValue = Character.valueOf(value.charAt(0));
+                                    break;
+                                case "String":
+                                    actualValue = value;
+                            }
+                        }
+                        if(ref != null) {
+                            // 对非简单类型进行查询缓存赋值
+                            // 调用set方法(set方法没有返回值）
+                            setMethod.invoke(singletonObjects.get(id), singletonObjects.get(ref));
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
 
 
+
+测试结果：
+
+![image-20251207172546438](Spring6.assets/image-20251207172546438.png)
+
+
+
+
+
+## 11.10 打包发布
+
+![image-20251207173804154](Spring6.assets/image-20251207173804154.png)
+
+
+
+## 11.11 站在程序员角度使用myspring框架
+
+1. 创建模块
+
+   ![image-20251207174105212](Spring6.assets/image-20251207174105212.png)
+
+2. 引入依赖
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <project xmlns="http://maven.apache.org/POM/4.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+       <modelVersion>4.0.0</modelVersion>
+   
+       <groupId>org.myspringframework</groupId>
+       <artifactId>myspring-test</artifactId>
+       <version>1.0-SNAPSHOT</version>
+   
+       <dependencies>
+           <!--引入myspring框架-->
+           <dependency>
+               <groupId>org.myspringframework</groupId>
+               <artifactId>myspring</artifactId>
+               <version>1.0.0</version>
+           </dependency>
+   
+           <!--引入测试依赖-->
+           <dependency>
+               <groupId>junit</groupId>
+               <artifactId>junit</artifactId>
+               <version>4.13.2</version>
+               <scope>test</scope>
+           </dependency>
+       </dependencies>
+   
+       <properties>
+           <maven.compiler.source>17</maven.compiler.source>
+           <maven.compiler.target>17</maven.compiler.target>
+           <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+       </properties>
+   </project>
+   ```
+
+3. 编写Bean
+
+   ```java
+   // Vip.java
+   public class Vip {
+       private String name;
+       private int age;
+       private double height;
+   
+       public void setName(String name) {
+           this.name = name;
+       }
+   
+       public void setAge(int age) {
+           this.age = age;
+       }
+   
+       public void setHeight(double height) {
+           this.height = height;
+       }
+   
+       @Override
+       public String toString() {
+           return "Vip{" +
+                   "name='" + name + '\'' +
+                   ", age=" + age +
+                   ", height=" + height +
+                   '}';
+       }
+   }
+   ```
+
+   ```java
+   // OrderDao.java
+   public class OrderDao {
+       public void insert() {
+           System.out.println("正在保存订单信息...");
+       }
+   }
+   ```
+
+   ```java
+   // OrderService.java
+   public class OrderService {
+   
+       private OrderDao orderDao;
+   
+       public void setOrderDao(OrderDao orderDao) {
+           this.orderDao = orderDao;
+       }
+   
+       public void generate() {
+           orderDao.insert();
+       }
+   }
+   ```
+
+4. 配置文件
+
+   
+
+5. 测试程序
+
+6. 运行结果
