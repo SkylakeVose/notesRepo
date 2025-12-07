@@ -1,2 +1,3 @@
 org\myspringframework\core\ApplicationContext.class
 org\myspringframework\core\ClassPathXmlApplicationContext.class
+cn\piggy\myspring\bean\Vip.class

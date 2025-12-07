@@ -3015,7 +3015,7 @@ public ClassPathXmlApplicationContext(String configLocation) {
                 singletonObjects.put(id, bean);
 
                 // 记录日志
-                logger.info(singletonObjects.toString());
+                // logger.info(singletonObjects.toString());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -3039,7 +3039,8 @@ public ClassPathXmlApplicationContext(String configLocation) {
                         // 获取属性名
                         String propertyName = property.attributeValue("name");
                         // 获取属性类型
-                        Field field = aClass.getDeclaredField(propertyName);logger.info("属性名:" + propertyName);
+                        Field field = aClass.getDeclaredField(propertyName);
+                        // logger.info("属性名:" + propertyName);
                         // 获取set方法名
                         String setMethodName = "set" + propertyName.toUpperCase().charAt(0) + propertyName.substring(1);
                         // 获取set方法
@@ -3110,6 +3111,7 @@ public ClassPathXmlApplicationContext(String configLocation) {
                                 case "String":
                                     actualValue = value;
                             }
+                            setMethod.invoke(singletonObjects.get(id), actualValue);
                         }
                         if(ref != null) {
                             // 对非简单类型进行查询缓存赋值
@@ -3250,10 +3252,29 @@ public ClassPathXmlApplicationContext(String configLocation) {
    }
    ```
 
-4. 配置文件
+4. 配置文件`myspring.xml`
 
+   ```xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <beans>
+       <bean id="Vip" class="cn.piggy.myspring.bean.Vip">
+           <property name="name" value="jackson"/>
+           <property name="age" value="18"/>
+           <property name="height" value="1.8"/>
+       </bean>
    
+       <bean id="orderDaoBean" class="cn.piggy.myspring.bean.OrderDao"/>
+       <bean id="orderServiceBean" class="cn.piggy.myspring.bean.OrderService">
+           <property name="orderDao" ref="orderDaoBean"/>
+       </bean>
+   </beans>
+   ```
 
-5. 测试程序
+5. 测试程序 & 运行结果
 
-6. 运行结果
+   ![image-20251207225903364](Spring6.assets/image-20251207225903364.png)
+
+
+
+# 第十二章节
+

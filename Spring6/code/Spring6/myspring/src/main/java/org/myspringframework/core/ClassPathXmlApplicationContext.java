@@ -155,6 +155,7 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
                                     case "String":
                                         actualValue = value;
                                 }
+                                setMethod.invoke(singletonObjects.get(id), actualValue);
                             }
                             if(ref != null) {
                                 // 对非简单类型进行查询缓存赋值

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <beans>
     <bean id="Vip" class="cn.piggy.myspring.bean.Vip">
-        <property name="name" value="jackson"></property>
+        <property name="name" value="jackson"/>
         <property name="age" value="18"/>
         <property name="height" value="1.8"/>
     </bean>
