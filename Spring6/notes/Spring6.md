@@ -3276,5 +3276,50 @@ public ClassPathXmlApplicationContext(String configLocation) {
 
 
 
-# 第十二章节
+# 第十二章节 Spring IoC注解式开发
 
+## 12.1 回顾注解
+
+注解的存在主要是为了简化XML的配置。**Spring6倡导全注解开发**。
+
+我们来回顾一下：
+
+- 第一：注解怎么定义，注解中的属性怎么定义？
+- 第二：注解怎么使用？
+- 第三：通过反射机制怎么读取注解？
+
+
+
+**注解怎么定义，注解中的属性怎么定义？**
+
+```java
+// 自定义注解 @Component
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Component {
+
+    String value();
+
+    int[] ages();
+}
+```
+
+以上是自定义了一个注解：`Component`
+
+该注解上面修饰的注解包括：`Target`注解和`Retention`注解，这两个注解被称为**元注解**。
+
+`Target`注解用来设置`Component`注解可以出现的位置，以上代表表示`Component`注解只能用在类和接口上。
+
+`Retention`注解用来设置`Component`注解的保持性策略，以上代表`Component`注解可以被反射机制读取。
+
+String value(); 是`Component`注解中的一个属性。该属性类型String，属性名是value。
+
+
+
+同理可以看一下`@Override`：
+
+![image-20251208144927064](Spring6.assets/image-20251208144927064.png)
+
+
+
+**注解怎么使用？**
