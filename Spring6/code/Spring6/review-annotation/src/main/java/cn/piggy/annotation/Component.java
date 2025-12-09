@@ -11,5 +11,5 @@ public @interface Component {
 
     String value();
 
-    int[] ages();
+    // int[] ages();
 }
