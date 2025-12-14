@@ -6,6 +6,12 @@
                             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     <!--给spring框架指定要扫描哪些包中的类-->
-    <context:component-scan base-package="cn.piggy.spring6.bean"/>
+    <!--<context:component-scan base-package="cn.piggy.spring6.bean"/>-->
+    
+    <!--扫描多个包，用逗号隔开-->
+    <!--<context:component-scan base-package="cn.piggy.spring6.bean, cn.piggy.spring6.dao"/>-->
+
+    <!--扫描多个包，扫描他们共同的父包，但会降低效率-->
+    <context:component-scan base-package="cn.piggy.spring6"/>
 
 </beans>
