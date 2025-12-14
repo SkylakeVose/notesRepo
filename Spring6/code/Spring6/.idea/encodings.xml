@@ -27,5 +27,7 @@
     <file url="file://$PROJECT_DIR$/spring6-006-bean-lifecycle/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/spring6-007-circular-dependency/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/spring6-007-circular-dependency/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring6-008-ioc-annotation/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring6-008-ioc-annotation/src/main/resources" charset="UTF-8" />
   </component>
 </project>

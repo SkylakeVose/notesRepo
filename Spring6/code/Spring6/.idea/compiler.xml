@@ -18,6 +18,7 @@
         <module name="spring6-003-dependency-injection" />
         <module name="myspring" />
         <module name="spring6-006-bean-lifecycle" />
+        <module name="spring6-008-ioc-annotation" />
         <module name="spring6-001-revelation" />
       </profile>
     </annotationProcessing>
