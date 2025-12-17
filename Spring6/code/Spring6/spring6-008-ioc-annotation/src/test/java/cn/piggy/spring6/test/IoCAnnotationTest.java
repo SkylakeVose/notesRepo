@@ -5,12 +5,21 @@ import cn.piggy.spring6.bean.Order;
 import cn.piggy.spring6.bean.Student;
 import cn.piggy.spring6.bean.User;
 import cn.piggy.spring6.bean.Vip;
+import cn.piggy.spring6.bean3.MyDataSource;
+import cn.piggy.spring6.bean3.Person;
 import cn.piggy.spring6.dao.OrderDao;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class IoCAnnotationTest {
+
+    @Test
+    public void testDIByAnnotation(){
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-di-annotation.xml");
+        Person person = applicationContext.getBean("person", Person.class);
+        System.out.println(person);
+    }
 
     @Test
     public void testBeanComponent(){
