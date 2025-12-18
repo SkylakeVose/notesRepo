@@ -17,6 +17,13 @@
             <version>6.2.12</version>
         </dependency>
 
+        <!--@Resource依赖-->
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+
         <!-- junit依赖 -->
         <dependency>
             <groupId>junit</groupId>
