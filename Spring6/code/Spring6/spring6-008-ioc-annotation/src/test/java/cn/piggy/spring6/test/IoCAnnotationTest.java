@@ -1,6 +1,7 @@
 package cn.piggy.spring6.test;
 
 
+import cn.piggy.Spring6Config;
 import cn.piggy.service.OrderService;
 import cn.piggy.spring6.bean.Order;
 import cn.piggy.spring6.bean.Student;
@@ -12,9 +13,17 @@ import cn.piggy.spring6.dao.OrderDao;
 import com.piggy.service.StudentService;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class IoCAnnotationTest {
+
+    @Test
+    public void testNoXML() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Spring6Config.class);
+        OrderService orderService = context.getBean("orderService", OrderService.class);
+        orderService.generate();
+    }
 
     @Test
     public void testResource(){

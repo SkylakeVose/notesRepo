@@ -6,9 +6,7 @@
     <!--singleton + setter模式下的循环依赖是没有任何问题的-->
     <!--singleton表示在整个Spring容器中是单例的，独一无二的-->
 
-
-
-    <bean id="husbandBean" class="cn.piggy.spring6.bean.Husband" scope="prototype">
+    <bean id="husbandBean" class="cn.piggy.spring6.bean.Husband" scope="singleton">
         <property name="name" value="张三"/>
         <property name="wife" ref="wifeBean"/>
     </bean>
