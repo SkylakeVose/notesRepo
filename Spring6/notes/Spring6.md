@@ -3912,3 +3912,284 @@ JdbcTemplate是Spring提供的一个JDBC模板类，是对JDBC的封装，简化
 
 
 
+## 13.1 环境准备
+
+1. 创建数据库表：`t_user`
+
+   ![image-20251222104616156](Spring6.assets/image-20251222104616156.png)
+
+2. IDEA中新建模块：`spring6-009-jdbc`
+
+   ![image-20251222104727352](Spring6.assets/image-20251222104727352.png)
+
+3. 引入依赖
+
+   ![image-20251222104818531](Spring6.assets/image-20251222104818531.png)
+
+4. 准备实例类`User`，与表`t_user`字段对应
+
+   ```java
+   public class User {
+       private Integer id;
+       private String realName;
+       private Integer age;
+   
+       public User() {
+       }
+   
+       public User(Integer id, String realName, Integer age) {
+           this.id = id;
+           this.realName = realName;
+           this.age = age;
+       }
+   
+       public Integer getId() {
+           return id;
+       }
+   
+       public void setId(Integer id) {
+           this.id = id;
+       }
+   
+       public String getRealName() {
+           return realName;
+       }
+   
+       public void setRealName(String realName) {
+           this.realName = realName;
+       }
+   
+       public Integer getAge() {
+           return age;
+       }
+   
+       public void setAge(Integer age) {
+           this.age = age;
+       }
+   
+       @Override
+       public String toString() {
+           return "User{" +
+                   "id=" + id +
+                   ", realName='" + realName + '\'' +
+                   ", age=" + age +
+                   '}';
+       }
+   }
+   
+   ```
+
+5. 编写spring配置文件
+
+   `JdbcTemplate`是Spring提供好的类，这类的完整类名是：`org.springframework.jdbc.core.JdbcTemplate`
+
+   我们怎么使用这个类呢？new对象就可以了。怎么new对象，Spring最在行了。直接将这个类配置到Spring配置文件中，纳入Bean管理即可。
+
+   ```xml
+   <!--配置JdbcTemplate-->
+   <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" />
+   ```
+
+   
+
+   我们能看到`JdbcTemplate`类是继承自`JdbcAccessor`类的，而`JdbcAccessor`类包含一个属性`DataSource`，这个属性是数据源，我们都知道连接数据库需要Connection对象，而生成Connection对象是数据源负责的。所以我们需要给`JdbcTemplate`设置数据源属性。
+
+   ![image-20251222105215018](Spring6.assets/image-20251222105215018.png)
+
+   
+
+   所有的数据源都是要实现javax.sql.DataSource接口的。这个数据源可以自己写一个，也可以用写好的，比如：阿里巴巴的德鲁伊连接池，c3p0，dbcp等。我们这里自己先手写一个数据源。
+
+   ```java
+   /**
+    * 自己的数据源。数据源存在的目的就是为了提供Connection对象
+    * 只要实现了DataSource接口的都是数据源
+    * 德鲁伊连接池，C3p0连接池，dbcp连接池，都是实现了DataSource接口
+    */
+   public class MyDataSource implements DataSource {
+   
+       private String driver;
+       private String url;
+       private String username;
+       private String password;
+   
+       public void setDriver(String driver) {
+           this.driver = driver;
+       }
+   
+       public void setUrl(String url) {
+           this.url = url;
+       }
+   
+       public void setUsername(String username) {
+           this.username = username;
+       }
+   
+       public void setPassword(String password) {
+           this.password = password;
+       }
+   
+       @Override
+       public Connection getConnection() throws SQLException {
+           // 注册驱动
+           try {
+               Class.forName(driver);
+               // 获取数据库连接对象
+               return DriverManager.getConnection(url, username, password);
+           } catch (Exception e) {
+               e.printStackTrace();
+           }
+           return null;
+       }
+   
+       @Override
+       public Connection getConnection(String username, String password) throws SQLException {
+           return null;
+       }
+   
+       @Override
+       public PrintWriter getLogWriter() throws SQLException {
+           return null;
+       }
+   
+       @Override
+       public void setLogWriter(PrintWriter out) throws SQLException {
+   
+       }
+   
+       @Override
+       public void setLoginTimeout(int seconds) throws SQLException {
+   
+       }
+   
+       @Override
+       public int getLoginTimeout() throws SQLException {
+           return 0;
+       }
+   
+       @Override
+       public <T> T unwrap(Class<T> iface) throws SQLException {
+           return null;
+       }
+   
+       @Override
+       public boolean isWrapperFor(Class<?> iface) throws SQLException {
+           return false;
+       }
+   
+       @Override
+       public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+           return null;
+       }
+   }
+   ```
+
+   
+
+   写完数据源，我们需要把这个数据源传递给`JdbcTemplate`。因为`JdbcTemplate`中有一个`DataSource`属性：
+
+   ![image-20251222105550394](Spring6.assets/image-20251222105550394.png)
+
+   
+
+6. 运行测试
+
+   ![image-20251222105616113](Spring6.assets/image-20251222105616113.png)
+
+
+
+## 13.2 新增
+
+编写测试程序：
+
+![image-20251222142724887](Spring6.assets/image-20251222142724887.png)
+
+**注意：**
+
++ 在Jdbc中，insert、delete和update语句都是调用update()方法。
++ update方法的两个参数：
+  + 第一个参数：需要执行的sql语句。（SQL语句可能会有占位符）
+  + 第二个参数：可变长参数，参数的个数可以是0，也可以是多个。（一般是SQL语句有几个占位符，则对应几个参数）
+
+
+
+
+
+## 13.3 修改
+
+![image-20251222143455064](Spring6.assets/image-20251222143455064.png)
+
+
+
+
+
+## 13.4 删除
+
+![image-20251222145617487](Spring6.assets/image-20251222145617487.png)
+
+
+
+## 13.5 查询一个对象
+
+![image-20251222145905638](Spring6.assets/image-20251222145905638.png)
+
+queryForObject方法三个参数：
+
+- 第一个参数：sql语句
+- 第二个参数：Bean属性值和数据库记录行的映射对象。在构造方法中指定映射的对象类型。
+- 第三个参数：可变长参数，给sql语句的占位符问号传值。
+
+
+
+## 13.6 查询多个对象
+
+![image-20251222150342728](Spring6.assets/image-20251222150342728.png)
+
+
+
+
+
+## 13.7 查询一个值
+
+![image-20251222150602787](Spring6.assets/image-20251222150602787.png)
+
+
+
+## 13.8 批量添加
+
+![image-20251222151257890](Spring6.assets/image-20251222151257890.png)
+
+
+
+## 13.9 批量修改
+
+![image-20251222151754000](Spring6.assets/image-20251222151754000.png)
+
+
+
+## 13.10 批量删除
+
+![image-20251222152035891](Spring6.assets/image-20251222152035891.png)
+
+
+
+## 13.11 使用回调函数
+
+![image-20251222152722644](Spring6.assets/image-20251222152722644.png)
+
+
+
+## 13.12 使用德鲁伊连接池
+
+引入druid连接池的依赖和编写配置文件：
+
+![image-20251222153105035](Spring6.assets/image-20251222153105035.png)
+
+![image-20251222153115737](Spring6.assets/image-20251222153115737.png)
+
+
+
+
+
+# 第十四章 GoF之代理模式
+

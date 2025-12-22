@@ -11,6 +11,7 @@
         <module name="revice-reflect" />
         <module name="spring6-005-bean-instantiation" />
         <module name="Spring6-002-first" />
+        <module name="spring6-009-jdbc" />
         <module name="spring6-004-scope" />
         <module name="review-annotation" />
         <module name="factory-method" />
