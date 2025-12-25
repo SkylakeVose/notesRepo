@@ -10,6 +10,7 @@
         <module name="spring6-007-circular-dependency" />
         <module name="revice-reflect" />
         <module name="spring6-005-bean-instantiation" />
+        <module name="dynamic-proxy-jdk" />
         <module name="Spring6-002-first" />
         <module name="spring6-009-jdbc" />
         <module name="spring6-004-scope" />

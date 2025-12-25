@@ -4456,3 +4456,13 @@ public class OrderServiceProxy implements OrderService {
 
 ## 14.3 动态代理
 
+在程序运行阶段，在内存中动态生成代理类，被称为**动态代理**，目的是<u>为了减少代理类的数量。解决代码复用的问题</u>。
+
+在内存当中动态生成类的技术常见的包括：
+
+- **JDK动态代理技术**：只能代理接口。
+- **CGLIB动态代理技术**：CGLIB(Code Generation Library)是一个开源项目。是一个强大的，高性能，高质量的Code生成类库，它可以在运行期扩展Java类与实现Java接口。它既可以代理接口，又可以代理类，**底层是通过继承的方式实现的**。性能比JDK动态代理要好。**（底层有一个小而快的字节码处理框架ASM。）**
+- Javassist动态代理技术：Javassist是一个开源的分析、编辑和创建Java字节码的类库。是由东京工业大学的数学和计算机科学系的 Shigeru Chiba （千叶 滋）所创建的。它已加入了开放源代码JBoss 应用服务器项目，通过使用Javassist对字节码操作为JBoss实现动态"AOP"框架。
+
+
+
