@@ -3,6 +3,7 @@ package cn.piggy.proxy.client;
 import cn.piggy.proxy.service.OrderService;
 import cn.piggy.proxy.service.OrderServiceImpl;
 import cn.piggy.proxy.service.TimerInvocationHandler;
+import cn.piggy.proxy.util.ProxyUtil;
 
 import java.lang.reflect.Proxy;
 
@@ -32,11 +33,15 @@ public class Client {
          *
          *  注意：代理对象和目标对象实现的接口一样，所以可以向下转型
          */
-        Object proxyObj = Proxy.newProxyInstance(target.getClass().getClassLoader(),
+        /*OrderService proxyObj = (OrderService) Proxy.newProxyInstance(target.getClass().getClassLoader(),
                                                 target.getClass().getInterfaces(),
-                                                new TimerInvocationHandler());
+                                                new TimerInvocationHandler(target));*/
+
+        // 上述代码通过一个工具类的封装，使看起来简洁一点
+        OrderService proxyObj = (OrderService) ProxyUtil.newProxyInstance(target);
 
         // 调用代理对象的代理方法
-
+        proxyObj.generate();
+        proxyObj.modify();
     }
 }

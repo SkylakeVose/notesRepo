@@ -1,6 +1,7 @@
 package cn.piggy.proxy.service;
 
 public class OrderServiceImpl implements OrderService {
+
     @Override
     public void generate() {
         // 模拟耗时
