@@ -21,6 +21,7 @@
         <module name="myspring" />
         <module name="spring6-006-bean-lifecycle" />
         <module name="spring6-008-ioc-annotation" />
+        <module name="spring6-010-spring-aspectj-aop-anno" />
         <module name="spring6-001-revelation" />
         <module name="static-proxy" />
         <module name="dynamic-proxy-cglib" />
