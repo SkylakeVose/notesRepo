@@ -5040,5 +5040,87 @@ Spring对AOP的实现包括以下3种方式：
 
 
 
-## 15.2 基于AspectJ的AOP注解式开发
+### 15.4.2 基于AspectJ的AOP注解式开发
+
+1. 定义目标类及目标方法，并纳入Spring bean管理
+
+   ```java
+   // 目标类
+   @Service("userService")
+   public class UserService {
+       public void login() {
+           System.out.println("系统正在进行身份认证...");
+       }
+   }
+   ```
+
+   
+
+2. 定义切面类，并纳入Spring bean管理
+
+   ```java
+   // 切面类
+   @Component("logAspect")
+   @Aspect     // 切面类是需要@Aspect注解标注的
+   public class LogAspect {
+       public void myAspect() {
+           System.out.println("我是一个通知，我是一段增强代码...");
+       }
+   }
+   ```
+
+   
+
+3. 编写spring配置文件`spring.xml`
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <beans xmlns="http://www.springframework.org/schema/beans"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:context="http://www.springframework.org/schema/context"
+          xmlns:aop="http://www.springframework.org/schema/aop"
+          xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                              http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                              http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+   
+       <!--组件扫描-->
+       <context:component-scan base-package="cn.piggy.spring6.service"/>
+   
+       <!--开启aspectj的自动代理-->
+       <aop:aspectj-autoproxy proxy-target-class="true"/>
+   
+   </beans>
+   ```
+
+   **关于开启自动代理`aspectj-autoproxy`的注意事项：**
+
+   + spring容器在扫描类的时候，会查看该类上是否有`@Aespct`注解，如果有则生成其代理对象。
+   + `proxy-target-class`的属性值：
+     + 为true时表示强制使用CGLIB动态代理。
+     + 为false时表示接口使用JDK动态代理，默认为false。
+
+   
+
+4. 在切面类中添加通知和切点表达式
+
+   ![image-20251228153355336](Spring6.assets/image-20251228153355336.png)
+
+5. 测试运行
+
+   ![image-20251228153335358](Spring6.assets/image-20251228153335358.png)
+
+
+
+### 15.4.3 通知类型
+
+为了方便测试，我们新建一个目标类`OrderService`
+
+```java
+@Service("orderService")
+public class OrderService {
+    public void generate() {
+        System.out.println("生成订单...");
+    }
+}
+```
 
