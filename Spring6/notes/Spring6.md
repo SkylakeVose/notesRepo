@@ -5244,3 +5244,67 @@ public class LogAspect {
 
 ### 15.4.3 基于XML配置方式的AOP（了解）
 
+1. 编写目标类和切面类，都不添加`@Component`注解：
+
+   ```java
+   public class UserService {  // 目标类
+       public void logout() {
+           System.out.println("系统正在安全退出...");
+       }
+   }
+   ```
+
+   ```java
+   public class TimerAspect {
+       // 通知
+       public void aroundAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
+           long begin = System.currentTimeMillis();    // 前环绕
+   
+           // 目标执行
+           joinPoint.proceed();
+   
+           long end = System.currentTimeMillis();      // 后环绕
+           System.out.println("耗时" + (end - begin) + "ms");
+       }
+   }
+   ```
+
+2. 编写spring配置文件`spring.xml`:
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <beans xmlns="http://www.springframework.org/schema/beans"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:context="http://www.springframework.org/schema/context"
+          xmlns:aop="http://www.springframework.org/schema/aop"
+          xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+   
+       <!--纳入Spring IoC-->
+       <bean id="userService" class="cn.piggy.spring6.service.UserService"/>
+       <bean id="timerAspect" class="cn.piggy.spring6.service.TimerAspect"/>
+   
+       <!--aop的配置-->
+       <aop:config>
+           <!--切点表达式-->
+           <aop:pointcut id="mypointcut" expression="execution(* cn.piggy.spring6.service..*(..))" />
+           <!--切面：通知 + 切点-->
+           <aop:aspect ref="timerAspect">
+               <aop:around method="aroundAdvice" pointcut-ref="mypointcut"/>
+           </aop:aspect>
+       </aop:config>
+   
+   </beans>
+   ```
+
+3. 测试运行：
+
+   ![image-20251229175115156](Spring6.assets/image-20251229175115156.png)
+
+   
+
+
+
+## 15.5 AOP的实际案例：事务处理
+
