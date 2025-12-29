@@ -5111,9 +5111,19 @@ Spring对AOP的实现包括以下3种方式：
 
 
 
-### 15.4.3 通知类型
+#### 1. 通知类型
 
-为了方便测试，我们新建一个目标类`OrderService`
+通知类型包括：
+
+- 前置通知：`@Before` 目标方法执行之前的通知
+- 后置通知：`@AfterReturning` 目标方法执行之后的通知
+- 环绕通知：`@Around` 目标方法之前添加通知，同时目标方法执行之后添加通知。
+- 异常通知：`@AfterThrowing` 发生异常之后执行的通知
+- 最终通知：`@After` 放在finally语句块中的通知
+
+
+
+为了方便测试，我们新建一个目标类`OrderService`和切面类`LogAspect`
 
 ```java
 @Service("orderService")
@@ -5123,4 +5133,114 @@ public class OrderService {
     }
 }
 ```
+
+```java
+// 切面
+@Component("logAspect")
+@Aspect     // 切面类是需要@Aspect注解标注的
+public class LogAspect {
+
+    // 前置通知
+    @Before("execution(* cn.piggy.spring6.service..*(..))")
+    public void beforeAdvice() {
+        System.out.println("前置通知...");
+    }
+
+    // 后置通知
+    @AfterReturning("execution(* cn.piggy.spring6.service..*(..))")
+    public void afterReturningAdvice() {
+        System.out.println("后置通知...");
+    }
+
+    // 环绕通知（环绕是最大的通知，在前置通知之前，在后置通知之后）
+    @Around("execution(* cn.piggy.spring6.service..*(..))")
+    public void aroundAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
+        // 前面的代码
+        System.out.println("前环绕...");
+
+        // 执行目标
+        joinPoint.proceed();    // 执行目标
+
+        // 后面的代码
+        System.out.println("后环绕...");
+    }
+
+    // 异常通知
+    @AfterThrowing("execution(* cn.piggy.spring6.service..*(..))")
+    public void afterThrowingAdvice() {
+        System.out.println("异常通知...");
+    }
+
+    // 最终通知（finally代码块里的通知）
+    @After("execution(* cn.piggy.spring6.service..*(..))")
+    public void afterAdvice() {
+        System.out.println("最终通知...");
+    }
+}
+```
+
+测试运行：
+
+![image-20251229103259115](Spring6.assets/image-20251229103259115.png)
+
+
+
+如果在业务代码中抛出异常，<u>异常通知</u>会被执行，且<u>最终通知</u>也会被执行（因为最终通知在finally块中）。
+
+但是<u>后置通知</u>和环绕通知的<u>后环绕通知</u>不会被执行。
+
+![image-20251229103429379](Spring6.assets/image-20251229103429379.png)
+
+
+
+#### 2. 切面的先后顺序
+
+我们知道，业务流程当中不一定只有一个切面，可能有的切面控制事务，有的记录日志，有的进行安全控制，如果多个切面的话，顺序如何控制：**可以使用@Order注解来标识切面类，为@Order注解的value指定一个整数型的数字，数字越小，优先级越高**。
+
+
+
+再定义一个安全切面类`SecurityAspect`，并设置他们的优先级，运行测试：
+
+![image-20251229105019644](Spring6.assets/image-20251229105019644.png)
+
+
+
+#### 3. 优化切点表示式
+
+我们写切点表达式的时候，会有两个小问题：
+
++ 第一：切点表达式重复写了多次，没有得到复用。
++ 第二：如果要修改切点表达式，需要修改多处，难维护。
+
+![image-20251229105522554](Spring6.assets/image-20251229105522554.png)
+
+
+
+可以这样做：使用`@PointCu`t注解来将切点表达式单独的定义出来，在需要的位置引入即可。
+
+注意这个`@Pointcut`注解标注的方法随意，只是起到一个能够让`@Pointcut`注解编写的位置。测试如下：
+
+![image-20251229105850102](Spring6.assets/image-20251229105850102.png)
+
+
+
+#### 4. 连接点JoinPoint
+
+![image-20251229113725245](Spring6.assets/image-20251229113725245.png)
+
+
+
+#### 5. 全注解式开发AOP
+
+编写一个配置类`Spring6Config`，不再使用spring的配置文件了。
+
+![image-20251229114726980](Spring6.assets/image-20251229114726980.png)
+
+运行测试：
+
+![image-20251229114759709](Spring6.assets/image-20251229114759709.png)
+
+
+
+### 15.4.3 基于XML配置方式的AOP（了解）
 
