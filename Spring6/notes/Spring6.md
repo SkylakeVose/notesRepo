@@ -5308,3 +5308,209 @@ public class LogAspect {
 
 ## 15.5 AOP的实际案例：事务处理
 
+项目中的事务控制是在所难免的。在一个业务流程当中，可能需要多条DML语句共同完成，为了保证数据的安全，这多条DML语句要么同时成功，要么同时失败。这就需要添加事务控制的代码。
+
+业务类中的每一个业务方法都是需要控制事务的，而控制事务的代码又是固定的格式，都是：
+
+```java
+try{
+    // 开启事务
+    startTransaction();
+
+    // 执行核心业务逻辑
+    //......
+
+    // 提交事务
+    commitTransaction();
+}catch(Exception e){
+    // 回滚事务
+    rollbackTransaction();
+}
+```
+
+这个控制事务的代码就是和业务逻辑没有关系的“**交叉业务**”。以上伪代码当中可以看到这些交叉业务的代码没有得到复用，并且如果这些交叉业务代码需要修改，那必然需要修改多处，难维护，怎么解决？
+
+可以采用AOP思想解决。可以把以上控制事务的代码作为环绕通知，切入到目标类的方法当中。接下来我们做一下这件事：
+
+1. 创建两个目标类，账户类`AccountService`和订单类`OrderService`：
+
+   ```java
+   @Service
+   public class AccountService {
+   
+       // 转账
+       public void transfer() {
+           System.out.println("银行账户正在完成转账操作...");
+       }
+   
+       // 取款
+       public void withdraw() {
+           System.out.println("银行账户正在执行取款操作...");
+       }
+   }
+   ```
+
+   ```java
+   @Service
+   public class OrderService {
+   
+       // 生成订单
+       public void generate() {
+           System.out.println("正在生成订单...");
+       }
+   
+       // 取消订单
+       public void cancel() {
+           System.out.println("订单正在取消...");
+           // 故意制造异常
+           int i = 10 / 0;
+       }
+   }
+   ```
+
+2. 创建事务切面类`TransferAspect`：
+
+   ```java
+   @Component
+   @Aspect
+   public class TransactionAspect {
+   
+       // 编程式事务解决方案
+       @Around("execution(* cn.piggy.spring6.service..*(..))")
+       public void aroundAdvice(ProceedingJoinPoint joinPoint) {
+   
+           try {
+               // 前环绕
+               System.out.println("开启事务...");
+               // 执行目标
+               joinPoint.proceed();
+               // 后环绕
+               System.out.println("提交事务...");
+           } catch (Throwable e) {
+               // 回滚事务
+               System.out.println("回滚事务...");
+           }
+       }
+   }
+   ```
+
+3. 编写配置文件`spring.xml`：
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <beans xmlns="http://www.springframework.org/schema/beans"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:context="http://www.springframework.org/schema/context"
+          xmlns:aop="http://www.springframework.org/schema/aop"
+          xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                              http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                              http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+   
+       <!--组件扫描-->
+       <context:component-scan base-package="cn.piggy.spring6.service" />
+       <!--启动自动代理-->
+       <aop:aspectj-autoproxy/>
+   
+   </beans>
+   ```
+
+4. 测试运行：
+
+   ![image-20251230172656337](Spring6.assets/image-20251230172656337.png)
+
+
+
+现在看来，这个事务控制代码只需要写一次就行了，并且修改起来也没有成本。测试后也可以看到所有的业务方法都添加了事务控制的代码。
+
+
+
+## 15.6 AOP的实际案例：安全日志
+
+需求是这样的：项目开发结束了，已经上线了。运行正常。客户提出了新的需求：凡事在系统中进行修改操作的，删除操作的，新增操作的，都要把这个人记录下来。因为这几个操作是属于危险行为。例如有业务类和业务方法：
+
+```java
+@Service
+public class UserService {
+
+    public void saveUser() {
+        System.out.println("新增用户信息...");
+    }
+
+    public void deleteUser() {
+        System.out.println("删除用户信息...");
+    }
+
+    public void modifyUser() {
+        System.out.println("修改用户信息...");
+    }
+
+    public void getUser() {
+        System.out.println("查询用户信息...");
+    }
+}
+```
+
+```java
+@Service
+public class VipService {
+    public void saveVip() {
+        System.out.println("新增会员信息...");
+    }
+
+    public void deleteVip() {
+        System.out.println("删除会员信息...");
+    }
+
+    public void modifyVip() {
+        System.out.println("修改会员信息...");
+    }
+
+    public void getVip() {
+        System.out.println("查询会员信息...");
+    }
+}
+```
+
+
+
+接下来我们使用aop来解决上面的需求：编写一个负责安全的切面类。
+
+```java
+@Component
+@Aspect
+public class SecurityLogAspect {
+
+    @Pointcut("execution(* cn.piggy.spring6..biz..save*(..))")
+    public void savePointcut() {}
+
+    @Pointcut("execution(* cn.piggy.spring6..biz..delete*(..))")
+    public void deletePointcut() {}
+
+    @Pointcut("execution(* cn.piggy.spring6..biz..modify*(..))")
+    public void modifyPointcut() {}
+
+    @Before("savePointcut() || deletePointcut() || modifyPointcut()")
+    public void beforeAdvice(JoinPoint joinPoint) {
+
+        // 系统时间
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String nowTime = sdf.format(new Date());
+
+        // 输入日志信息
+        System.out.println(nowTime + " PIGGY : " + joinPoint.getSignature().getDeclaringType() + "." + joinPoint.getSignature().getName());
+    }
+}
+```
+
+
+
+编写测试代码并测试：
+
+<img src="Spring6.assets/image-20251230174301116.png" alt="image-20251230174301116" style="zoom:80%;" />
+
+
+
+
+
+# 第十六章节 Spring对事务的支持
+

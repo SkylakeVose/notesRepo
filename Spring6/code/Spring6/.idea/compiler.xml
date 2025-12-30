@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="simple-factory" />
         <module name="spring6-007-circular-dependency" />
+        <module name="spring6-012-aop-realapp" />
         <module name="revice-reflect" />
         <module name="spring6-005-bean-instantiation" />
         <module name="dynamic-proxy-jdk" />
