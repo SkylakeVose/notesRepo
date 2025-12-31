@@ -5514,3 +5514,300 @@ public class SecurityLogAspect {
 
 # 第十六章节 Spring对事务的支持
 
+## 16.1 事务概述
+
+- **什么是事务**
+
+- - 在一个业务流程当中，通常需要多条DML（insert delete update）语句共同联合才能完成，这多条DML语句必须同时成功，或者同时失败，这样才能保证数据的安全。
+  - 多条DML要么同时成功，要么同时失败，这叫做事务。
+  - 事务：Transaction（tx）
+
+- **事务的四个处理过程**：
+
+- - 第一步：开启事务 (start transaction)
+  - 第二步：执行核心业务代码
+  - 第三步：提交事务（如果核心业务处理过程中没有出现异常）(commit transaction)
+  - 第四步：回滚事务（如果核心业务处理过程中出现异常）(rollback transaction)
+
+- **事务的四个特性**：
+
+- - A 原子性：事务是最小的工作单元，不可再分。
+  - C 一致性：事务要求要么同时成功，要么同时失败。事务前和事务后的总量不变。
+  - I 隔离性：事务和事务之间因为有隔离性，才可以保证互不干扰。
+  - D 持久性：持久性是事务结束的标志。
+
+
+
+## 16.2 引入事务场景
+
+以银行账户转账为例学习事务。两个账户act-001和act-002。act-001账户向act-002账户转账10000，必须同时成功，或者同时失败。（一个减成功，一个加成功， 这两条update语句必须同时成功，或同时失败。）
+
+连接数据库的技术采用Spring框架的JdbcTemplate。
+
+采用三层架构搭建：
+
+![image.png](Spring6.assets/1666495641174-069ee06f-097c-4f44-9a29-ca3e701d666b.png)
+
+1. 创建模块`spring6-013-tx-bank`，并引入依赖：
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <project xmlns="http://maven.apache.org/POM/4.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+       <modelVersion>4.0.0</modelVersion>
+   
+       <groupId>cn.piggy</groupId>
+       <artifactId>spring6-013-tx-bank</artifactId>
+       <version>1.0-SNAPSHOT</version><packaging>jar</packaging>
+   
+       <!--依赖-->
+       <dependencies>
+           <!--spring context依赖-->
+           <dependency>
+               <groupId>org.springframework</groupId>
+               <artifactId>spring-context</artifactId>
+               <version>6.2.12</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>jakarta.annotation</groupId>
+               <artifactId>jakarta.annotation-api</artifactId>
+               <version>2.1.1</version>
+           </dependency>
+   
+           <!--spring jdbc依赖-->
+           <dependency>
+               <groupId>org.springframework</groupId>
+               <artifactId>spring-jdbc</artifactId>
+               <version>6.2.12</version>
+           </dependency>
+   
+           <!--mysql驱动-->
+           <dependency>
+               <groupId>mysql</groupId>
+               <artifactId>mysql-connector-java</artifactId>
+               <version>8.0.31</version>
+           </dependency>
+   
+           <!--druid连接池依赖-->
+           <dependency>
+               <groupId>com.alibaba</groupId>
+               <artifactId>druid</artifactId>
+               <version>1.2.13</version>
+           </dependency>
+   
+           <!-- junit依赖 -->
+           <dependency>
+               <groupId>junit</groupId>
+               <artifactId>junit</artifactId>
+               <version>4.13.2</version>
+               <scope>test</scope>
+           </dependency>
+       </dependencies>
+   
+       <properties>
+           <maven.compiler.source>17</maven.compiler.source>
+           <maven.compiler.target>17</maven.compiler.target>
+           <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+       </properties>
+   
+   </project>
+   ```
+
+2. 创建实体类`pojo`、持久层`dao`、业务层`service`的包：
+
+   ![image-20251231174318561](Spring6.assets/image-20251231174318561.png)
+
+3. 编写实体类`Account`：
+
+   ```java
+   public class Account {
+       private String actno;
+       private double balance;
+   
+       public Account() {
+       }
+   
+       public Account(String actno, double balance) {
+           this.actno = actno;
+           this.balance = balance;
+       }
+   
+       public void setActno(String actno) {
+           this.actno = actno;
+       }
+   
+       public String getActno() {
+           return actno;
+       }
+   
+       public double getBalance() {
+           return balance;
+       }
+   
+       public void setBalance(double balance) {
+           this.balance = balance;
+       }
+   
+       @Override
+       public String toString() {
+           return "Account{" +
+                   "actno='" + actno + '\'' +
+                   ", balance=" + balance +
+                   '}';
+       }
+   }
+   ```
+
+4. 编写持久类`AccountDao`及其实现类`AccountDaoImpl`：
+
+   ```java
+   // 专门负责账户信息的CURD操作
+   // DAO中只执行SQL语句，没有任何业务逻辑
+   // 也就是说DAO不和业务挂钩
+   public interface AccountDao {
+       /**
+        * 根据账号查询账号信息
+        * @param actno
+        * @return
+        */
+       Account selectByActno(String actno);
+   
+       /**
+        * 更新账号信息
+        * @param act
+        * @return
+        */
+       int update(Account act);
+   }
+   ```
+
+   ```java
+   @Repository("accountDao")
+   public class AccountDaoImpl implements AccountDao {
+   
+       @Resource(name = "jdbcTemplate")
+       private JdbcTemplate jdbcTemplate;
+   
+       @Override
+       public Account selectByActno(String actno) {
+           String sql = "select * from t_act where actno = ?";
+           Account account = jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(Account.class), actno);
+           return account;
+       }
+   
+       @Override
+       public int update(Account act) {
+           String sql =  "update t_act set balance = ? where actno = ?";
+           int count = jdbcTemplate.update(sql, act.getBalance(), act.getActno());
+           return count;
+       }
+   }
+   ```
+
+5. 编写业务类`AccountService`及其实现类`AccountServiceImpl`：
+
+   ```java
+   // 业务接口
+   // 事务就是在这个接口下控制的
+   public interface AccountService {
+   
+       /**
+        * 转账业务方法
+        * @param fromActno 转出账户
+        * @param toActno   转入账户
+        * @param money     转账金额
+        */
+       void transfer(String fromActno, String toActno, double money);
+   }
+   ```
+
+   ```java
+   @Service("accountService")
+   public class AccountServiceImpl implements AccountService {
+   
+       @Resource(name = "accountDao")
+       private AccountDao accountDao;
+   
+       // 控制事务，因为要在这个方法中完成转账业务
+       @Override
+       public void transfer(String fromActno, String toActno, double money) {
+           // 查询转出账户的余额是否充足
+           Account fromAct = accountDao.selectByActno(fromActno);
+           if(fromAct.getBalance() < money) {
+               throw new RuntimeException("余额不足!");
+           }
+           // 余额充足
+           Account toAct = accountDao.selectByActno(toActno);
+   
+           // 将内存中两个对象的余额先修改
+           fromAct.setBalance(fromAct.getBalance() - money);
+           toAct.setBalance(toAct.getBalance() + money);
+   
+           // 数据库更新
+           int count = accountDao.update(fromAct);
+           count += accountDao.update(toAct);
+   
+           if(count != 2) {
+               throw new RuntimeException("转账失败，请联系银行.");
+           }
+       }
+   }
+   ```
+
+6. 编写配置文件`spring.xml`：
+
+   ```java
+   <?xml version="1.0" encoding="UTF-8"?>
+   <beans xmlns="http://www.springframework.org/schema/beans"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:context="http://www.springframework.org/schema/context"
+          xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+   
+       <!--组件扫描-->
+       <context:component-scan base-package="cn.piggy.bank"/>
+   
+       <!--配置数据源-->
+       <bean id="dateSource" class="com.alibaba.druid.pool.DruidDataSource">
+           <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+           <property name="url" value="jdbc:mysql://8.134.254.79:3306/spring6"/>
+           <property name="username" value="test"/>
+           <property name="password" value="Aa123456#."/>
+       </bean>
+       <!--配置JdbcTemplate-->
+       <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+           <property name="dataSource" ref="dateSource"/>
+       </bean>
+   
+   </beans>
+   ```
+
+7. 编写测试函数并测试：
+
+   <img src="Spring6.assets/image-20251231174450216.png" alt="image-20251231174450216" style="zoom: 80%;" />
+
+   ![image-20251231174737422](Spring6.assets/image-20251231174737422.png)
+
+
+
+全部文件结构如下：
+
+![image-20251231174536123](Spring6.assets/image-20251231174536123.png)
+
+
+
+
+
+**模拟错误异常：**
+
+![image-20251231175108033](Spring6.assets/image-20251231175108033.png)
+
+测试结果：程序抛出异常，丢了一万。
+
+![image-20251231175152524](Spring6.assets/image-20251231175152524.png)
+
+
+
+## 16.3 Spring对事务的支持
