@@ -6,6 +6,7 @@ import cn.piggy.bank.service.AccountService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service("accountService")
 public class AccountServiceImpl implements AccountService {
@@ -15,6 +16,7 @@ public class AccountServiceImpl implements AccountService {
 
     // 控制事务，因为要在这个方法中完成转账业务
     @Override
+    @Transactional
     public void transfer(String fromActno, String toActno, double money) {
         // 查询转出账户的余额是否充足
         Account fromAct = accountDao.selectByActno(fromActno);
@@ -32,7 +34,7 @@ public class AccountServiceImpl implements AccountService {
         int count = accountDao.update(fromAct);
 
         // 模拟异常
-        int i = 10 / 0;
+        // int i = 10 / 0;
 
         count += accountDao.update(toAct);
 

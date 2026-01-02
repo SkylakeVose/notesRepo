@@ -5811,3 +5811,77 @@ public class SecurityLogAspect {
 
 
 ## 16.3 Spring对事务的支持
+
+### 16.3.1 Spring实现事务的两种方式：
+
+- 编程式事务
+
+- - 通过编写代码的方式来实现事务的管理。
+
+- 声明式事务
+
+- - 基于注解方式
+  - 基于XML配置方式
+
+
+
+### 16.3.2 Spring事务管理API
+
+Spring对事务的管理底层实现方式是基于AOP实现的。采用AOP的方式进行了封装。所以Spring专门针对事务开发了一套API，API的核心接口如下：
+
+![image-20260102152225077](Spring6.assets/image-20260102152225077.png)
+
+`PlatformTransactionManager`接口：spring事务管理器的核心接口。在**Spring6**中它有两个实现：
+
+- `DataSourceTransactionManager`：支持JdbcTemplate、MyBatis、Hibernate等事务管理。
+- `JtaTransactionManager`：支持分布式事务管理。
+
+如果要在Spring6中使用`JdbcTemplate`，就要使用`DataSourceTransactionManager`来管理事务。（Spring内置写好了，可以直接用。）
+
+
+
+### 16.3.3 声明式事务之注解实现方式
+
+1. 在Spring配置文件中配置事务管理器。
+
+   ```xml
+   <!--配置事务管理器-->
+   <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+       <property name="dataSource" ref="dataSource"/>
+   </bean>
+   ```
+
+2. 引入tx命名空间。
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <beans xmlns="http://www.springframework.org/schema/beans"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:context="http://www.springframework.org/schema/context"
+          xmlns:tx="http://www.springframework.org/schema/tx"
+          xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                              http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                              http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+   ```
+
+3. 配置“事务注解驱动器”，开启注解控制事务。
+
+   ```xml
+   <!--开启事务:注解驱动器，开启事务注解，采用注解的方式去控制事务-->
+   <tx:annotation-driven transaction-manager="txManager"/>
+   ```
+
+4. 配置文件的设置如下：
+
+   ![image-20260102171501766](Spring6.assets/image-20260102171501766.png)
+
+5. 在业务方法上添加`@Transactional`注解，开启事务。
+
+   ![image-20260102171715997](Spring6.assets/image-20260102171715997.png)
+
+6. 测试后，当业务抛异常时，事务回滚，数据库金额不变。当业务正常执行后，事务提交，数据库金额相应改变。
+
+
+
+### 16.3.4 事务属性
+
