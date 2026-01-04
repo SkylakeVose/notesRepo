@@ -26,6 +26,7 @@
         <option value="$PROJECT_DIR$/spring6-011-spring-aspectj-aop-xml/pom.xml" />
         <option value="$PROJECT_DIR$/spring6-012-aop-realapp/pom.xml" />
         <option value="$PROJECT_DIR$/spring6-013-tx-bank/pom.xml" />
+        <option value="$PROJECT_DIR$/spring6-014-tx-bank-xml/pom.xml" />
       </list>
     </option>
   </component>
