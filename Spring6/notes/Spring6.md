@@ -6316,3 +6316,582 @@ public void testNoAnnotation() {
 
 # 第十七章节 Spring6整合Junit5
 
+## 17.1 Spring6对JUnit4的支持
+
+1. 创建项目`spring6-015-Junit4`，并配置pom文件：
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <project xmlns="http://maven.apache.org/POM/4.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+       <modelVersion>4.0.0</modelVersion>
+   
+       <groupId>cn.piggy</groupId>
+       <artifactId>spring6-015-junit</artifactId>
+       <version>1.0-SNAPSHOT</version>
+       <packaging>jar</packaging>
+   
+       <dependencies>
+           <!--spring context依赖-->
+           <dependency>
+               <groupId>org.springframework</groupId>
+               <artifactId>spring-context</artifactId>
+               <version>6.2.12</version>
+           </dependency>
+   
+           <!--spring test依赖-->
+           <dependency>
+               <groupId>org.springframework</groupId>
+               <artifactId>spring-test</artifactId>
+               <!--这个版本支持JUnit4和5-->
+               <version>6.2.12</version>
+           </dependency>
+   
+           <!--JUnit4依赖-->
+           <dependency>
+               <groupId>junit</groupId>
+               <artifactId>junit</artifactId>
+               <version>4.13.2</version>
+               <scope>test</scope>
+           </dependency>
+       </dependencies>
+   
+       <properties>
+           <maven.compiler.source>17</maven.compiler.source>
+           <maven.compiler.target>17</maven.compiler.target>
+           <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+       </properties>
+   </project>
+   ```
+
+2. 创建User类和Vip类：
+
+   <img src="Spring6.assets/image-20260105152051437.png" alt="image-20260105152051437" style="zoom:80%;" />
+
+3. 配置`spring.xml`：
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <beans xmlns="http://www.springframework.org/schema/beans"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:context="http://www.springframework.org/schema/context"
+          xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                              http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+   
+       <context:component-scan base-package="cn.piggy.spring6.bean"/>
+   
+   </beans>
+   ```
+
+4. 编写测试函数，使用JUnit4常规做法：
+
+   ![image-20260105152224398](Spring6.assets/image-20260105152224398.png)
+
+   可以发现，三个测试函数都有重复的部分，比如加载配置文件和获取Bean对象。我们可以使用spring-test提供的一些注解来简化开发。
+
+5. 修改测试函数，使用Spring-test提供的注解开发：
+
+   ![image-20260105152613770](Spring6.assets/image-20260105152613770.png)
+
+   输出结果是一致的。
+
+
+
+Spring提供的方便主要是这几个注解：
+
+`@RunWith(SpringJUnit4ClassRunner.class)`
+`@ContextConfiguration("classpath:spring.xml")`
+
+在单元测试类上使用这两个注解之后，在单元测试类中的属性上可以使用`@Autowired`，比较方便。
+
+
+
+
+
+## 17.2 Spring对JUnit5的支持
+
+Junit5对比Junit4没有多大变动。
+
+1. 引入Junit5依赖：
+
+   ```xml
+   <!--JUnit5依赖-->
+   <dependency>
+       <groupId>org.junit.jupiter</groupId>
+       <artifactId>junit-jupiter</artifactId>
+       <version>5.9.0</version>
+       <scope>test</scope>
+   </dependency>
+   ```
+
+2. Junit5和4的测试代码对比：
+
+   ![image-20260105153459974](Spring6.assets/image-20260105153459974.png)
+
+
+
+# 第十八章 Spring6继承Mybatis3.5
+
+## 18.1 实现步骤
+
++ 第一步：准备数据库表
+
+- - 使用t_act表（账户表）
+
+- 第二步：IDEA中创建一个模块，并引入依赖
+
+- - spring-context
+  - spring-jdbc
+  - mysql驱动
+  - mybatis
+  - mybatis-spring：**mybatis提供的与spring框架集成的依赖**
+  - 德鲁伊连接池
+  - junit
+
+- 第三步：基于三层架构实现，所以提前创建好所有的包
+
+- - com.powernode.bank.mapper
+  - com.powernode.bank.service
+  - com.powernode.bank.service.impl
+  - com.powernode.bank.pojo
+
+- 第四步：编写pojo
+
+- - Account，属性私有化，提供公开的setter getter和toString。
+
+- 第五步：编写mapper接口
+
+- - AccountMapper接口，定义方法
+
+- 第六步：编写mapper配置文件
+
+- - 在配置文件中配置命名空间，以及每一个方法对应的sql。
+
+- 第七步：编写service接口和service接口实现类
+
+- - AccountService
+  - AccountServiceImpl
+
+- 第八步：编写jdbc.properties配置文件
+
+- - 数据库连接池相关信息
+
+- 第九步：编写mybatis-config.xml配置文件
+
+- - 该文件可以没有，大部分的配置可以转移到spring配置文件中。
+  - 如果遇到mybatis相关的系统级配置，还是需要这个文件。
+
+- 第十步：编写spring.xml配置文件
+
+- - 组件扫描
+  - 引入外部的属性文件
+  - 数据源
+  - SqlSessionFactoryBean配置
+
+- - - 注入mybatis核心配置文件路径
+    - 指定别名包
+    - 注入数据源
+
+- - Mapper扫描配置器
+
+- - - 指定扫描的包
+
+- - 事务管理器DataSourceTransactionManager
+
+- - - 注入数据源
+
+- - 启用事务注解
+
+- - - 注入事务管理器
+
+- 第十一步：编写测试程序，并添加事务，进行测试
+
+
+
+## 18.2 具体实现
+
+1. 准备数据库表
+
+   ![image-20260105171447541](Spring6.assets/image-20260105171447541.png)
+
+2. 创建项目`spring6-016-sm`，并引入依赖：
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <project xmlns="http://maven.apache.org/POM/4.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+       <modelVersion>4.0.0</modelVersion>
+   
+       <groupId>cn.piggy</groupId>
+       <artifactId>spring-016-sm</artifactId>
+       <version>1.0-SNAPSHOT</version>
+       <packaging>jar</packaging>
+   
+       <dependencies>
+           <dependency>
+               <groupId>org.springframework</groupId>
+               <artifactId>spring-context</artifactId>
+               <version>6.2.12</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>org.springframework</groupId>
+               <artifactId>spring-jdbc</artifactId>
+               <version>6.2.12</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>mysql</groupId>
+               <artifactId>mysql-connector-java</artifactId>
+               <version>8.0.31</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>org.mybatis</groupId>
+               <artifactId>mybatis</artifactId>
+               <version>3.5.10</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>org.mybatis</groupId>
+               <artifactId>mybatis-spring</artifactId>
+               <version>2.0.7</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>com.alibaba</groupId>
+               <artifactId>druid</artifactId>
+               <version>1.2.13</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>junit</groupId>
+               <artifactId>junit</artifactId>
+               <version>4.13.2</version>
+               <scope>test</scope>
+           </dependency>
+       </dependencies>
+   
+       <properties>
+           <maven.compiler.source>17</maven.compiler.source>
+           <maven.compiler.target>17</maven.compiler.target>
+           <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+       </properties>
+   
+   </project>
+   ```
+
+3. 基于三层架构实现，提前创建所有的包：
+
+   ![image-20260105172020908](Spring6.assets/image-20260105172020908.png)
+
+4. 编写pojo类`Account`：
+
+   ```java
+   public class Account {
+       private String actno;
+       private Double balance;
+   
+       public Account(String actno, Double balance) {
+           this.actno = actno;
+           this.balance = balance;
+       }
+   
+       public Account() {
+       }
+   
+       public String getActno() {
+           return actno;
+       }
+   
+       public void setActno(String actno) {
+           this.actno = actno;
+       }
+   
+       public Double getBalance() {
+           return balance;
+       }
+   
+       public void setBalance(Double balance) {
+           this.balance = balance;
+       }
+   
+       @Override
+       public String toString() {
+           return "Account{" +
+                   "actno='" + actno + '\'' +
+                   ", balance=" + balance +
+                   '}';
+       }
+   }
+   ```
+
+5. 编写mapper接口
+
+   ```java
+   // 该接口的实现类不需要编写，是mybatis通过动态代理机制生成的实现类
+   public interface AccountMapper {
+   
+       // 这就是DAO，只要编写CURD方法就可以了
+   
+       /**
+        * 新增账户
+        * @param account
+        * @return
+        */
+       int insert(Account account);
+   
+       /**
+        * 根据账号删除账户
+        * @param actno
+        * @return
+        */
+       int deleteByActno(String actno);
+   
+       /**
+        * 修改账户
+        * @param account
+        * @return
+        */
+       int update(Account account);
+   
+       /**
+        * 根据账号查询账户
+        * @param actno
+        * @return
+        */
+       Account selectByActno(String actno);
+   
+       /**
+        * 查询所有账户
+        * @return
+        */
+       List<Account> selectAll();
+   }
+   ```
+
+6. 编写mapper配置文件
+
+   注意：mapper配置文件最好在resource目录下，且跟mapper接口的目录层级要一致。而且接口名字`*Mapper.java`和配置文件名字`*Mapper.xml`规则要对应上，比如`AccountMapper.java`和`AccountMapper.xml`。
+
+   ![image-20260105172958612](Spring6.assets/image-20260105172958612.png)
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <!DOCTYPE mapper
+       PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+       "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   
+   <mapper namespace="cn.piggy.bank.mapper.AccountMapper">
+   
+       <insert id="insert">
+           insert into t_act values(#{actno}, #{balance})
+       </insert>
+   
+       <delete id="deleteByActno">
+           delete from t_act where actno = #{actno}
+       </delete>
+   
+       <update id="update">
+           update t_act set balance = #{balance} where actno = #{actno}
+       </update>
+   
+       <select id="selectByActno" resultType="Account">
+           select * from t_act where actno = #{actno}
+       </select>
+   
+       <select id="selectAll" resultType="Account">
+           select * from t_act
+       </select>
+   
+   </mapper>
+   ```
+
+7. 编写service接口和service接口实现类
+
+   ```java
+   public interface AccountService {
+   
+       /**
+        * 开户
+        * @param account
+        * @return
+        */
+       int save(Account account);
+   
+       /**
+        * 销户
+        * @param actno
+        * @return
+        */
+       int deleteByActno(String actno);
+   
+       /**
+        * 修改账户
+        * @param account
+        * @return
+        */
+       int modify(Account account);
+   
+       /**
+        * 查询账户
+        * @param actno
+        * @return
+        */
+       Account selectByActno(String actno);
+   
+       /**
+        * 查询账户
+        * @return
+        */
+       List<Account> getAll();
+   
+       /**
+        * 转账
+        * @param fromActno
+        * @param toActno
+        * @param money
+        */
+       void transfer(String fromActno, String toActno, double money);
+   }
+   ```
+
+   ```java
+   @Service("accountService")
+   public class AccountServiceImpl implements AccountService {
+   
+       @Autowired
+       private AccountMapper accountMapper;
+   
+       @Override
+       public int save(Account account) {
+           return accountMapper.insert(account);
+       }
+   
+       @Override
+       public int deleteByActno(String actno) {
+           return accountMapper.deleteByActno(actno);
+       }
+   
+       @Override
+       public int modify(Account account) {
+           return accountMapper.update(account);
+       }
+   
+       @Override
+       public Account selectByActno(String actno) {
+           return accountMapper.selectByActno(actno);
+       }
+   
+       @Override
+       public List<Account> getAll() {
+           return accountMapper.selectAll();
+       }
+   
+       @Override
+       public void transfer(String fromActno, String toActno, double money) {
+           Account fromAct = accountMapper.selectByActno(fromActno);
+           if (fromAct.getBalance() < money) {
+               throw new RuntimeException("余额不足");
+           }
+           Account toAct = accountMapper.selectByActno(toActno);
+           fromAct.setBalance(fromAct.getBalance() - money);
+           toAct.setBalance(toAct.getBalance() + money);
+           int count = accountMapper.update(fromAct);
+           count += accountMapper.update(toAct);
+           if(count != 2) {
+               throw new RuntimeException("转账失败");
+           }
+           System.out.println("转账成功");
+       }
+   }
+   ```
+
+8. 编写`jdbc.properties`配置文件
+
+   放在根目录下
+
+   ```properties
+   jdbc.driver=com.mysql.cj.jdbc.Driver
+   jdbc.url=jdbc:mysql://8.134.254.79:3306/spring6
+   jdbc.username=test
+   jdbc.password=Aa123456#.
+   ```
+
+9. 编写`mybatis-config.xml`配置文件
+
+   放在类的根路径下，只开启日志，其他配置到`spring.xml`中。
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <!DOCTYPE configuration
+           PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+           "http://mybatis.org/dtd/mybatis-3-config.dtd">
+   <configuration>
+   
+       <!--打印mybatis日志信息-->
+       <settings>
+           <setting name="logImpl" value="STDOUT_LOGGING"/>
+       </settings>
+   </configuration>
+   ```
+
+10. 编写`spring.xml`配置文件
+
+    ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    <beans xmlns="http://www.springframework.org/schema/beans"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+           xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+    
+        <!--组件扫描-->
+        <context:component-scan base-package="cn.piggy.bank"/>
+    
+        <!--外部属性配置文件-->
+        <context:property-placeholder location="jdbc.properties"/>
+    
+        <!--数据源-->
+        <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+            <property name="driverClassName" value="${jdbc.driver}"/>
+            <property name="url" value="${jdbc.url}"/>
+            <property name="username" value="${jdbc.username}"/>
+            <property name="password" value="${jdbc.password}"/>
+        </bean>
+    
+        <!--SqlSessionFactoryBean-->
+        <bean class="org.mybatis.spring.SqlSessionFactoryBean">
+            <!--mybatis核心配置文件路径-->
+            <property name="configLocation" value="mybatis-config.xml"/>
+            <!--注入数据源-->
+            <property name="dataSource" ref="dataSource"/>
+            <!--起别名-->
+            <property name="typeAliasesPackage" value="cn.piggy.bank.pojo"/>
+        </bean>
+    
+        <!--Mapper扫描器-->
+        <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+            <property name="basePackage" value="cn.piggy.bank.mapper"/>
+        </bean>
+    
+        <!--事务管理器-->
+        <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+            <property name="dataSource" ref="dataSource"/>
+        </bean>
+        s
+        <!--开启事务注解-->
+        <tx:annotation-driven transaction-manager="txManager"/>
+    
+    </beans>
+    ```
+
+11. 给业务实现类添加事务，编写测试函数进行测试
+
+    ![image-20260105174949362](Spring6.assets/image-20260105174949362.png)
+
+    ```java
+    ```
+
+    
