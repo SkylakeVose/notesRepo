@@ -236,3 +236,151 @@ MyBatis的发展历程：<font style="color:#E8323C;">【引用百度百科】</
 
 ### 2.3.2 创建IDEA项目
 
+mybatis中有两个主要的配置文件：
+
+1. `mybatis-config.xml`：这是核心配置文件，主要配置连接数据库的信息等，有且仅有一个。
+
+2. `XxxxxMapper.xml`：这个文件是专门用来编写SQL语句的配置文件，一般是一个数据库表对应一个。
+
+   如`t_user`表对应`UserMapper.xml`、`t_student`表对应`StudentMapper.xml`。
+
+
+
+下面我们开始创建项目：
+
+1. 创建一个空项目`mybatis`，在空项目下创建第一个maven模块`mybatis-001-introduction`。
+
+   ![image-20260108213341796](mybatis.assets/image-20260108213341796.png)
+
+2. 编写pom文件。
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <project xmlns="http://maven.apache.org/POM/4.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+       <modelVersion>4.0.0</modelVersion>
+   
+       <groupId>cn.piggy</groupId>
+       <artifactId>mybatis-001-introduction</artifactId>
+       <version>1.0-SNAPSHOT</version>
+       <!--打包方式-->
+       <packaging>jar</packaging>
+   
+       <dependencies>
+           <!--mybatis依赖-->
+           <dependency>
+               <groupId>org.mybatis</groupId>
+               <artifactId>mybatis</artifactId>
+               <version>3.5.10</version>
+           </dependency>
+           <!--mysql驱动依赖-->
+           <dependency>
+               <groupId>mysql</groupId>
+               <artifactId>mysql-connector-java</artifactId>
+               <version>8.0.31</version>
+           </dependency>
+       </dependencies>
+   </project>
+   ```
+
+3. 在resource根目录下创建`mybatis-config.xml`配置文件。
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <!DOCTYPE configuration
+           PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+           "http://mybatis.org/dtd/mybatis-3-config.dtd">
+   <configuration>
+       <environments default="development">
+           <environment id="development">
+               <transactionManager type="JDBC"/>
+               <dataSource type="POOLED">
+                   <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                   <property name="url" value="jdbc:mysql://8.134.254.79:3306/powernode"/>
+                   <property name="username" value="test"/>
+                   <property name="password" value="Aa123456#."/>
+               </dataSource>
+           </environment>
+       </environments>
+       <mappers>
+           <!--sql映射文件创建好之后，需要将该文件路径配置到这里-->
+           <!--resource属性自动会从类路径下开始查找资源 -->
+           <mapper resource="CarMapper.xml"/>
+       </mappers>
+   </configuration>
+   ```
+
+   注意：
+
+   + mybatis核心配置文件的文件名不一定是`mybatis-config.xml`，可以是其它名字。
+   + mybatis核心配置文件存放的位置也可以随意。这里选择放在resources根下，相当于放到了类的根路径下。
+
+   
+
+4. 在resource根目录下创建`CarMapper.xml`配置文件。
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <!DOCTYPE mapper
+           PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+           "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   <!--namespace先随意写一个-->
+   <mapper namespace="car">
+       <!--insert sql：保存一个汽车信息-->
+       <insert id="insertCar">
+           insert into t_car
+           (id,car_num,brand,guide_price,produce_time,car_type)
+           values
+           (null,'102','丰田mirai',40.30,'2014-10-05','氢能源')
+       </insert>
+   </mapper>
+   ```
+
+   注意1：**<font style="color:#E8323C;">sql语句最后结尾可以不写“;”</font>**
+
+   注意2：`CarMapper.xml`文件的名字不是固定的。可以使用其它名字。
+
+   注意3：`CarMapper.xml`文件的位置也是随意的。这里选择放在resources根下，相当于放到了类的根路径下。
+
+   注意4：<font style="color:#F5222D;">将`CarMapper.xml`文件路径配置到`mybatis-config.xml`：</font>
+
+   ![image-20260108213631320](mybatis.assets/image-20260108213631320.png)
+
+5. 编写MyBatisIntroductionTest代码。
+
+   ```java
+   public class MyBatisIntroductionTest {
+       public static void main(String[] args) throws IOException {
+           // 获取SqlSessionFactoryBuilder对象
+           SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+   
+           // 获取SqlSessionFactory对象
+           InputStream is = Resources.getResourceAsStream("mybatis-config.xml");
+           SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(is);
+   
+           // 获取SqlSession对象
+           SqlSession sqlSession = sqlSessionFactory.openSession();
+   
+           // 执行sql语句
+           int count = sqlSession.insert("insertCar"); // 返回值是影响数据库表的记录条数
+           System.out.println("插入了几条记录：" + count);
+           
+           // 提交事务
+           sqlSession.commit();
+   
+           // 关闭资源（只关闭资源是不会提交事务的）
+           sqlSession.close();
+       }
+   }
+   ```
+
+6. 运行测试
+
+   ![image-20260108215826759](mybatis.assets/image-20260108215826759.png)
+
+   默认采用的事务管理器是：JDBC。JDBC事务默认是不提交的，需要手动提交。
+
+
+
+## 2.4 关于MyBatis核心配置文件的名字和路径详解
