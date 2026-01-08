@@ -213,3 +213,26 @@ MyBatis的发展历程：<font style="color:#E8323C;">【引用百度百科】</
 
 ## 2.3 MyBatis入门程序开发步骤
 
+### 2.3.1 准备数据库表
+
+1. 准备数据库表`t_car`，字段包括：
+
+   + `id`：主键（自增）【bigint】
+   + `car_num`：汽车编号【varchar】
+   + `brand`：品牌【varchar】
+   + `guide_price`：厂家指导价【decimal类型，专门为财务数据准备的类型】
+   + `produce_time`：生产时间【char，年月日即可，10个长度，'2022-10-11'】
+   + `car_type`：汽车类型（燃油车、电车、氢能源）【varchar】
+
+2. 在数据库中使用navicat建表：
+
+   ![image-20260108175644726](mybatis.assets/image-20260108175644726.png)
+
+3. 向表中插入两条数据：
+
+   ![image-20260108175658252](mybatis.assets/image-20260108175658252.png)
+
+
+
+### 2.3.2 创建IDEA项目
+
