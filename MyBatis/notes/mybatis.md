@@ -384,3 +384,52 @@ mybatis中有两个主要的配置文件：
 
 
 ## 2.4 关于MyBatis核心配置文件的名字和路径详解
+
+
+
+**核心配置文件的名字是随意的**，只要在配置的时候放入相应的文件名：
+
+```java
+InputStream is = Resources.getResourceAsStream("mybatis-config.xml");
+```
+
+
+
+**核心配置文件必须放到resources下吗**？
+
+不是。我们将mybatis配置文件放到不同的位置上测试一下。
+
+1. 将配置文件放在类的根目录下的`com`目录下，然后使用`Resources.getResourceAsStream()`进行加载：
+
+   ![image-20260109173601237](mybatis.assets/image-20260109173601237.png)
+
+   
+
+2. 将配置文件放到D盘根目录下，使用文件输入流`FileInputStream`进行加载：
+
+   ![image-20260109174016044](mybatis.assets/image-20260109174016044.png)
+
+
+
+经过测试说明mybatis核心配置文件的名字是随意的，存放路径也是随意的。
+
+虽然mybatis核心配置文件的名字不是固定的，但通常该文件的名字叫做：`mybatis-config.xml`。
+
+虽然mybatis核心配置文件的路径不是固定的，但通常该文件会存放到**<font style="color:#F5222D;">类路径</font>**当中，这样让项目的移植更加健壮。
+
+
+
+>  在mybatis中提供了一个类：`Resources`【org.apache.ibatis.io.Resources】，该类可以从类路径当中获取资源，我们通常使用它来获取输入流InputStream，但**这种方式只能从类路径当中获取资源**，也就是说mybatis-config.xml文件必须要在类路径下。代码如下：
+>
+> ```java
+> InputStream is = Resources.getResourceAsStream("mybatis-config.xml");
+> ```
+>
+> 这个方法底层仍然是使用类加载器中的获取文件流方法：
+>
+> ![image-20260109175956986](mybatis.assets/image-20260109175956986.png)
+
+
+
+## 2.5 MyBatis第一个比较完整的代码写法
+

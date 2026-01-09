@@ -5,6 +5,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -16,6 +17,11 @@ public class MyBatisIntroductionTest {
 
         // 获取SqlSessionFactory对象
         InputStream is = Resources.getResourceAsStream("mybatis-config.xml");
+        // 从类的根目录下获取配置文件的文件流
+        // InputStream is = Resources.getResourceAsStream("com/mybatis-config.xml");
+        // 从绝对路径获取配置文件的文件流
+//        InputStream is = new FileInputStream("D:/mybatis-config.xml");
+        // 一般情况下都是一个数据库对应一个SqlSessionFactory对象
         SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(is);
 
         // 获取SqlSession对象
