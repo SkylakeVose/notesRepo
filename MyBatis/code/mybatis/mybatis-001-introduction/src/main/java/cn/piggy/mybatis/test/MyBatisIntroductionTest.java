@@ -32,9 +32,9 @@ public class MyBatisIntroductionTest {
         System.out.println("插入了几条记录：" + count);
 
         // 提交事务
-        sqlSession.commit();
+        // sqlSession.commit();
 
         // 关闭资源（只关闭资源是不会提交事务的）
-        sqlSession.close();
+        // sqlSession.close();
     }
 }

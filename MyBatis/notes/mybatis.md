@@ -383,9 +383,9 @@ mybatis中有两个主要的配置文件：
 
 
 
-## 2.4 关于MyBatis核心配置文件的名字和路径详解
+## 2.4 MyBatis配置文件详解
 
-
+### 2.4.1 关于核心配置文件的名字和路径详解
 
 **核心配置文件的名字是随意的**，只要在配置的时候放入相应的文件名：
 
@@ -421,15 +421,148 @@ InputStream is = Resources.getResourceAsStream("mybatis-config.xml");
 
 >  在mybatis中提供了一个类：`Resources`【org.apache.ibatis.io.Resources】，该类可以从类路径当中获取资源，我们通常使用它来获取输入流InputStream，但**这种方式只能从类路径当中获取资源**，也就是说mybatis-config.xml文件必须要在类路径下。代码如下：
 >
-> ```java
-> InputStream is = Resources.getResourceAsStream("mybatis-config.xml");
-> ```
+>  ```java
+>  InputStream is = Resources.getResourceAsStream("mybatis-config.xml");
+>  ```
 >
-> 这个方法底层仍然是使用类加载器中的获取文件流方法：
+>  这个方法底层仍然是使用类加载器中的获取文件流方法：
 >
-> ![image-20260109175956986](mybatis.assets/image-20260109175956986.png)
+>  ![image-20260109175956986](mybatis.assets/image-20260109175956986.png)
 
 
 
-## 2.5 MyBatis第一个比较完整的代码写法
+### 2.4.2 关于Mapper配置文件的名字和路径详解
+
+**Mapper名字和存放位置是固定的么？**
+
+不是。`XxxMapper.xml`的名字和位置都不是固定的，在配置文件中`mybatis-config.xml`中的`mapper`属性中指定其位置。
+
++ 如果是在类根目录`resource`下，则使用`<mapper>的resource`属性从类目录下加载资源：
+
+  ```xml
+  <!--resource属性：自动会从类路径下开始查找资源 -->
+  <!--<mapper resource="CarMapper.xml"/>-->
+  
+  <!--从类的根目录下的com目录下加载CarMapper.xml-->
+  <mapper resource="com/CarMapper.xml"/>
+  ```
+
++ 如果是在绝对路径下，就需要使用`<mapper>`中`url`属性加载资源：
+
+  ```xml
+  <!--url属性：从绝对路径下加载资源-->
+  <mapper url="file:///d:/CarMapper.xml"/>
+  ```
+
+  > 语法格式：`file:///绝对路径`
+
+跟核心配置文件一样，使用绝对路径加载的方式可移植性太差，不符合OCP原则。为了项目的可移植性和健壮性，最好还是将这些文件放到类路径下面。
+
+
+
+### 2.4.3 Mybatis的事务管理机制
+
+#### 2.4.3.1 事务管理器
+
+在`mybatis-config.xml`配置文件中，可以通过以下配置开启mybatis的事务管理：
+
+![image-20260111144949496](mybatis.assets/image-20260111144949496.png)
+
+事务管理器中`type`的值有两个：`JDBC`和`MANAGED`，且不区分大小写。
+
+在mybatis中提供了两种事务管理机制：
+
++ **JDBC事务管理器**：
+
+  mybatis框架自己管理事务，自己采用原生的JDBC代码去管理事务：
+
+  ```java
+  conn.setAutoCommit(false);	// 开启事务
+  // 业务处理...
+  con.commit();		// 手动提交事务
+  ```
+
+  
+
++ **MANAGED事务管理器**：
+
+  mybatis不再负责事务的管理，事务管理交给其他容器来负责，如Spring。
+
+  对于我们当前单纯的只有mybatis的情况下，如果配置为`MANAGED`，就表示事务当前是没有开启的。
+
+
+
+#### 2.4.3.2 JDBC事务管理器
+
+**测试一**：我们在开启JDBC事务的时候，使用到`sqlSessionFactory.openSession()`这条语句：
+
+> `sqlSessionFactory.openSession()`默认形参是`false`。
+
+![image-20260111154712381](mybatis.assets/image-20260111154712381.png)
+
+这样相当于mybatis开启了事务，且需要手动提交事务。
+
+
+
+**测试二**：如果我们在开启JDBC事务的时候，将形参改为`true`，改动后的语句：`selSessionFactory.openSession(true)`：
+
+![image-20260111155349372](mybatis.assets/image-20260111155349372.png)
+
+这样一来，每一条DML语句都会被提交，相当于没有开启事务。显然这种方式不适合多DML语句。
+
+
+
+#### 2.4.3.3 MANAGED事务管理器
+
+我们开启MANAGED事务，现在只有单纯的mybatis，没有其他的框架来做事务管理，因此这里相当于是没有事务。
+
+![image-20260111160004428](mybatis.assets/image-20260111160004428.png)
+
+这样配置就是没有事务，每次执行DML语句都会自动提交。
+
+
+
+>  注意：只要`autoCommit`为`true`，就表示没有开启事务。
+
+
+
+## 2.5 第一个比较完整的Mybatis程序
+
+```java
+public class MyBatisCompleteTest {
+    public static void main(String[] args) {
+        SqlSession sqlSession = null;
+        try {
+            // 1. 创建SqlSessionFactoryBuilder对象
+            SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+            // 2. 创建SqlSessionFactory对象
+            SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("mybatis-config.xml"));
+            // 3. 创建SqlSession开启会话（底层开启事务）
+            sqlSession = sqlSessionFactory.openSession();
+            // 4. 执行sql语句，处理相关业务
+            int count = sqlSession.insert("insertCar");
+            System.out.println(count);
+            // 5. 执行到这里，没有发生任何异常，提交事务
+            sqlSession.commit();
+        } catch (IOException e) {
+            // 回滚事务
+            if (sqlSession != null) {
+                sqlSession.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            // 6. 关闭会话
+            if (sqlSession != null) {
+                sqlSession.close();
+            }
+        }
+    }
+}
+```
+
+
+
+
+
+## 2.6 引入JUnit
 
