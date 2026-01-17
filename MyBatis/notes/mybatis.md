@@ -566,3 +566,157 @@ public class MyBatisCompleteTest {
 
 ## 2.6 引入JUnit
 
+JUnit是专门做单元测试的组件。
+
+- 在实际开发中，单元测试一般是由我们Java程序员来完成的。
+- 我们要对我们自己写的每一个业务方法负责任，要保证每个业务方法在进行测试的时候都能通过。
+
+
+
+测试的过程中涉及到两个概念：
+
+* 期望值
+* 实际值
+
+期望值和实际值相同表示测试通过，期望值和实际值不同则单元测试执行时会报错。这个部分我们会使用`Assert`断言来完成。
+
+
+
+### 2.6.1 简单使用Junit
+
+我们创建一个junit的测试项目`junit-test`：
+
+1. 引入依赖。
+
+   ```xml
+   <!--junit依赖-->
+   <dependency>
+       <groupId>junit</groupId>
+       <artifactId>junit</artifactId>
+       <version>4.13.2</version>
+       <scope>test</scope>
+   </dependency>
+   ```
+
+2. 编写一个业务类。
+
+   ```java
+   public class MathService {
+   
+       /**
+        * 求和的业务方法
+        * @param a
+        * @param b
+        * @return
+        */
+       public int sum(int a,int b){
+           return a+b;
+       }
+   
+       /**
+        * 求减的业务方法
+        * @param a
+        * @param b
+        * @return
+        */
+       public int sub(int a,int b){
+           return a-b;
+       }
+   }
+   ```
+
+3. 编写单元测试类和对应的测试方法。
+
+   注意事项：
+
+   + 一般是一个业务方法对应一个测试方法。
+   + 单元测试类的名字规范：`XxxxTest`。
+   + 测试方法的规范：`public void testXxxx() {}`。
+   + 测试方法名的规范：以test开始。比如测试方法`sum()`，对应的测试名为：`testSum()`。
+   + @Test注解非常重要，被这个注解标注的方法就是一个单元测试方法。
+
+   
+
+   ```java
+   public class MathServiceTest {
+   
+       @Test
+       public void testSum() {
+           /**
+            * 单元测试中有两个重要概念：
+            * 1. 实际值（被测试的业务方法的真正执行结果）
+            * 2. 期望值（执行了这个业务方法后，期望的执行结果）
+            */
+           MathService mathService = new MathService();
+           // 获取实际值
+           int actual = mathService.sum(1, 2);
+           // 期望值
+           int expected = 3;
+           // 加断言进行测试
+           Assert.assertEquals(expected,actual);
+   
+       }
+   
+       @Test
+       public void testSub() {
+           MathService mathService = new MathService();
+           // 获取实际值
+           int actual = mathService.sub(10, 5);
+           // 期望值
+           int expected = 6;
+           // 加断言进行测试
+           Assert.assertEquals(expected,actual);
+       }
+   }
+   ```
+
+4. 执行测试：
+
+   因为我们在测试方法中加了断言，如果实际值与期望值不一致，就报错。
+
+   ![image-20260117161831714](mybatis.assets/image-20260117161831714.png)
+
+
+
+### 2.6.2 在mybatis中引入JUnit
+
+跟简单使用junit一样，先引入依赖，再编写单元测试类：
+
+```java
+public class CarMapperTest {
+    @Test
+    public void testInsertCar(){
+        // 编写mybatis程序
+        SqlSession sqlSession = null;
+        try {
+            SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+            SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("mybatis-config.xml"));
+            // 开启会话（底层开启事务）
+            sqlSession = sqlSessionFactory.openSession();
+            // 执行sql语句，处理相关业务
+            int count = sqlSession.insert("insertCar");
+            System.out.println(count);
+            // 执行到这里，没有发生任何异常，提交事务
+            sqlSession.commit();
+        } catch (IOException e) {
+            // 回滚事务
+            if (sqlSession != null) {
+                sqlSession.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            // 关闭会话
+            if (sqlSession != null) {
+                sqlSession.close();
+            }
+        }
+    }
+}
+```
+
+
+
+
+
+## 2.7 引入日志框架logback
+
