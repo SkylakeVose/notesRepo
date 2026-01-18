@@ -720,3 +720,154 @@ public class CarMapperTest {
 
 ## 2.7 引入日志框架logback
 
+引入日志框架的目的是为了看清楚mybatis执行的具体sql。
+
+启用标准日志组件，只需要在`mybatis-config.xml`文件中添加以下配置：【可参考mybatis手册】。
+
+```xml
+<settings>
+    <setting name="logImpl" value="STDOUT_LOGGING" />
+</settings>
+```
+
+`<settings>`的放置位置是有顺序的：
+
+<img src="mybatis.assets/image-20260118204753389.png" alt="image-20260118204753389" style="zoom:67%;" />
+
+
+
+`STDOUT_LOGGING`标准日志配置不够灵活，可以继承其他的日志组件，mybatis支持的日志框架如下：
+
+<img src="mybatis.assets/image-20260118203942347.png" alt="image-20260118203942347" style="zoom: 67%;" />
+
+> 注：我们可以看到有几种主要的日志框架：`SLF4J`，`LOG4J`，`LOG4J2`，`STDOUT_LOGGING`等。
+>
+> 其中，`STDOUT_LOGGING`是mybatis自己就实现的，可以直接使用。而其他三个日志框架在使用前需要引入相关的依赖。
+>
+> 特别注意的是`SLF4J`只是一种日志标准，并没有直接的实现。但是有一个日志框架`logback`就实现了`SLF4J`规范。
+>
+> `SLF4J`，`LOG4J`，`LOG4J2`都是同一个作者。
+
+
+
+`logback`是目前日志框架中性能较好的，较为流行的，因此我们选择它来作为我们引入的日志框架。
+
+1. 引入logback相关依赖。
+
+   ```xml
+   <!--引入logback依赖，这个日志框架实现了slf4j规范-->
+   <dependency>
+       <groupId>ch.qos.logback</groupId>
+       <artifactId>logback-classic</artifactId>
+       <version>1.2.11</version>
+   </dependency>
+   ```
+
+2. 引入logback相关配置文件（文件名必须叫`logback.xml`或`logback-test.xml`，且放在类路径之下）。
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   
+   <configuration debug="false">
+       <!-- 控制台输出 -->
+       <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+           <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+               <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+               <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+           </encoder>
+       </appender>
+   
+       <!-- 按照每天生成日志文件 -->
+       <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+           <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+               <!--日志文件输出的文件名-->
+               <FileNamePattern>${LOG_HOME}/TestWeb.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+               <!--日志文件保留天数-->
+               <MaxHistory>30</MaxHistory>
+           </rollingPolicy>
+           <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+               <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+               <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+           </encoder>
+           <!--日志文件最大的大小-->
+           <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+               <MaxFileSize>100MB</MaxFileSize>
+           </triggeringPolicy>
+       </appender>
+   
+       <!--mybatis log configure-->
+       <logger name="com.apache.ibatis" level="TRACE"/>
+       <logger name="java.sql.Connection" level="DEBUG"/>
+       <logger name="java.sql.Statement" level="DEBUG"/>
+       <logger name="java.sql.PreparedStatement" level="DEBUG"/>
+   
+       <!-- 日志输出级别,logback日志级别包括五个：TRACE < DEBUG < INFO < WARN < ERROR -->
+       <root level="DEBUG">
+           <appender-ref ref="STDOUT"/>
+           <appender-ref ref="FILE"/>
+       </root>
+   
+   </configuration>
+   ```
+
+3. 在`mybatis-config.xml`中修改日志框架为`SLF4J`。
+
+   ```xml
+   <settings>
+       <!--<setting name="logImpl" value="STDOUT_LOGGING"/>-->
+       <setting name="logImpl" value="SLF4J"/>
+   </settings>
+   ```
+
+4. 再次执行单元测试方法`testInsertCar()`，查看控制台的日志输出。
+
+   ![image-20260118205932708](mybatis.assets/image-20260118205932708.png)
+
+
+
+
+
+## 2.8 封装MyBatis工具类
+
+我们创建一个工具类`SqlSessionUtil`：
+
+```java
+public class SqlSessionUtil {
+
+    // 工具类的构造方法一般都是私有化的
+    // 工具中所有的方法都是静态的，直接采用类名即可调用，不需要new对象
+
+    // 为了防止new对象，私有化构造方法
+    private SqlSessionUtil() {
+    }
+
+    private static SqlSessionFactory sqlSessionFactory;
+
+    // 类加载时执行
+    // SqlSessionUtil工具类在进行第一次加载的时候，即系mybatis-config.xml文件，创建SqlSessionFactory对象
+    static {
+        try {
+            sqlSessionFactory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsStream("mybatis-config.xml"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static SqlSession openSession() {
+        return sqlSessionFactory.openSession();
+    }
+}
+```
+
+在单元测试中无法测试，后续再找下原因。
+
+我们在主程序中执行测试：
+
+<img src="mybatis.assets/image-20260118211922556.png" alt="image-20260118211922556" style="zoom:80%;" />
+
+
+
+
+
+# 三、使用MyBatis完成CRUD
+
