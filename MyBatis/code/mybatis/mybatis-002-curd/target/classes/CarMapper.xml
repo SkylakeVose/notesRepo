@@ -6,6 +6,7 @@
 <mapper namespace="car">
     <!--insert sql：保存一个汽车信息-->
     <insert id="insertCar">
-        insert into t_car(car_num,brand,guide_price,produce_time,car_type) values(#{k1},#{k2},#{k3},#{k4},#{k5})
+        insert into t_car(car_num,brand,guide_price,produce_time,car_type)
+        values(#{carNum},#{brand},#{guidePrice},#{produceTime},#{carType})
     </insert>
 </mapper>

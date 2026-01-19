@@ -918,11 +918,20 @@ ps.setString(4,"2022-01-01");
 ps.setString(5,"燃油车");
 ```
 
+
+
 在MyBatis中可以这样做：
 
-**<font style="color:#E8323C;">在Java程序中，将数据放到Map集合中</font>**
++ 使用Map集合传参
++ 使用POJO传参
 
-**<font style="color:#E8323C;">在sql语句中使用 `#{map集合的key} `来完成传值，`#{}` 等同于JDBC中的` ?` ，`#{}`就是占位符</font>**
+
+
+### 3.1.1 使用Map集合传参
+
+**在Java程序中，将数据放到Map集合中**
+
+**在sql语句中使用 `#{map集合的key} `来完成传值，`#{}` 等同于JDBC中的` ?` ，`#{}`就是占位符**
 
 java代码：
 
@@ -965,5 +974,62 @@ SQL语句：
 
 ![image-20260119112114427](mybatis.assets/image-20260119112114427.png)
 
+<img src="mybatis.assets/image-20260119153738121.png" alt="image-20260119153738121" style="zoom:80%;" />
 
+
+
+**如果SQL语句中占位符`#{}`里的key不存在**，会出现什么问题？
+
+![image-20260119154011215](mybatis.assets/image-20260119154011215.png)
+
+通过测试，看到程序并没有报错。正常执行。不过 `#{noExistKey}` 的写法导致无法获取到map集合中的数据，最终导致数据库表`car_num`插入了NULL。
+
+
+
+在以上sql语句中，可以看到`#{k1} #{k2} #{k3} #{k4} #{k5}`的可读性太差，**为了增强可读性**，我们可以改一下测试代码和SQL语句：
+
+```java
+@Test
+public void testInsertCar(){
+    // 准备数据
+    Map<String, Object> map = new HashMap<>();
+    // 让key的可读性增强
+    map.put("carNum", "103");
+    map.put("brand", "奔驰E300L");
+    map.put("guidePrice", 50.3);
+    map.put("produceTime", "2020-10-01");
+    map.put("carType", "燃油车");
+    // 获取SqlSession对象
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    // 执行SQL语句（使用map集合给sql语句传递数据）
+    int count = sqlSession.insert("insertCar", map);
+    System.out.println("插入了几条记录：" + count);
+
+    sqlSession.commit();
+    sqlSession.close();
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace先随意写一个-->
+<mapper namespace="car">
+    <!--insert sql：保存一个汽车信息-->
+    <insert id="insertCar">
+        insert into t_car(car_num,brand,guide_price,produce_time,car_type)
+        values(#{carNum},#{brand},#{guidePrice},#{produceTime},#{carType})
+    </insert>
+</mapper>
+```
+
+运行测试：
+
+![image-20260119154456685](mybatis.assets/image-20260119154456685.png)
+
+
+
+### 3.1.2 使用POJO传参
 
