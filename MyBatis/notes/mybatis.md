@@ -871,3 +871,99 @@ public class SqlSessionUtil {
 
 # 三、使用MyBatis完成CRUD
 
+先做一些准备工作，创建一个新的模块`mybatis-002-curd`，并拉取他们的依赖、各种配置文件、工具类`SqlSessionUtil`和测试用例`CarMapperTest`：
+
+![image-20260119111100099](mybatis.assets/image-20260119111100099.png)
+
+
+
+**什么是CURD？**
+
++ C：Create（增）
++ R：Retrieve（查，检索）
++ U：Update（改）
++ D：Delete（删）
+
+
+
+## 3.1 insert（Create）
+
+分析以下SQL映射文件中SQL语句存在的问题：
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace先随意写一个-->
+<mapper namespace="car">
+    <!--insert sql：保存一个汽车信息-->
+    <insert id="insertCar">
+        insert into t_car (id,car_num,brand,guide_price,produce_time,car_type) values (null,'102','丰田mirai',40.30,'2014-10-05','氢能源')
+    </insert>
+</mapper>
+```
+
+存在的问题是：SQL语句中的值不应该写死，值应该是用户提供的。之前的JDBC代码是这样写的：
+
+```java
+// JDBC中使用 ? 作为占位符。那么MyBatis中会使用什么作为占位符呢？
+String sql = "insert into t_car(car_num,brand,guide_price,produce_time,car_type) values(?,?,?,?,?)";
+// ......
+// 给 ? 传值。那么MyBatis中应该怎么传值呢？
+ps.setString(1,"103");
+ps.setString(2,"奔驰E300L");
+ps.setDouble(3,50.3);
+ps.setString(4,"2022-01-01");
+ps.setString(5,"燃油车");
+```
+
+在MyBatis中可以这样做：
+
+**<font style="color:#E8323C;">在Java程序中，将数据放到Map集合中</font>**
+
+**<font style="color:#E8323C;">在sql语句中使用 `#{map集合的key} `来完成传值，`#{}` 等同于JDBC中的` ?` ，`#{}`就是占位符</font>**
+
+java代码：
+
+```java
+@Test
+public void testInsertCar(){
+    // 准备数据
+    Map<String, Object> map = new HashMap<>();
+    map.put("k1", "103");
+    map.put("k2", "奔驰E300L");
+    map.put("k3", 50.3);
+    map.put("k4", "2020-10-01");
+    map.put("k5", "燃油车");
+    // 获取SqlSession对象
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    // 执行SQL语句（使用map集合给sql语句传递数据）
+    int count = sqlSession.insert("insertCar", map);
+    System.out.println("插入了几条记录：" + count);
+}
+```
+
+SQL语句：
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace先随意写一个-->
+<mapper namespace="car">
+    <!--insert sql：保存一个汽车信息-->
+    <insert id="insertCar">
+        insert into t_car(car_num,brand,guide_price,produce_time,car_type)
+        values(#{k1},#{k2},#{k3},#{k4},#{k5})
+    </insert>
+</mapper>
+```
+
+运行测试：
+
+![image-20260119112114427](mybatis.assets/image-20260119112114427.png)
+
+
+
