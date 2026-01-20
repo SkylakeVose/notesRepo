@@ -4,9 +4,18 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!--namespace先随意写一个-->
 <mapper namespace="car">
+
+    <delete id="deleteById">
+        delete from t_car where id = #{id}
+    </delete>
+
     <!--insert sql：保存一个汽车信息-->
     <insert id="insertCar">
-        insert into t_car(car_num,brand,guide_price,produce_time,car_type)
-        values(#{carNum},#{brand},#{guidePrice},#{produceTime},#{carType})
+        <!--使用Map传参-->
+        <!--insert into t_car(car_num,brand,guide_price,produce_time,car_type) values(#{carNum},#{brand},#{guidePrice},#{produceTime},#{carType})-->
+
+        <!--使用POJO传参-->
+        insert into t_car(id,car_num,brand,guide_price,produce_time,car_type)
+        values(null, #{carNum},#{brand},#{guidePrice},#{produceTime},#{carType})
     </insert>
 </mapper>

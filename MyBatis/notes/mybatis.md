@@ -1033,3 +1033,211 @@ public void testInsertCar(){
 
 ### 3.1.2 使用POJO传参
 
+除了可以使用Map集合传参，也可以使用pojo（简单普通的java对象）完成传参。
+
+1. 创建一个pojo类（`Car`），提供相关属性。属性要与数据库表中的一一对应。
+
+   ```java
+   package cn.piggy.mybatis.pojo;
+   
+   /**
+    * 封装汽车相关信息的POJO类，普通的java类
+    */
+   public class Car {
+       // 数据库表中的字段应该和POJO类的属性一一对应
+   
+       // 建议使用包装类，防止遇到null的问题
+       private Long id;
+       private String carNum;
+       private String brand;
+       private Double guidePrice;
+       private String produceTime;
+       private String carType;
+   
+       @Override
+       public String toString() {
+           return "Car{" +
+                   "id=" + id +
+                   ", carNum='" + carNum + '\'' +
+                   ", brand='" + brand + '\'' +
+                   ", guidePrice=" + guidePrice +
+                   ", produceTime='" + produceTime + '\'' +
+                   ", carType='" + carType + '\'' +
+                   '}';
+       }
+   
+       public Car() {
+       }
+   
+       public Car(Long id, String carNum, String brand, Double guidePrice, String produceTime, String carType) {
+           this.id = id;
+           this.carNum = carNum;
+           this.brand = brand;
+           this.guidePrice = guidePrice;
+           this.produceTime = produceTime;
+           this.carType = carType;
+       }
+   
+       public Long getId() {
+           return id;
+       }
+   
+       public void setId(Long id) {
+           this.id = id;
+       }
+   
+       public String getCarNum() {
+           return carNum;
+       }
+   
+       public void setCarNum(String carNum) {
+           this.carNum = carNum;
+       }
+   
+       public String getBrand() {
+           return brand;
+       }
+   
+       public void setBrand(String brand) {
+           this.brand = brand;
+       }
+   
+       public Double getGuidePrice() {
+           return guidePrice;
+       }
+   
+       public void setGuidePrice(Double guidePrice) {
+           this.guidePrice = guidePrice;
+       }
+   
+       public String getProduceTime() {
+           return produceTime;
+       }
+   
+       public void setProduceTime(String produceTime) {
+           this.produceTime = produceTime;
+       }
+   
+       public String getCarType() {
+           return carType;
+       }
+   
+       public void setCarType(String carType) {
+           this.carType = carType;
+       }
+   }
+   ```
+
+2. 编写测试程序。
+
+   ```java
+   @Test
+   public void testInsertCarByPOJO() {
+       SqlSession sqlSession = SqlSessionUtil.openSession();
+       // 封装数据
+       Car car = new Car(null, "105", "比亚迪秦", 10.0, "2020-11-11", "新能源");
+       // 执行SQL
+       int count =  sqlSession.insert("insertCar", car);
+       System.out.println(count);
+   
+       sqlSession.commit();
+       sqlSession.close();
+   }
+   ```
+
+3. 更改SQL语句。
+
+   ```xml
+   <mapper namespace="car">
+       <!--占位符#{} 里写的是POJO的属性名-->
+       <insert id="insertCar">
+           insert into t_car(id,car_num,brand,guide_price,produce_time,car_type)
+           values(null, #{carNum},#{brand},#{guidePrice},#{produceTime},#{carType})
+       </insert>
+   </mapper>
+   ```
+
+4. 运行测试。
+
+   ![image-20260120170230394](mybatis.assets/image-20260120170230394.png)
+
+
+
+如果SQL语句中占位符`#{}`中写的不是POJO的属性名，会有什么问题？
+
+![image-20260120170339762](mybatis.assets/image-20260120170339762.png)
+
+可以看到我们将`carNum`改成了`xyz`，程序报错描述：没有在类中找到xyz属性的getter()方法。
+
+mybatis底层实际上是根据属性名，使用反射机制调用类对象的相应的getter方法，然后得到这个属性值。比如在上面测试中，mybatis要获取carNum属性的值，首先会生成相应的getter方法：属性名第一个字母大写，再添加前缀get字段，得到getCarNum()方法。这样一来就可以调用并获取到属性值了。
+
+![image-20260120171017806](mybatis.assets/image-20260120171017806.png)
+
+
+
+当然，如果改动了不存在的属性名，如上述的`xyz`，也可以在POJO类中新增一个`getXyz()`的方法，返回对应的属性值即可。
+
+
+
+
+
+**注意：**
+
+注意：其实传参数的时候有一个属性parameterType，这个属性用来指定传参的数据类型，不过这个属性是可以省略的。
+
+```xml
+<insert id="insertCar" parameterType="java.util.Map">
+    insert into t_car(car_num,brand,guide_price,produce_time,car_type) values(#{carNum},#{brand},#{guidePrice},#{produceTime},#{carType})
+</insert>
+
+<insert id="insertCarByPOJO" parameterType="com.powernode.mybatis.pojo.Car">
+    insert into t_car(car_num,brand,guide_price,produce_time,car_type) values(#{carNum},#{brand},#{guidePrice},#{produceTime},#{carType})
+</insert>
+```
+
+
+
+
+
+## 3.2 delete（Delete）
+
+需求：根据car_num进行删除。
+
+SQL语句：
+
+```xml
+<delete id="deleteById">
+    delete from t_car where id = #{id}
+</delete>
+```
+
+java代码：
+
+```java
+@Test
+public void testDeleteById() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    int count = sqlSession.delete("deleteById", 24);
+    System.out.println(count);
+
+    sqlSession.commit();
+    sqlSession.close();
+}
+```
+
+![image-20260120174710130](mybatis.assets/image-20260120174710130.png)
+
+运行测试：
+
+![image-20260120174922195](mybatis.assets/image-20260120174922195.png)
+
+
+
+**注意：当占位符只有一个的时候，`${}` 里面的内容可以随便写**，如下面这种写法也是可以的：
+
+![image-20260120175014023](mybatis.assets/image-20260120175014023.png)
+
+
+
+## 3.3 update（Update）
+

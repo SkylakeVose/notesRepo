@@ -1,5 +1,6 @@
 package cn.piggy.mybatis;
 
+import cn.piggy.mybatis.pojo.Car;
 import cn.piggy.mybatis.utils.SqlSessionUtil;
 import org.apache.ibatis.session.SqlSession;
 import org.junit.Test;
@@ -8,6 +9,31 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CarMapperTest {
+
+    @Test
+    public void testDeleteById() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        int count = sqlSession.delete("deleteById", 24);
+        System.out.println(count);
+
+        sqlSession.commit();
+        sqlSession.close();
+    }
+
+    @Test
+    public void testInsertCarByPOJO() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        // 封装数据
+        Car car = new Car(null, "105", "比亚迪秦",
+                10.0, "2020-11-11", "新能源");
+        // 执行SQL
+        int count =  sqlSession.insert("insertCar", car);
+        System.out.println(count);
+
+        sqlSession.commit();
+        sqlSession.close();
+    }
+
     @Test
     public void testInsertCar(){
         // 准备数据
