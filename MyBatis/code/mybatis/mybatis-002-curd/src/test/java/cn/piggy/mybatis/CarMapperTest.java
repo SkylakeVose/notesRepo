@@ -11,6 +11,21 @@ import java.util.Map;
 public class CarMapperTest {
 
     @Test
+    public void testUpdateById() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+
+        // 准备数据
+        Car car = new Car(4L, "9999", "凯美瑞", 30.3, "1999-11-10", "燃油车");
+
+        // 执行SQL语句
+        int count = sqlSession.update("updateById", car);
+        System.out.println(count);
+
+        sqlSession.commit();
+        sqlSession.close();
+    }
+
+    @Test
     public void testDeleteById() {
         SqlSession sqlSession = SqlSessionUtil.openSession();
         int count = sqlSession.delete("deleteById", 24);

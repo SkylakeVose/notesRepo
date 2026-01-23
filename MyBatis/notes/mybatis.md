@@ -1241,3 +1241,43 @@ public void testDeleteById() {
 
 ## 3.3 update（Update）
 
+我们使用对象传参来进行数据更新
+
+SQL语句：
+
+```xml
+<update id="updateById">
+    update t_car set car_num=#{carNum}, brand=#{brand}, guide_price=#{guidePrice},
+    produce_time=#{produceTime}, car_type=#{carType} where id = #{id}
+</update>
+```
+
+java测试代码：
+
+```java
+@Test
+public void testUpdateById() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+
+    // 准备数据
+    Car car = new Car(4L, "9999", "凯美瑞", 30.3, "1999-11-10", "燃油车");
+
+    // 执行SQL语句
+    int count = sqlSession.update("updateById", car);
+    System.out.println(count);
+
+    sqlSession.commit();
+    sqlSession.close();
+}
+```
+
+执行测试：
+
+<img src="mybatis.assets/image-20260123165323229.png" alt="image-20260123165323229" style="zoom:80%;" />
+
+
+
+## 3.4 select（Retrieve）
+
+
+

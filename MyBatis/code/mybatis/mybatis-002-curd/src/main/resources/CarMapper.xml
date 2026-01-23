@@ -5,6 +5,11 @@
 <!--namespace先随意写一个-->
 <mapper namespace="car">
 
+    <update id="updateById">
+        update t_car set car_num=#{carNum}, brand=#{brand}, guide_price=#{guidePrice},
+        produce_time=#{produceTime}, car_type=#{carType} where id = #{id}
+    </update>
+
     <delete id="deleteById">
         delete from t_car where id = #{whatever}
     </delete>
