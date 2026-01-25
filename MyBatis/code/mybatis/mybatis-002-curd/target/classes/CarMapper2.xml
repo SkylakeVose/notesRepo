@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!--namespace先随意写一个-->
-<mapper namespace="car">
+<mapper namespace="car2">
 
     <select id="selectAll" resultType="cn.piggy.mybatis.pojo.Car">
         select

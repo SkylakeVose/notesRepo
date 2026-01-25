@@ -1279,5 +1279,129 @@ public void testUpdateById() {
 
 ## 3.4 select（Retrieve）
 
+select语句和其它语句不同的是：查询会有一个结果集，这部分来看看mybatis是怎么处理结果集的。
 
+
+
+### 3.4.1 查询一条数据
+
+需求：查询id为1的Car的信息
+
+SQL语句：
+
+```xml
+<select id="selectById">
+    select * from t_car where id = #{id}
+</select>
+```
+
+java语句：
+
+```java
+@Test
+public void testSelectById() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    Object car = sqlSession.selectOne("selectById", 1);
+    System.out.println(car);
+}
+```
+
+执行测试：
+
+![image-20260125215359813](mybatis.assets/image-20260125215359813.png)
+
+上述错误信息表明了，JDBC尝试把返回的结果集`ResultSet`转换成Java对象或者Map集合时，没有找到相应的可转换类型。因此我们如果想要将结果集转换成一个Java对象的话，就需要致命需要转换的类型，可以在`<select>`标签中添加`resultType`属性，并赋值相应的全限定类名：
+
+```xml
+<select id="selectById" resultType="cn.piggy.mybatis.pojo.Car">
+    select * from t_car where id = #{id}
+</select>
+```
+
+
+
+我们再次执行测试：
+
+![image-20260125215214881](mybatis.assets/image-20260125215214881.png)
+
+
+
+我们可以看到返回的Car对象有一些属性没有值，通过对比我们可以发现，只有当字段名跟属性名一致的就能被成功赋值，不一样的则置为了null：
+
+![image-20260125220257658](mybatis.assets/image-20260125220257658.png)
+
+显然在类中属性名我们使用了驼峰命名，而数据库表中的字段名使用了下划线命名，这导致了两边部分数据名称不一致的现象，也是导致无法赋值的原因。我们使用`as`关键字让属性名跟字段名统一起来：
+
+![image-20260125220719120](mybatis.assets/image-20260125220719120.png)
+
+通过测试得知，如果当查询结果的字段名和java类的属性名对应不上的话，可以采用as关键字给字段名起别名，**<font style="color:#E8323C;">当然还有其它解决方案，我们后面再看</font>**。
+
+
+
+### 3.4.2 查询多条数据
+
+需求：查询所有数据
+
+SQL语句：
+
+```xml
+<!--此处仍需要指定返回对象的类型-->
+<select id="selectAll" resultType="cn.piggy.mybatis.pojo.Car">
+    select
+    id,
+    car_num as carNum,
+    brand,
+    guide_price as guidePrice,
+    produce_time as produceTime,
+    car_type as carType
+    from
+    t_car
+</select>
+```
+
+java代码：
+
+```java
+@Test
+public void testSelectAll() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    // 执行SQL语句
+    List<Object> cars = sqlSession.selectList("selectAll");
+    cars.forEach(System.out::println);
+    sqlSession.close();
+}
+```
+
+执行结果：
+
+![image-20260125221724988](mybatis.assets/image-20260125221724988.png)
+
+
+
+注意：
+
++ `resultType`：还是指定要封装的结果集的类型，也就是指定List集合中元素的类型。
++ `selectList()`方法：mybatis通过该方法就可以得知需要返回List集合，他会自动给你返回一个List集合。
+
+
+
+## 3.5 关于SQL Mapper的namespace
+
+在SQL Mapper配置文件中`<mapper>`标签的`namespace`属性可以翻译为命名空间，这个命名空间主要是为了防止`sqlId`冲突的。
+
+我们在调用mapper中的方法时，完整的写法应该是**命名空间+sqlId**：
+
+![image-20260125223521119](mybatis.assets/image-20260125223521119.png)
+
+
+
+如果当我们存在两个Mapper文件，且里面有些方法名称是一样的时候，不指定namespace，直接使用方法名就会报错：
+
+![image-20260125223721767](mybatis.assets/image-20260125223721767.png)
+
+![image-20260125224323526](mybatis.assets/image-20260125224323526.png)
+
+
+
+# 四、MyBatis核心配置文件详解
 
