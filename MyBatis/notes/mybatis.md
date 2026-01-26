@@ -1405,3 +1405,99 @@ public void testSelectAll() {
 
 # 四、MyBatis核心配置文件详解
 
+我们新建一个模块`mybatis-003-configuration`，并拷贝部分002项目的代码文件：
+
+![image-20260126150614295](mybatis.assets/image-20260126150614295.png)
+
+我们来看看mybatis的核心配置文件的标签：
+
+![image-20260126151328302](mybatis.assets/image-20260126151328302.png)
+
+
+
+## 4.1 environment
+
+一个`<environment>`环境连接一个数据库，而数据库会对应一个SqlSessionFactory对象。
+
+我们创建两个环境：开发环境`development`和生产环境`production`，并编写相应代码：
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!--默认使用开发环境-->
+    <environments default="development">
+        <!--开发环境-->
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://8.134.254.79:3306/powernode"/>
+                <property name="username" value="test"/>
+                <property name="password" value="Aa123456#."/>
+            </dataSource>
+        </environment>
+        <!--生产环境-->
+        <environment id="production">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://8.134.254.79:3306/powernode2"/>
+                <property name="username" value="test"/>
+                <property name="password" value="Aa123456#."/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="CarMapper.xml"/>
+    </mappers>
+</configuration>
+```
+
+```java
+@Test
+public void testEnvironment() throws Exception {
+    // 准备数据
+    Car car = new Car();
+    car.setCarNum("133");
+    car.setBrand("丰田霸道");
+    car.setGuidePrice(50.3);
+    car.setProduceTime("2020-01-10");
+    car.setCarType("燃油车");
+
+    // 一个数据库对应一个SqlSessionFactory对象
+    // 两个数据库对应两个SqlSessionFactory对象，以此类推
+    SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+
+    // 使用默认数据库
+    SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("mybatis-config.xml"));
+    SqlSession sqlSession = sqlSessionFactory.openSession(true);
+    int count = sqlSession.insert("insertCar", car);
+    System.out.println("插入了几条记录：" + count);
+
+    // 使用指定数据库
+    SqlSessionFactory sqlSessionFactory1 = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("mybatis-config.xml"), "production");
+    SqlSession sqlSession1 = sqlSessionFactory1.openSession(true);
+    int count1 = sqlSession1.insert("insertCar", car);
+    System.out.println("插入了几条记录：" + count1);
+}
+```
+
+
+
+执行测试：
+
+![image-20260126154359147](mybatis.assets/image-20260126154359147.png)
+
+![](mybatis.assets/1660117624656-64973cf7-6700-43da-96fa-5960dfc5045b.png)
+
+![](mybatis.assets/1660117692466-ecd6317f-5868-4858-a33c-0c7ec68044ac.png)
+
+
+
+
+
+## 4.2 transactionManager
+
