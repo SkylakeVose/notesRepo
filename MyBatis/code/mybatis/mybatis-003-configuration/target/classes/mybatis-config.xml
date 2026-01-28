@@ -20,8 +20,6 @@
                 <property name="poolMaximumCheckoutTime" value="10000"/>
                 <!--每隔2s打印日志，并且尝试获取连接对象-->
                 <property name="poolTimeToWait" value="2000"/>
-                <!--空闲连接数上限,设置为5个-->
-                <property name="poolMaximumIdleConnections " value="5"/>
             </dataSource>
         </environment>
         <!--生产环境-->

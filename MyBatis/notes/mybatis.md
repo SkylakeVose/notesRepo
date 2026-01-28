@@ -1501,3 +1501,207 @@ public void testEnvironment() throws Exception {
 
 ## 4.2 transactionManager
 
+![image-20260127165310662](mybatis.assets/image-20260127165310662.png)
+
+`<transactionManager>`标签：
+
++ 作用：配置事务管理器。指定mybatis具体使用什么方式去管理事务。
+
++ `type`属性的两个值：
+
+  + `JDBC`：使用原生的JDBC代码来管理事务。
+
+    ```java
+    conn.setAutoCommit(false);
+    ...
+    conn.commit();
+    ```
+
+  + `MANAGED`：mybatis不再负责事务的管理，将事务管理交给其他的JEE（JavaEE）容器来管理，如Spring等。
+
+    如果使用了`Managed`属性且没有容器支持，也即当mybatis找不到容器支持时，那么数据库操作就没有事务，每执行一条SQL语句就提交一次。
+
++ type属性不区分大小写，且只能二选一。
+
++ 在mybatis中提供了一个事务管理器接口：`Transaction`，且该接口下有两个实现类：`JdbcTransaction`和`ManagedTransaction`。
+
+  <img src="mybatis.assets/image-20260127165826768.png" alt="image-20260127165826768" style="zoom:80%;" />
+
+  根据type属性，底层实例化相应的管理器实现类。
+
+
+
+## 4.3 dataSource
+
+![image-20260128114145420](mybatis.assets/image-20260128114145420.png)
+
+
+
+dataSource被称为**数据源**。
+
+dataSource作用：**为程序提供Connnection对象**。（但凡是给程序提供Connection对象的，都叫数据源）
+
+
+
+数据源实际上是一套规范，JDK中有这套规范：`javax.sql.DataSource`。（基于这套规范制定的接口实际上也是JDK规定的）。
+
+我们也可以自定义数据源组件，只要实现`javax.sql.DataSource`接口就行了。比如可以写一个自定义的数据库连接池（数据库连接池是提供对象的，所以数据库连接池就是一个数据源）。
+
+
+
+常见的数据源组件（常见的数据库连接池）有哪些？
+
++ 阿里巴巴的德鲁伊连接池（druid）
++ c3p0
++ dbcp
++ 等等
+
+
+
+`type`属性用来指定数据源的类型，就是指定具体使用什么方式来获取Connection对象，其有三种内建的数据源类型`"[UNPOOLED|POOLED|JNDI]`。
+
++ `UNPOOLED`：不使用数据库连接池技术，每一次请求都会创建新的Connection对象。
++ `POOLED`：使用mybatis自己实现的数据库连接池。
++ `JNDI`：集成其他第三方的数据库连接池。
+
+
+
+### 4.3.1 数据源下的不同属性
+
+**JNDI**是一套规范。大部分web容器都实现了JNDI规范，比如Tomcat、Jetty、WebLogic等都实现了这套规范。
+
+也就是说Java命名目录接口，而web容器则实现了这个规范。
+
+![image-20260128170040998](mybatis.assets/image-20260128170040998.png)
+
+
+
+### 4.3.2 UNPOOLED 和 POOLED的区别
+
+连接池的优点：
+
++ 每一次获取连接都从池中拿，效率高。
++ 因为每一次只能从池中拿，所以连接对象的创建数量是可控的。
+
+
+
+我们准备测试代码，使用默认的环境进行测试：
+
+```java
+@Test
+public void testDataSource() throws Exception {
+    SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+
+    SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("mybatis-config.xml"));
+
+    // 准备数据
+    Car car = new Car();
+    car.setCarNum("199");
+    car.setBrand("丰田霸道");
+    car.setGuidePrice(50.3);
+    car.setProduceTime("2020-01-10");
+    car.setCarType("燃油车");
+
+    // 通过sqlSessionFactory对象可以开启多个会话
+    // 会话1
+    SqlSession sqlSession1 = sqlSessionFactory.openSession();
+    sqlSession1.insert("car.insertCar", car);
+    sqlSession1.commit();
+    sqlSession1.close();
+
+    // 会话2
+    SqlSession sqlSession2 = sqlSessionFactory.openSession();
+    sqlSession2.insert("car.insertCar", car);
+    sqlSession2.commit();
+    sqlSession2.close();
+}
+```
+
+
+
+使用UNPOOLED，两次会话都会打开和关闭Connection连接对象：
+
+![image-20260128170542647](mybatis.assets/image-20260128170542647.png)
+
+
+
+使用POOLED，在会话开始时会向连接池申请Connection连接，结束后会返还给连接池。
+
+![image-20260128171013620](mybatis.assets/image-20260128171013620.png)
+
+
+
+
+
+### 4.3.3 POOLED状态下的其他参数设置
+
+1. `poolMaximumActiveConnections`：连接池当中正在使用的连接对象的数量上限（同一段时间最大的连接数量），默认为10。
+
+   测试一：我们设置其为3，在测试代码中申请4个会话。
+
+   ```xml
+   <property name="poolMaximumActiveConnections" value="3"/>
+   ```
+
+   ```java
+   @Test
+   public void testProperties() throws Exception {
+       SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+       SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("mybatis-config.xml"));
+   
+       // 准备数据
+       Car car = new Car();
+       car.setCarNum("199");
+       car.setBrand("丰田霸道");
+       car.setGuidePrice(50.3);
+       car.setProduceTime("2020-01-10");
+       car.setCarType("燃油车");
+   
+       for (int i = 0; i < 4; i++) {
+           SqlSession sqlSession1 = sqlSessionFactory.openSession();
+           sqlSession1.insert("car.insertCar", car);
+           // 不要关闭，不要返还连接对象
+       }
+   }
+   ```
+
+   ![image-20260128172437700](mybatis.assets/image-20260128172437700.png)
+
+
+
+2. `poolMaximumCheckoutTime`：在被强制返回之前，池中连接被检出（check out）时间，默认值为20000毫秒（20秒）。
+
+   一般情况下，对某个已占用的连接对象，处于空闲状态且超过检出时间时，会被连接池强制回收。
+
+   如上个测试例子可以看到，第四个会话的等待池中可用连接的时间可以通过这个参数进行调整。
+
+   
+
+3. `poolTimeToWait`：这是一个底层设置，如果获取连接花费了相当长的时间，连接池会打印状态日志并重新尝试获取一个连接（避免在误配置的情况下一直失败且不打印日志），默认值：20000 毫秒（即 20 秒）。
+
+   测试二：我们将检出时间设置为10s，且打印日志间隔为2s，继续执行测试一。
+
+   ```xml
+   <!--池中连接检出时间，，默认20s。现设置为10s-->
+   <property name="poolMaximumCheckoutTime" value="10000"/>
+   <!--每隔2s打印日志，并且尝试获取连接对象-->
+   <property name="poolTimeToWait" value="2000"/>
+   ```
+
+   ![image-20260128173410494](mybatis.assets/image-20260128173410494.png)
+
+
+
+4. `poolMaximumIdleConnections `： 任意时间可能存在的空闲连接数上限。
+
+   如果当池中的空闲对象数量超过设定的空闲连接数上限时，多余的空闲连接对象会被真正的关闭。
+
+   ```xml
+   <!--空闲连接数上限,设置为5个-->
+   <property name="poolMaximumIdleConnections " value="5"/>
+   ```
+
+   
+
+## 4.4 Properties
+
