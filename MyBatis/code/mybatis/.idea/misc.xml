@@ -8,6 +8,7 @@
         <option value="$PROJECT_DIR$/junit-test/pom.xml" />
         <option value="$PROJECT_DIR$/mybatis-002-curd/pom.xml" />
         <option value="$PROJECT_DIR$/mybatis-003-configuration/pom.xml" />
+        <option value="$PROJECT_DIR$/parse-xml-by-dom4j/pom.xml" />
       </list>
     </option>
   </component>

@@ -3,16 +3,34 @@
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
+
+    <!--java.util.Properties类，是一个Map集合，key和value都是String类型-->
+    <!--在properties标签中可以配置很多属性-->
+    <!--<properties>
+        &lt;!&ndash;这是其中一个属性&ndash;&gt;
+        &lt;!&ndash;<property name="属性名" value="属性值"/>&ndash;&gt;
+        <property name="jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="jdbc.url" value="jdbc:mysql://8.134.254.79:3306/powernode"/>
+        <property name="jdbc.username" value="test"/>
+        <property name="jdbc.password" value="Aa123456#."/>
+    </properties>-->
+
+    <!--resource一定是从类的根路径下查找资源-->
+    <properties resource="jdbc.properties"/>
+
+    <!--url从绝对路径下加载文件-->
+    <!--<properties url="file:///d:/jdbc.properties"/>-->
+
     <!--默认使用开发环境-->
     <environments default="development">
         <!--开发环境-->
         <environment id="development">
             <transactionManager type="JDBC"/>
             <dataSource type="POOLED">
-                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
-                <property name="url" value="jdbc:mysql://8.134.254.79:3306/powernode"/>
-                <property name="username" value="test"/>
-                <property name="password" value="Aa123456#."/>
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
                 <!--根据当前业务情况进行测试，正确地设置其他参数可以让连接池发挥的更好-->
                 <!--poolMaximumActiveConnections:连接池当中正在使用的连接对象的数量上限（同一段时间最大的连接数量），默认为10-->
                 <property name="poolMaximumActiveConnections" value="3"/>
@@ -21,7 +39,7 @@
                 <!--每隔2s打印日志，并且尝试获取连接对象-->
                 <property name="poolTimeToWait" value="2000"/>
                 <!--空闲连接数上限,设置为5个-->
-                <property name="poolMaximumIdleConnections " value="5"/>
+                <property name="poolMaximumIdleConnections" value="5"/>
             </dataSource>
         </environment>
         <!--生产环境-->
@@ -35,7 +53,10 @@
             </dataSource>
         </environment>
     </environments>
+
     <mappers>
+        <!--加载根目录下的CarMapper映射文件-->
         <mapper resource="CarMapper.xml"/>
     </mappers>
+
 </configuration>

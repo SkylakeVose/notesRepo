@@ -1705,3 +1705,223 @@ public void testDataSource() throws Exception {
 
 ## 4.4 Properties
 
+mybatis提供了更加灵活的配置，连接数据库的信息可以抽取出来或者单独写到一个属性资源文件中。
+
+1. 将数据库配置信息抽取出来：
+
+   <img src="mybatis.assets/image-20260129164253161.png" alt="image-20260129164253161" style="zoom:80%;" />
+
+2. 单独写到一个配置文件`jdbc.properties`中（放到根目录下）：
+
+   <img src="mybatis.assets/image-20260129164712815.png" alt="image-20260129164712815" style="zoom:80%;" />
+
+3. 单独写到一个配置文件`jdbc.properties`中（放到绝对路径下）：
+
+   比如将配置文件放在D盘下的写法：
+
+   ```xml
+   <!--url从绝对路径下加载文件-->
+   <properties url="file:///d:/jdbc.properties"/>
+   ```
+
+
+
+**properties两个属性：**
+
++ `resource`：这个属性从类的根路径下开始加载。【常用的。】
++ `url`：从指定的url加载，假设文件放在`d:/jdbc.properties`，这个url可以写成：`file:///d:/jdbc.properties`。（注意是三个斜杠）
+
+
+
+注意：如果不知道`mybatis-config.xml`文件中标签的编写顺序的话，可以有两种方式知道它的顺序：
+
++ 第一种方式：查看dtd约束文件。
++ 第二种方式：通过idea的报错提示信息。【一般采用这种方式】
+
+
+
+## 4.5 Mapper
+
+mapper标签用来指定SQL映射文件的路径，包含多种指定方式，这里先主要看其中两种：
+
++ `resource`：从类的根路径下开始加载。
++ `url`：从指定的url位置加载。
+
+
+
+实例：
+
+<img src="mybatis.assets/image-20260129165438922.png" alt="image-20260129165438922" style="zoom:80%;" />
+
+
+
+
+
+
+
+# 五、手写MyBatis框架
+
+## 5.1 dom4j解析XML文件
+
+新建一个模块`parse-xml-by-dom4j`，用于测试解析程序。
+
+
+
+### 5.1.1 解析mybaits核心配置文件
+
+1. 在`pom.xml`中引入依赖：
+
+   ```xml
+   <dependencies>
+       <!--dom4j依赖-->
+       <dependency>
+           <groupId>org.dom4j</groupId>
+           <artifactId>dom4j</artifactId>
+           <version>2.1.3</version>
+       </dependency>
+       <!--jaxen依赖-->
+       <dependency>
+           <groupId>jaxen</groupId>
+           <artifactId>jaxen</artifactId>
+           <version>1.2.0</version>
+       </dependency>
+       <!--junit依赖-->
+       <dependency>
+           <groupId>junit</groupId>
+           <artifactId>junit</artifactId>
+           <version>4.13.2</version>
+           <scope>test</scope>
+       </dependency>
+   </dependencies>
+   ```
+
+   
+
+2. 编写代码并测试：
+
+   ```java
+   @Test
+   public void testParseMyBatisConfigXML() throws Exception {
+       // 创建SAXReader对象
+       SAXReader reader = new SAXReader();
+       // 获取输入流
+       InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("mybatis-config.xml");
+       // 读XML文件，返回document独享，document对象是文档对象，代表了整个XML文件
+       Document document = reader.read(is);
+       System.out.println(document);
+   
+       // 获取文档当中的根标签
+       /*Element rootElement = document.getRootElement();
+           System.out.println("根节点的名字：" + rootElement.getName());*/
+   
+       // 获取default默认的环境id
+       // xpath是做标签路径匹配的，能够让我们快速定位XML文件中的元素。
+       // 下面的xpath代表：从根下找configuration标签，然后找该标签下的environments子标签
+       String xpath = "/configuration/environments";
+       Element environments = (Element) document.selectSingleNode(xpath);  // Element是Node的子类，方法更多
+       // 获取属性的值
+       String defaultEnvironmentId = environments.attributeValue("default");
+       System.out.println("默认环境的环境ID：" + defaultEnvironmentId);
+   
+       // 根据默认的环境ID 获取具体的环境environment
+       xpath = "/configuration/environments/environment[@id='" + defaultEnvironmentId + "']";
+       Element environment = (Element) document.selectSingleNode(xpath);
+       // System.out.println(environment);
+   
+       // 获取environment节点下的TransactionManager节点
+       // 使用Element的element()方法来互殴孩子节点
+       Element transactionManager = environment.element("transactionManager");
+       String transactionType = transactionManager.attributeValue("type");
+       System.out.println("事务管理器的类型： " + transactionType);
+   
+       // 获取dataSource节点
+       Element dataSource = environment.element("dataSource");
+       String dataSourceType = dataSource.attributeValue("type");
+       System.out.println("数据源的类型：" + dataSourceType);
+   
+       // 获取dataSource节点下的所有子节点
+       List<Element> propertyElts = dataSource.elements();
+       // 遍历输出
+       propertyElts.forEach(propertyElt -> {
+           String name = propertyElt.attributeValue("name");
+           String value = propertyElt.attributeValue("value");
+           System.out.println(name + ":" + value);
+       });
+   
+       // 获取所有的Mapper标签
+       // 不想从根下开始获取，从任意位置开始，获取所有的mapper标签
+       xpath = "//mapper";
+       List<Node> mappers = document.selectNodes(xpath);
+       // 遍历
+       mappers.forEach(mapper -> {
+           Element mapperElt = (Element) mapper;
+           String resource = mapperElt.attributeValue("resource");
+           System.out.println(resource);
+       });
+   }
+   ```
+
+3. 执行测试：
+
+   ![image-20260129174553590](mybatis.assets/image-20260129174553590.png)
+
+   ![image-20260129174850935](mybatis.assets/image-20260129174850935.png)
+
+
+
+### 5.1.2 解析mapper映射文件
+
+准备解析代码：
+
+```java
+@Test
+public void testParseSqlMapperXML() throws Exception {
+    SAXReader reader = new SAXReader();
+    InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("CarMapper.xml");
+    Document document = reader.read(is);
+
+    // 获取namespace
+    String xpath = "/mapper";
+    Element mapper = (Element) document.selectSingleNode(xpath);
+    String namespace = mapper.attributeValue("namespace");
+    System.out.println("命名空间：" + namespace);
+
+    // 获取mapper节点下所有的子节点
+    List<Element> elements = mapper.elements();
+    elements.forEach(element -> {
+        // 获取sqlId
+        String id = element.attributeValue("id");
+        System.out.println(id);
+
+        // 获取resultType（如果没有这个属性则会返回null）
+        String resultType = element.attributeValue("resultType");
+        System.out.println(resultType);
+
+        // 获取标签中的sql语句（获取文本且去除前后空白）
+        String sql = element.getTextTrim();
+        System.out.println(sql);
+
+        /** MYBATIS封装了JDBC,我们需要将#{}转换成JDBC规范里的？
+             * insert into t_car values(null, #{carNum},#{brand},#{guidePrice},#{produceTime},#{carType})
+             * ↑ 转换为 → insert into t_car values(null,?,?,?,?,?)
+             */
+        String newSql = sql.replaceAll("#\\{[0-9A-Za-z_$]*}", "?");
+        System.out.println(newSql);
+    });
+}
+```
+
+
+
+测试：
+
+![image-20260129181131932](mybatis.assets/image-20260129181131932.png)
+
+![image-20260129181324962](mybatis.assets/image-20260129181324962.png)
+
+
+
+
+
+## 5.2 GodBatis
+
