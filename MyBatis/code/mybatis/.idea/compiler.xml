@@ -11,6 +11,7 @@
         <module name="mybatis-001-introduction" />
         <module name="mybatis-002-curd" />
         <module name="mybatis-003-configuration" />
+        <module name="godbatis" />
       </profile>
     </annotationProcessing>
   </component>
