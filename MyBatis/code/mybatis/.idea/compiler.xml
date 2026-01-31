@@ -10,8 +10,8 @@
         <module name="parse-xml-by-dom4j" />
         <module name="mybatis-001-introduction" />
         <module name="mybatis-002-curd" />
-        <module name="mybatis-003-configuration" />
         <module name="godbatis" />
+        <module name="mybatis-003-configuration" />
       </profile>
     </annotationProcessing>
   </component>

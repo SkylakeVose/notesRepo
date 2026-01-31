@@ -2074,6 +2074,68 @@ public class SqlSessionFactory {
 
 
 
+注意：黄框中的`mappedStatements`属性主要是为了存放映射文件中的SQL映射信息，`MappedStatement`类封装了每一条的SQL信息。
+
+```java
+// MappedStatement.class
+package cn.piggy.godbatis.core;
+
+/**
+ * 普通的java类。POJO 封装了一个SQL标签
+ * 一个MappedStatment对象对应一个SQL标签
+ * 一个SQL标签中的所有信息封装到MappedStatement对象当中。
+ * 面向对象编程思想。
+ */
+public class MappedStatement {
+    /**
+     * sql语句
+     */
+    private String sql;
+
+    /**
+     * 要封装的结果集类型，有的时候为null
+     * 比如:insert delete update语句的时候为null，在select语句时才有值
+     */
+    private String resultType;
+
+    public MappedStatement() {
+    }
+
+    public MappedStatement(String sql, String resultType) {
+        this.sql = sql;
+        this.resultType = resultType;
+    }
+
+    @Override
+    public String toString() {
+        return "MappedStatement{" +
+                "sql='" + sql + '\'' +
+                ", resultType='" + resultType + '\'' +
+                '}';
+    }
+
+    public String getSql() {
+        return sql;
+    }
+
+    public void setSql(String sql) {
+        this.sql = sql;
+    }
+
+    public String getResultType() {
+        return resultType;
+    }
+
+    public void setResultType(String resultType) {
+        this.resultType = resultType;
+    }
+}
+```
+
+![image-20260131202353365](mybatis.assets/image-20260131202353365.png)
+
+
+
 ### 5.2.5 定义事务管理器类(Transaction)
 
 这个事务管理器主要提供管理事务的方法，有`JDBC`和`MANAGED`两种事务管理器。
@@ -2325,4 +2387,264 @@ public class UnPooledDataSource implements DataSource {
 
 
 
-### 5.2.7
+
+
+### 5.2.7 完善SqlSessionFactory类
+
+我们给`SqlSessionFactory`类加上getter和setter方法，并创建其全参构造器。
+
+```java
+public class SqlSessionFactory {
+    /**
+     * 数据管理器属性
+     * 事务管理器是可以灵活切换的
+     * SqlSessionFactory类中的事务管理器应该是面向接口的
+     * SqlSessionFactory类中应该有一个事务管理器接口
+     */
+    private Transaction transaction;
+
+    /**
+     * 存放sql语句的Map集合
+     * key是sqlId
+     * value是mappedStatement
+     */
+    private Map<String, MappedStatement> mappedStatements;
+
+    public SqlSessionFactory() {
+    }
+
+    public SqlSessionFactory(Transaction transaction, Map<String, MappedStatement> mappedStatements) {
+        this.transaction = transaction;
+        this.mappedStatements = mappedStatements;
+    }
+
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(Transaction transaction) {
+        this.transaction = transaction;
+    }
+
+    public Map<String, MappedStatement> getMappedStatements() {
+        return mappedStatements;
+    }
+
+    public void setMappedStatements(Map<String, MappedStatement> mappedStatements) {
+        this.mappedStatements = mappedStatements;
+    }
+}
+```
+
+
+
+### 5.2.8 完善SqlSessionFactoryBuilder类
+
+我们首先来完善`SqlSessionFactoryBuilder`的`build()`方法：
+
+```java
+/**
+     * 解析godbatis-config.xml文件，来构建SqlSessionFactory对象
+     * @param in 指向godbatis-config.xml的文件流
+     * @return
+     */
+public SqlSessionFactory build(InputStream in) {
+    SqlSessionFactory factory = null;
+    try {
+        // 解析godbatis-config.xml
+        SAXReader reader = new SAXReader();
+        Document document = reader.read(in);
+
+        // 获取默认的环境environment
+        Element environments = (Element) document.selectSingleNode("/configuration/environments");
+        String defaultId = environments.attributeValue("default");
+        Element environment = (Element) document.selectSingleNode("/configuration/environments/environment[@id='" + defaultId+ "']");
+        // 获取事务管理器节点
+        Element transactionElt = environment.element("transactionManager");
+        // 获取数据源节点
+        Element dataSourceElt = environment.element("dataSource");
+        // 获取mapper所有路径
+        List<String> sqlMapperXMLPathList = new ArrayList<>();
+        List<Node> nodes = document.selectNodes("//mapper");    // 获取整个配置文件中的所有mapper标签
+        nodes.forEach(node -> {
+            Element mapper = (Element) node;
+            String resource = mapper.attributeValue("resource");
+            sqlMapperXMLPathList.add(resource);
+        });
+
+        // 获取数据源对象
+        DataSource dataSource = getDataSource(dataSourceElt);
+        // 获取事务管理器
+        Transaction transaction = getTransaction(transactionElt, dataSource);
+        // 获取mappedStatements
+        Map<String, MappedStatement> mappedStatements = getMappedStatements(sqlMapperXMLPathList);
+        // 解析完成之后，构建SqlSessionFactory对象
+        factory = new SqlSessionFactory(transaction, mappedStatements);
+    } catch (DocumentException e) {
+        e.printStackTrace();
+    }
+
+    return factory;
+}
+```
+
+我们先解析获取核心配置文件`godbatis-config.xml`的相关信息，将相关信息传递给相关方法用于创建数据源和事务管理器、以及映射文件的SQL列表。
+
+![image-20260201002819905](mybatis.assets/image-20260201002819905.png)
+
+
+
+我们再来完善其他方法：
+
+1. 获取数据源对象：
+
+   ```java
+   /**
+        * 获取数据源对象
+        * @param dataSourceElt 数据源标签元素
+        * @return
+        */
+   private DataSource getDataSource(Element dataSourceElt) {
+       Map<String, String> map = new HashMap<>();
+       // 获取所有的property
+       List<Element> propertyElts = dataSourceElt.elements("property");
+       propertyElts.forEach(propertyElt -> {
+           String name = propertyElt.attributeValue("name");
+           String value = propertyElt.attributeValue("value");
+           map.put(name, value);
+       });
+   
+       DataSource dataSource = null;
+       String type = dataSourceElt.attributeValue("type").trim().toUpperCase();
+   
+       if (Const.UN_POOLED_DATASOURCE.equals(type)) {
+           dataSource = new UnPooledDataSource(map.get("driver"), map.get("url"), map.get("username"), map.get("password"));
+       } else if (Const.POOLED_DATASOURCE.equals(type)) {
+           dataSource = new PooledDataSource();
+       } else if (Const.JNDI_DATASOURCE.equals(type)) {
+           dataSource = new JNDIDataSource();
+       }
+   
+       return dataSource;
+   }
+   ```
+
+   
+
+2. 获取事务管理器对象：
+
+   ```java
+   /**
+        * 获取事务管理器
+        * @param transactionElt 事务管理器标签元素
+        * @param dataSource 数据源对象
+        * @return
+        */
+   private Transaction getTransaction(Element transactionElt, DataSource dataSource) {
+       Transaction transaction = null;
+       String type = transactionElt.attributeValue("type").trim().toUpperCase();
+       if (Const.JDBC_TRANSACTION.equals(type)) {
+           transaction = new JdbcTransaction(dataSource, false);   // 默认是开启事务的，需要手动提交
+       } else if(Const.MANAGED_TRANSACTION.equals(type)){
+           transaction = new ManagedTransaction();
+       }
+       return transaction;
+   }
+   ```
+
+   
+
+3. 获取MappedStatements字典对象：
+
+   ```java
+   /**
+        * 解析所有的SqlMapper.xml文件，然后构建Map集合
+        * @param sqlMapperXMLPathList
+        * @return
+        */
+   private Map<String, MappedStatement> getMappedStatements(List<String> sqlMapperXMLPathList) {
+       Map<String, MappedStatement> mappedStatements = new HashMap<>();
+       sqlMapperXMLPathList.forEach(sqlMapperXMLPath -> {
+           try {
+               SAXReader reader = new SAXReader();
+               Document document = reader.read(Resources.getResourceAsStream(sqlMapperXMLPath));
+               Element mapper = (Element) document.selectSingleNode("/mapper");
+               String namespace = mapper.attributeValue("namespace");
+               List<Element> elements = mapper.elements();
+               elements.forEach(element -> {
+                   String id = element.attributeValue("id");
+                   // 对namespace和id进行拼接 生成最终id
+                   String sqlId = namespace + "." + id;
+                   String resultType = element.attributeValue("resultType");
+                   String sql = element.getTextTrim();
+                   MappedStatement mappedStatement = new MappedStatement(sql, resultType);
+                   mappedStatements.put(sqlId, mappedStatement);
+               });
+           } catch (DocumentException e) {
+               e.printStackTrace();
+           }
+       });
+       return mappedStatements;
+   }
+   ```
+
+
+
+> 注意：我们在上述方法中使用了一些常量，并定义在常亮类中：
+>
+> ```java
+> /**
+>  * 整个godbatis框架的常量类
+>  */
+> public class Const {
+>     public static final String UN_POOLED_DATASOURCE = "UNPOOLED";
+>     public static final String POOLED_DATASOURCE = "POOLED";
+>     public static final String JNDI_DATASOURCE = "JNDI";
+> 
+>     public static final String JDBC_TRANSACTION = "JDBC";
+>     public static final String MANAGED_TRANSACTION = "MANAGED";
+> }
+> ```
+
+
+
+### 5.2.9 阶段测试
+
+我们引入mysql依赖和junit依赖：
+
+```xml
+<!--mysql-->
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>8.0.31</version>
+</dependency>
+<!--junit-->
+<dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.13.2</version>
+    <scope>test</scope>
+</dependency>
+```
+
+创建测试类`GodBatisTest`：
+
+```java
+public class GodBatisTest {
+    @Test
+    public void testSqlSessionFactory() throws Exception {
+        SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+        SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("godbatis-config.xml"));
+        System.out.println(sqlSessionFactory);
+    }
+}
+```
+
+调试输出：
+
+![image-20260201003408663](mybatis.assets/image-20260201003408663.png)
+
+
+
+### 5.2.10 

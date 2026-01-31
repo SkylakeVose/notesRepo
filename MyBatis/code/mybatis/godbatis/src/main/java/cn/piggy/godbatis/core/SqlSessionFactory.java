@@ -24,4 +24,28 @@ public class SqlSessionFactory {
      * value是mappedStatement
      */
     private Map<String, MappedStatement> mappedStatements;
+
+    public SqlSessionFactory() {
+    }
+
+    public SqlSessionFactory(Transaction transaction, Map<String, MappedStatement> mappedStatements) {
+        this.transaction = transaction;
+        this.mappedStatements = mappedStatements;
+    }
+
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(Transaction transaction) {
+        this.transaction = transaction;
+    }
+
+    public Map<String, MappedStatement> getMappedStatements() {
+        return mappedStatements;
+    }
+
+    public void setMappedStatements(Map<String, MappedStatement> mappedStatements) {
+        this.mappedStatements = mappedStatements;
+    }
 }
