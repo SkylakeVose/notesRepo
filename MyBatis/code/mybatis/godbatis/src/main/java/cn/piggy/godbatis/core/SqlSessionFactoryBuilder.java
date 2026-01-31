@@ -20,6 +20,8 @@ public class SqlSessionFactoryBuilder {
      * @return
      */
     public SqlSessionFactory build(InputStream in) {
-        return null;
+        // 解析完成之后，构建SqlSessionFactory对象
+        SqlSessionFactory factory = new SqlSessionFactory();
+        return factory;
     }
 }

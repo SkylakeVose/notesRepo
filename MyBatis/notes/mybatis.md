@@ -1925,3 +1925,120 @@ public void testParseSqlMapperXML() throws Exception {
 
 ## 5.2 GodBatis
 
+### 5.2.1 创建GodBatis模块
+
+新建maven项目`godbatis`，并引入依赖：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.piggy</groupId>
+    <artifactId>godbatis</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!--dom4j-->
+        <dependency>
+            <groupId>org.dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>2.1.3</version>
+        </dependency>
+        <!--jaxen-->
+        <dependency>
+            <groupId>jaxen</groupId>
+            <artifactId>jaxen</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+</project>
+```
+
+
+
+分析构建的流程：
+
+1. 通过观察之前的代码，可以得知`SqlSessionFactory`对象先通过`SqlSessionFactoryBuilder`对象的build方法生成的，而build方法需要加载核心配置文件，因此我们可以先把这两个对象给定义出来，并封装加载文件的方法。
+
+   ![image-20260131111445783](mybatis.assets/image-20260131111445783.png)
+
+
+
+
+
+### 5.2.2 创建资源工具类
+
+创建资源工具类`cn.piggy.godbatis.utils.Resouces`，方便获取指向配置文件的输入流:
+
+```java
+/**
+ * godBatis框架提供的一个工具类
+ * 这个工具类专门完成类路径中资源的加载
+ */
+public class Resources {
+    /**
+     * 工具了的构造方法都是建议私有化的
+     * 因为工具类中的方法都是静态的，不能创建对象就能调佣。
+     * 为了避免new对象，所有构造方法私有化。
+     * 这是一种编程习惯。
+     */
+    private Resources() {}
+
+    /**
+     * 从类路径中加载资源。
+     * @param resource 放在类路径当中的资源文件
+     * @return 访问资源文件的一个输入流
+     */
+    public static InputStream getResourceAsStream(String resource) {
+        return ClassLoader.getSystemClassLoader().getResourceAsStream(resource);
+    }
+}
+```
+
+
+
+### 5.2.3 定义SqlSessionFactoryBuilder类
+
+提供一个无参数构造方法，再提供一个build方法，该build方法要返回SqlSessionFactory对象。
+
+```java
+/**
+ * SqlSessionFactory的构建器对象
+ * 通过SqlSessionFactoryBuilder的build方法来解析godbatis-config.xml文件，然后创建SqlSessionFactory对象。
+ */
+public class SqlSessionFactoryBuilder {
+
+    /**
+     * 无参数构造方法
+     */
+    public SqlSessionFactoryBuilder() {
+    }
+
+    /**
+     * 解析godbatis-config.xml文件，来构建SqlSessionFactory对象
+     * @param in 指向godbatis-config.xml的文件流
+     * @return SqlSessionFactory对象
+     */
+    public SqlSessionFactory build(InputStream in) {
+        // 解析配置文件，创建数据源对象
+        // 解析配置文件，创建事务管理器对象
+        // 解析配置文件，后去所有的SQL映射对象
+        // 解析完成之后，构建SqlSessionFactory对象
+    }
+}
+```
+
+
+
+### 5.2.4 定义
