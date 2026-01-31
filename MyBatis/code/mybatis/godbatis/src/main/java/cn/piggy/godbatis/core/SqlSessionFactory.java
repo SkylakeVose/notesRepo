@@ -16,11 +16,7 @@ public class SqlSessionFactory {
      * SqlSessionFactory类中的事务管理器应该是面向接口的
      * SqlSessionFactory类中应该有一个事务管理器接口
      */
-
-
-    /**
-     * 数据源属性
-     */
+    private Transaction transaction;
 
     /**
      * 存放sql语句的Map集合

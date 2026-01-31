@@ -2031,14 +2031,298 @@ public class SqlSessionFactoryBuilder {
      * @return SqlSessionFactory对象
      */
     public SqlSessionFactory build(InputStream in) {
-        // 解析配置文件，创建数据源对象
-        // 解析配置文件，创建事务管理器对象
-        // 解析配置文件，后去所有的SQL映射对象
         // 解析完成之后，构建SqlSessionFactory对象
+        SqlSessionFactory factory = new SqlSessionFactory();
+        return factory;
     }
 }
 ```
 
 
 
-### 5.2.4 定义
+### 5.2.4 定义SqlSessionFactory类
+
+根据核心配置文件，来初步定义相关的属性：
+
+![image-20260131170239691](mybatis.assets/image-20260131170239691.png)
+
+代码：
+
+```java
+public class SqlSessionFactory {
+    // 思考：SqlSessionFactory中应该定义那些属性？
+    /**
+     * 数据管理器属性
+     * 事务管理器是可以灵活切换的
+     * SqlSessionFactory类中的事务管理器应该是面向接口的
+     * SqlSessionFactory类中应该有一个事务管理器接口
+     */
+    private Transaction transaction;
+
+    /**
+     * 数据源属性
+     */
+
+    /**
+     * 存放sql语句的Map集合
+     * key是sqlId
+     * value是mappedStatement
+     */
+    private Map<String, MappedStatement> mappedStatements;
+}
+```
+
+
+
+### 5.2.5 定义事务管理器类(Transaction)
+
+这个事务管理器主要提供管理事务的方法，有`JDBC`和`MANAGED`两种事务管理器。
+
+因此事务管理器应该使用面向接口的方法：新建一个`Transaction`事务管理接口，然后后续再实现两个实现类`JdbcTransaction`和`ManagedTransaction`。
+
+```java
+// Transaction事务管理器接口
+/**
+ * 事务管理器接口
+ * 所有的事务管理器都应该遵循该规范
+ * JDBC事务管理器、MANAGED事务管理器都应该实现这个接口
+ * Transaction事务管理器：提供管理事务方法
+ */
+public interface Transaction {
+    /**
+     * 提交事务
+     */
+    void commit();
+
+    /**
+     * 回滚事务
+     */
+    void rollback();
+
+    /**
+     * 关闭事务
+     */
+    void close();
+
+    /**
+     * 真正开启数据库连接
+     */
+    void openSession();
+
+    /**
+     * 获取数据库连接对象
+     * @return 数据库连接对象
+     */
+    Connection getConnection();
+
+    /**
+     * 后续如需其他方法可继续添加...
+     */
+}
+```
+
+
+
+我们重点关注实现，因此只完成`JdbcTransaction`事务管理器类，`ManagedTransaction`类暂不做处理。
+
+```java
+/**
+ * JDBC事务管理器（godbatis只对这个管理器实现）
+ */
+public class JdbcTransaction implements Transaction{
+
+    /**
+     * 数据源属性
+     * 面向接口编程
+     */
+    private DataSource dataSource;
+
+    /**
+     * 自动提交标志
+     * true:自动提交    false:手动提交
+     */
+    private boolean autoCommit;
+
+    /**
+     * 数据库连接
+     * 保证该事务管理器的连接不会变动
+     */
+    private Connection connection;
+
+    @Override
+    public Connection getConnection() {
+        return connection;
+    }
+
+    /**
+     * 创建事务管理器对象
+     * @param dataSource
+     * @param autoCommit
+     */
+    public JdbcTransaction(DataSource dataSource, boolean autoCommit) {
+        this.dataSource = dataSource;
+        this.autoCommit = autoCommit;
+    }
+
+    @Override
+    public void commit() {
+        try {
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void rollback() {
+        try {
+            connection.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void close() {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void openSession() {
+        if (connection == null) {
+            try {
+                connection = dataSource.getConnection();
+            } catch (SQLException e) {
+               e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+
+
+注意：
+
+1. 因为事务管理需要依赖`DataSource`数据源提供的连接`Connection`，因此我们需要添加数据源属性。
+
+   ```java
+   private DataSource dataSource;
+   ```
+
+2. 此外，因为数据源在事务管理器的构造方法中传入，因此SqlSessionFactory工厂类也不需要在维护数据源属性。（如有需要可直接通过Transaction属性获取）
+
+   ![image-20260131173034964](mybatis.assets/image-20260131173034964.png)
+
+3. 为什么需要单独维护一个连接对象`Connection`？
+
+   我们先按下不表，等完成了数据源实现后再讲。
+
+
+
+### 5.2.6 定义数据源类(DataSource)
+
+![image-20260131173954925](mybatis.assets/image-20260131173954925.png)
+
+所有数据源都是要实现JDK的规范：`javax.sql.DataSource`，而且有三种属性`UNPOOLED`、`POOLED`和`JNDI`。
+
+JDK已经为我们提供了数据源的接口，我们只需要实现这三种类型的接口就行了。但我们还是只完全实现`UNPOOLED`这一种类型的接口，而且只实现`getConnection()`这一个方法。
+
+```java
+// UnPooledDataSource.class
+
+/**
+ * 数据源的实现类：UNPOOLED（重点实现这个）
+ * 不适用连接池，每一次都新建连接
+ */
+public class UnPooledDataSource implements DataSource {
+
+    private String url;
+    private String username;
+    private String password;
+
+    /**
+     * 创建一个数据源对象。
+     * @param url
+     * @param username
+     * @param password
+     */
+    public UnPooledDataSource(String driver, String url, String username, String password) {
+        try {
+            // 直接注册驱动
+            Class.forName(driver);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        this.url = url;
+        this.username = username;
+        this.password = password;
+    }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+        Connection connection = DriverManager.getConnection(url, username, password);
+        return connection;
+    }
+
+    @Override
+    public Connection getConnection(String username, String password) throws SQLException {
+        return null;
+    }
+
+    @Override
+    public PrintWriter getLogWriter() throws SQLException {
+        return null;
+    }
+
+    @Override
+    public void setLogWriter(PrintWriter out) throws SQLException {
+
+    }
+
+    @Override
+    public void setLoginTimeout(int seconds) throws SQLException {
+
+    }
+
+    @Override
+    public int getLoginTimeout() throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        return null;
+    }
+
+    @Override
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        return false;
+    }
+
+    @Override
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        return null;
+    }
+}
+```
+
+
+
+现在可以回答5.2.5中的第三个问题：为什么要在事务管理器实现类中单独维护一个连接对象`Connection`？
+
+因为直接调用`getConnection()`方法每次都会返回不同的连接对象:
+
+![image-20260131174651051](mybatis.assets/image-20260131174651051.png)
+
+所以我们需要维护一个独立的连接对象；
+
+<img src="mybatis.assets/image-20260131175015210.png" alt="image-20260131175015210" style="zoom:80%;" />
+
+
+
+### 5.2.7
