@@ -2608,7 +2608,7 @@ public SqlSessionFactory build(InputStream in) {
 
 
 
-### 5.2.9 阶段测试
+### 5.2.9 阶段测试1及修改
 
 我们引入mysql依赖和junit依赖：
 
@@ -2647,4 +2647,430 @@ public class GodBatisTest {
 
 
 
-### 5.2.10 
+
+
+**部分代码需要修改：**
+
+![image-20260204111839751](mybatis.assets/image-20260204111839751.png)
+
+
+
+
+
+### 5.2.10 封装SqlSession对象
+
+该部分将通过`SqlSessionFactory`类的`openSession()`方法来开启Sql会话，我们先来添加这部分代码：
+
+```java
+// SqlSessionFactory类
+/**
+     * 获取SQL会话对象
+     * @return
+     */
+public SqlSession openSession() {
+    // 开启会话的前提是开启连接
+    transaction.openConnection();
+    // 创建SqlSession对象
+    SqlSession sqlSession = new SqlSession(this);
+
+    return sqlSession;
+}
+```
+
+
+
+下面将来完善`SqlSession`类：
+
+```java
+/**
+ * 专门负责处理SQL语句的会话对象
+ */
+public class SqlSession {
+    private SqlSessionFactory factory;
+
+    public SqlSession(SqlSessionFactory sqlSessionFactory) {
+        this.factory = sqlSessionFactory;
+    }
+
+    /**
+     * 提交事务
+     */
+    public void commit() {
+        factory.getTransaction().commit();
+    }
+
+    /**
+     * 回滚事务
+     */
+    public void rollback() {
+        factory.getTransaction().rollback();
+    }
+
+    /**
+     * 关闭事务
+     */
+    public void close() {
+        factory.getTransaction().close();
+    }
+
+    /**
+     * 执行insert语句，向数据库表当中插入记录
+     * @param sqlId sql语句的id
+     * @param pojo 插入的数据
+     * @return
+     */
+    public int insert(String sqlId, Object pojo) {
+        return null;
+    }
+
+    /**
+     * 执行查询语句，返回一个对象。该方法只适合返回一条记录的sql语句
+     * @param sqlId
+     * @param param
+     * @return
+     */
+    public Object selectOne(String sqlId, Object param) {
+        return null;
+    }
+}
+```
+
+
+
+完善`insert()`方法：
+
+```java
+/**
+     * 执行insert语句，向数据库表当中插入记录
+     * @param sqlId sql语句的id
+     * @param pojo 插入的数据
+     * @return
+     */
+public int insert(String sqlId, Object pojo) {
+    int count = 0;
+    try {
+        // JDBC代码，执行insert语句，完成插入操作
+        Connection connection = factory.getTransaction().getConnection();
+        // insert into t_user values (#{id}, #{name}, #{age})
+        String godbatisSql = factory.getMappedStatements().get(sqlId).getSql();
+        // insert into t_user values (?, ?, ?)
+        String sql = godbatisSql.replaceAll("#\\{[a-zA-Z0-9_$]*}", "?");
+        PreparedStatement ps = connection.prepareStatement(sql);
+        // 给？占位传值
+        // 要点：1.传值数量 2.传值顺序
+        // godbatis主要考虑大致实现，类型匹配转换先不做考虑。因此godbatis只使用setString，要求数据库表中字段类型都为varchar
+        int fromIndex = 0;  // 查找起始位
+        int index = 1;      // 属性顺序下标
+        while(true) {
+            int jingIndex = godbatisSql.indexOf("#", fromIndex);
+            if(jingIndex < 0) {
+                break;
+            }
+            int youKuoHaoIndex = godbatisSql.indexOf("}", fromIndex);
+            // 获取属性名
+            String propertyName = godbatisSql.substring(jingIndex + 2, youKuoHaoIndex).trim();
+            fromIndex = youKuoHaoIndex + 1;
+
+            // 通过反射机制调用相关属性的方法
+            String getMethodName = "get" + propertyName.toUpperCase().charAt(0) + propertyName.substring(1);
+            Method method = pojo.getClass().getDeclaredMethod(getMethodName);
+            Object propertyValue = method.invoke(pojo);
+
+            ps.setString(index, propertyValue.toString());
+            index++;	// 下标自增
+        }
+
+        // 执行SQL语句
+        count = ps.executeUpdate();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return count;
+}
+```
+
+
+
+完善`selectOne()`方法：
+
+```java
+/**
+     * 执行查询语句，返回一个对象。该方法只适合返回一条记录的sql语句
+     * @param sqlId
+     * @param param
+     * @return
+     */
+public Object selectOne(String sqlId, Object param) {
+    Object object = null;
+    try {
+        Connection connection = factory.getTransaction().getConnection();
+        MappedStatement mappedStatement = factory.getMappedStatements().get(sqlId);
+        // sql查询语句
+        // select * from t_user where id = #{id}
+        String godbatisSql = mappedStatement.getSql();
+        String sql = godbatisSql.replaceAll("#\\{[a-zA-Z0-9_$]*}", "?");
+        PreparedStatement ps = connection.prepareStatement(sql);
+
+        // 给占位符传值（只考虑只有一个占位符的情况）
+        ps.setString(1, param.toString());
+        // 查询返回结果集
+        ResultSet rs = ps.executeQuery();
+
+        // 获取需要返回的对象类型
+        String resultType = mappedStatement.getResultType();
+        // 从结果集中取数据，封装java对象
+        if (rs.next()) {
+            // 获取resultType的Class
+            Class<?> resultTypeClass = Class.forName(resultType);
+            // 调用无参数构造方法创建对象
+            object = resultTypeClass.newInstance(); // Object obj = new User();
+            // 给User类的id、name、age属性赋值
+            ResultSetMetaData rsmd = rs.getMetaData();  // 获取结果集元数据
+            int columnCount = rsmd.getColumnCount();    // 获取元数据的列数量
+            for (int i = 0; i < columnCount; i++) {     // 循环列数
+                String propertyName = rsmd.getColumnName(i + 1);    // 获取当前列名字
+                // 拼接方法名
+                String setMethodName = "set" + propertyName.toUpperCase().charAt(0) + propertyName.substring(1);
+                // 获取set方法
+                Method method = resultTypeClass.getDeclaredMethod(setMethodName, String.class);
+                // 调用set方法给对象object属性赋值
+                method.invoke(object, rs.getString(propertyName));
+            }
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return object;
+}
+```
+
+注意：`getColumName(index)`方法中，`index`从1开始计数。
+
+![image-20260204153256393](mybatis.assets/image-20260204153256393.png)
+
+
+
+### 5.2.11 阶段测试2
+
+我们测试5.2.10的两个方法是否可用，先准备一张用户表`t_user`，所有字段都为`varchar`类型：
+
+![image-20260204113522175](mybatis.assets/image-20260204113522175.png)
+
+
+
+然后新建pojo类`User`：
+
+```java
+public class User {
+    private String id;
+    private String name;
+    private String age;
+
+    public User() {
+    }
+
+    public User(String id, String name, String age) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", age='" + age + '\'' +
+                '}';
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAge() {
+        return age;
+    }
+
+    public void setAge(String age) {
+        this.age = age;
+    }
+}
+```
+
+
+
+接下来我们开始测试两个方法：
+
+1. 测试`insert()`：
+
+   ```java
+   @Test
+   public void testInsertUser() {
+       SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+       SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("godbatis-config.xml"));
+       SqlSession sqlSession = sqlSessionFactory.openSession();
+   
+       // 执行SQL
+       User user = new User("1111", "张三", "28");
+       int count = sqlSession.insert("user.insertUser", user);
+       System.out.println("影响行数：" + count);
+   
+       sqlSession.commit();
+       sqlSession.close();
+   }
+   ```
+
+   ![image-20260204113824528](mybatis.assets/image-20260204113824528.png)
+
+2. 测试`selectOne()`：
+
+   ```java
+   @Test
+   public void testSelectOne() {
+       SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+       SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("godbatis-config.xml"));
+       SqlSession sqlSession = sqlSessionFactory.openSession();
+   
+       // 执行SQL
+       Object obj = sqlSession.selectOne("user.selectById", "1111");
+       System.out.println(obj);
+   
+       sqlSession.close();
+   }
+   ```
+
+   ![image-20260204153432207](mybatis.assets/image-20260204153432207.png)
+
+
+
+### 5.2.12 打包测试
+
+使用`install`命令给`godbatis`项目打包：
+
+![image-20260204155535884](mybatis.assets/image-20260204155535884.png)
+
+这样可以安装到本地仓库中，其他项目可以直接添加本框架。
+
+
+
+新建模块`godbatis-test`，测试功能：
+
+1. 新建项目，并引入依赖：
+
+   ![image-20260204155951043](mybatis.assets/image-20260204155951043.png)
+
+2. 创建配置文件和Mapper文件：
+
+   核心配置文件`godbatis-config.xml`：
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <configuration>
+       <environments default="development">
+           <environment id="development">
+               <transactionManager type="JDBC"/>
+               <dataSource type="UNPOOLED">
+                   <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                   <property name="url" value="jdbc:mysql://8.134.254.79:3306/powernode"/>
+                   <property name="username" value="test"/>
+                   <property name="password" value="Aa123456#."/>
+               </dataSource>
+           </environment>
+       </environments>
+       <mappers>
+           <mapper resource="UserMapper.xml"/>
+       </mappers>
+   </configuration>
+   ```
+
+   `UserMapper`映射文件：
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <mapper namespace="user">
+   
+       <insert id="insertUser">
+           insert into t_user values(#{id}, #{name}, #{age})
+       </insert>
+   
+       <select id="selectById" resultType="cn.piggy.godbatis.pojo.User">
+           select * from t_user where id = #{id}
+       </select>
+   </mapper>
+   ```
+
+3. 测试：
+
+   + 插入新的用户：
+
+     ```java
+     @Test
+     public void testInsertUser() {
+         SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+         SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("godbatis-config.xml"));
+         SqlSession sqlSession = sqlSessionFactory.openSession();
+     
+         User user = new User("1112", "李四", "30");
+         int count = sqlSession.insert("user.insertUser", user);
+         System.out.println("影响行数:" + count);
+     
+         sqlSession.commit();
+         sqlSession.close();
+     }
+     ```
+
+     ![image-20260204160238181](mybatis.assets/image-20260204160238181.png)
+
+   + 查询刚插入的用户信息：
+
+     ```java
+     @Test
+     public void testSelectById() {
+         SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+         SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("godbatis-config.xml"));
+         SqlSession sqlSession = sqlSessionFactory.openSession();
+     
+         Object obj = sqlSession.selectOne("user.selectById", "1112");
+         System.out.println(obj);
+     
+         sqlSession.close();
+     }
+     ```
+
+     ![image-20260204160320156](mybatis.assets/image-20260204160320156.png)
+
+
+
+
+
+## 5.3 总结MyBatis框架的重要实现原理
+
+思考两个问题：
+
++ 为什么insert语句中 #{} 里填写的必须是属性名？
+
+  > 因为底层需要通过属性名来生成类属性的获取方法，从而能通过反射机制来获取相关的值并传进去。
+
++ 为什么select语句查询结果列名要属性名一致？
+
+  > 因为底层需要通过列名来生成类属性的赋值方法，通过反射机制将相应的值赋给对应的属性。如果列名跟属性名不一致，就需要使用关键字`AS`来对列名进行重命名，从而使其能正常被获取并赋值。
+
+
+
+
+
+# 六、在WEB中应用MyBatis（使用MVC架构模式）

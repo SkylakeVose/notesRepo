@@ -27,7 +27,7 @@ public interface Transaction {
     /**
      * 真正开启数据库连接
      */
-    void openSession();
+    void openConnection();
 
     /**
      * 获取数据库连接对象

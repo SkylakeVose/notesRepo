@@ -48,4 +48,18 @@ public class SqlSessionFactory {
     public void setMappedStatements(Map<String, MappedStatement> mappedStatements) {
         this.mappedStatements = mappedStatements;
     }
+
+
+    /**
+     * 获取SQL会话对象
+     * @return
+     */
+    public SqlSession openSession() {
+        // 开启会话的前提是开启连接
+        transaction.openConnection();
+        // 创建SqlSession对象
+        SqlSession sqlSession = new SqlSession(this);
+
+        return sqlSession;
+    }
 }

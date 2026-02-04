@@ -70,10 +70,12 @@ public class JdbcTransaction implements Transaction{
     }
 
     @Override
-    public void openSession() {
+    public void openConnection() {
         if (connection == null) {
             try {
                 connection = dataSource.getConnection();
+                // 开启事务
+                connection.setAutoCommit(autoCommit);
             } catch (SQLException e) {
                e.printStackTrace();
             }
