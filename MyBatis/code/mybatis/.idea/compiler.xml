@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="junit-test" />
+        <module name="mybatis-004-web" />
         <module name="mybatis-002-curd" />
         <module name="godbatis" />
         <module name="parse-xml-by-dom4j" />
