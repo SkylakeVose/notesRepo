@@ -3074,3 +3074,112 @@ public class User {
 
 
 # 六、在WEB中应用MyBatis（使用MVC架构模式）
+
+## 6.1 需求描述
+
+**实现功能：**
+
++ 银行账户转账
+
+**使用技术：**
+
++ HTML + Servlet + MyBatis
+
+**WEB应用的名称：**
+
++ bank
+
+**数据库表设计：**
+
+新建`t_act`表：
+
+<img src="mybatis.assets/image-20260206113800241.png" alt="image-20260206113800241" style="zoom:50%;" />
+
+
+
+效果图：
+
+![转账效果图](mybatis.assets/1660274775552-da896b17-09dd-455a-899e-eb4f36fc0ced.png)
+
+## 6.2 环境搭建
+
+1. 创建Maven WEB项目`mybatis-004-web`，并创建相关目录：
+
+   <img src="mybatis.assets/image-20260206112130069.png" alt="image-20260206112130069" style="zoom:80%;" />
+
+   ![image-20260206112227836](mybatis.assets/image-20260206112227836.png)
+
+   > 如果有些目录不存在，可以手动创建。
+
+2. 配置tomcat：
+
+   如果没有部署过tomcat，可以直接在官网下载一个9.0版本的tomcat。[tomcat下载]([Apache Tomcat® - Apache Tomcat 9 Software Downloads](https://tomcat.apache.org/download-90.cgi))
+
+   <img src="mybatis.assets/image-20260206112441045.png" alt="image-20260206112441045" style="zoom: 80%;" />
+
+   在IDEA中配置tomcat：
+
+   <img src="mybatis.assets/image-20260206112631203.png" alt="image-20260206112631203" style="zoom: 67%;" />
+
+   <img src="mybatis.assets/image-20260206112718093.png" alt="image-20260206112718093" style="zoom: 67%;" />
+
+3. 引入pom依赖：
+
+   ```xml
+   <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+       <modelVersion>4.0.0</modelVersion>
+   
+       <groupId>cn.piggy</groupId>
+       <artifactId>mybatis-004-web</artifactId>
+       <packaging>war</packaging>
+       <version>1.0-SNAPSHOT</version>
+   
+       <name>mybatis-004-web Maven Webapp</name>
+       <url>http://maven.apache.org</url>
+   
+       <dependencies>
+           <!--mybatis-->
+           <dependency>
+               <groupId>org.mybatis</groupId>
+               <artifactId>mybatis</artifactId>
+               <version>3.5.10</version>
+           </dependency>
+           <!--mysql-->
+           <dependency>
+               <groupId>mysql</groupId>
+               <artifactId>mysql-connector-java</artifactId>
+               <version>8.0.31</version>
+           </dependency>
+           <!--logback-->
+           <dependency>
+               <groupId>ch.qos.logback</groupId>
+               <artifactId>logback-classic</artifactId>
+               <version>1.2.11</version>
+           </dependency>
+           <!--servlet-->
+           <dependency>
+               <groupId>javax.servlet</groupId>
+               <artifactId>javax.servlet-api</artifactId>
+               <version>4.0.1</version>
+           </dependency>
+       </dependencies>
+   
+       <build>
+           <finalName>mybatis-004-web</finalName>
+       </build>
+   </project>
+   ```
+
+4. 拉取其他完整项目（如`mybatis-003-configuration`）中的资源目录下的文件：
+
+   ![image-20260206113209895](mybatis.assets/image-20260206113209895.png)
+
+5. 新增pojo类`Account`和utils类`SqlSessionUtil`：
+
+   ![image-20260206113327183](mybatis.assets/image-20260206113327183.png)
+
+
+
+## 6.3 后端代码实现
+
