@@ -6,6 +6,8 @@ import cn.piggy.bank.exceptions.MoneyNotEnoughException;
 import cn.piggy.bank.exceptions.TransferException;
 import cn.piggy.bank.pojo.Account;
 import cn.piggy.bank.service.AccountService;
+import cn.piggy.bank.utils.SqlSessionUtil;
+import org.apache.ibatis.session.SqlSession;
 
 public class AccountServiceImpl implements AccountService {
 
@@ -13,6 +15,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void transfer(String fromActno, String toActno, double money) throws MoneyNotEnoughException, TransferException {
+
+        // 添加事务控制代码
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+
         // 1. 判断转出账户的余额时候否充足（select)
         Account fromAct = accountDao.selectByActno(fromActno);
         if (fromAct.getBalance() < money) {
@@ -25,11 +31,20 @@ public class AccountServiceImpl implements AccountService {
         fromAct.setBalance(fromAct.getBalance() - money);
         toAct.setBalance(toAct.getBalance() + money);
         int count = accountDao.updateByActno(fromAct);
+
+        // 模拟异常
+        int i = 10 / 0;
+
         // 4. 更新转入账户余额（update）
         count += accountDao.updateByActno(toAct);
 
         if (count!=2) {
             throw new TransferException("转账异常，未知原因");
         }
+
+        // 提交事务
+        sqlSession.commit();
+        // 关闭事务
+        SqlSessionUtil.close(sqlSession);
     }
 }

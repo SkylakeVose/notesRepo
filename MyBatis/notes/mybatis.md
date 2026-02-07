@@ -3358,5 +3358,69 @@ public class User {
 
 
 
+## 6.4 运行测试
+
+首先要使servlet注解生效：
+
+![image-20260207172103942](mybatis.assets/image-20260207172103942.png)
+
+<img src="mybatis.assets/image-20260207172408874.png" alt="image-20260207172408874" style="zoom:80%;" />
+
+测试转账成功的情况，其他情况自行测试。
 
 
+
+## 6.5 添加事务管理
+
+### 6.5.1 转账异常现象
+
+如果我们在两次转张之间出现了异常报错，转账没有成功，但是相应的数据库操作已经被提交，则会出现金额对不上的情况。
+
+1. 添加一下异常及捕获代码：
+
+   <img src="mybatis.assets/image-20260207173838032.png" alt="image-20260207173838032" style="zoom:80%;" />
+
+2. 执行测试：
+
+   <img src="mybatis.assets/image-20260207174035366.png" alt="image-20260207174035366" style="zoom:80%;" />
+
+
+
+测试发现转账失败，但是金额对不上，主要还是缺少事务控制，两次操作数据库都是获取的不同连接，因此没办法对其进行事务控制。
+
+<img src="mybatis.assets/image-20260207174242611.png" alt="image-20260207174242611" style="zoom:80%;" />
+
+
+
+
+### 6.5.2 添加事务管理
+
+因此我们需要添加一些事务管理代码。
+
+1. 修改`SqlSessionUtil`代码，添加ThreadLocal变量：
+
+   <img src="mybatis.assets/image-20260207175731771.png" alt="image-20260207175731771" style="zoom: 67%;" />
+
+2. 注释掉`AccountDaoImpl`中关于事务管理的代码：
+
+   <img src="mybatis.assets/image-20260207175835646.png" alt="image-20260207175835646" style="zoom:67%;" />
+
+3. 在业务层添加事务管理的代码：
+
+   <img src="mybatis.assets/image-20260207175927464.png" alt="image-20260207175927464" style="zoom:67%;" />
+
+   
+
+4. 运行测试：转账异常，事务不会提交，数据库金额还是没有变化的。
+
+<img src="mybatis.assets/image-20260207175434437.png" alt="image-20260207175434437" style="zoom:80%;" />
+
+
+
+> 手撕ThreadLocal：
+
+
+
+
+
+##
