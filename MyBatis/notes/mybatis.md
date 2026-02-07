@@ -3183,3 +3183,180 @@ public class User {
 
 ## 6.3 后端代码实现
 
+1. 新建`AccountServlet`类，处理表单数据：
+
+   ```java
+   @WebServlet("/transfer")
+   public class AccountServlet extends HttpServlet {
+   
+       // 为了让这个对象在其他方法中也能被使用，因此声明为实例变量
+       private AccountService accountService = new AccountServiceImpl();
+   
+       @Override
+       protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+           // 获取表单数据
+           String fromActno = req.getParameter("fromActno");
+           String toActno = req.getParameter("toActno");
+           double money = Double.parseDouble(req.getParameter("money"));
+   
+           // 调用service的转账方法完成转账（调业务层）
+           try {
+               accountService.transfer(fromActno, toActno, money);
+               // 此处转账成功，调用View完成展示结果
+               resp.sendRedirect(req.getContextPath() + "/success.html");
+           } catch (MoneyNotEnoughException e) {
+               resp.sendRedirect(req.getContextPath() + "/error1.html");
+           } catch (TransferException e) {
+               resp.sendRedirect(req.getContextPath() + "/error2.html");
+           }
+       }
+   }
+   ```
+
+2. 创建核心业务类`AccountService`及其实现类：
+
+   ```java
+   /**
+    * 账户业务类
+    */
+   public interface AccountService {
+       /**
+        * 账户转账业务
+        * @param fromActno 转出账号
+        * @param toActno   转入账号
+        * @param money 转账金额
+        */
+       void transfer(String fromActno, String toActno, double money) throws MoneyNotEnoughException, TransferException;
+   }
+   ```
+
+   ```java
+   public class AccountServiceImpl implements AccountService {
+   
+       private AccountDao accountDao = new AccountDaoImpl();
+   
+       @Override
+       public void transfer(String fromActno, String toActno, double money) throws MoneyNotEnoughException, TransferException {
+           // 1. 判断转出账户的余额时候否充足（select)
+           Account fromAct = accountDao.selectByActno(fromActno);
+           if (fromAct.getBalance() < money) {
+               // 2. 如果转出账户余额不足，提示用户
+               throw new MoneyNotEnoughException("转出账户余额不足!");
+           }
+           // 3. 如果转出账户余额充足，更新转出账户余额（update）
+           // 先更新内存中对象余额
+           Account toAct = accountDao.selectByActno(toActno);
+           fromAct.setBalance(fromAct.getBalance() - money);
+           toAct.setBalance(toAct.getBalance() + money);
+           int count = accountDao.updateByActno(fromAct);
+           // 4. 更新转入账户余额（update）
+           count += accountDao.updateByActno(toAct);
+   
+           if (count!=2) {
+               throw new TransferException("转账异常，未知原因");
+           }
+       }
+   }
+   ```
+
+3. 补充业务层的异常类：
+
+   ```java
+   package cn.piggy.bank.exceptions;
+   
+   /**
+    * 余额不足异常
+    */
+   public class MoneyNotEnoughException extends Exception {
+       public MoneyNotEnoughException() {
+       }
+   
+       public MoneyNotEnoughException(String message) {
+           super(message);
+       }
+   }
+   ```
+
+   ```java
+   package cn.piggy.bank.exceptions;
+   
+   public class TransferException extends Exception {
+       public TransferException(String message) {
+           super(message);
+       }
+   
+       public TransferException() {
+       }
+   }
+   ```
+
+4. 创建数据访问类`AccountDao`及其实现类：
+
+   ```java
+   /**
+    * 账户的DAO对象，负责t_act表中数据的CRUD
+    */
+   public interface AccountDao {
+       /**
+        * 根据账号查询账户信息
+        * @param actno 账号
+        * @return  账户信息
+        */
+       Account selectByActno(String actno);
+   
+       /**
+        * 更新账户信息
+        * @param act   被更新的账户对象
+        * @return  1表示更新成功，其他值表示失败
+        */
+       int updateByActno(Account act);
+   
+   }
+   ```
+
+   ```java
+   public class AccountDaoImpl implements AccountDao {
+       @Override
+       public Account selectByActno(String actno) {
+           SqlSession sqlSession = SqlSessionUtil.openSession();
+           Account account = (Account) sqlSession.selectOne("account.selectByActno", actno);
+           sqlSession.close();
+           return account;
+       }
+   
+       @Override
+       public int updateByActno(Account act) {
+           SqlSession sqlSession = SqlSessionUtil.openSession();
+           int count = sqlSession.update("account.updateByActno", act);
+           sqlSession.commit();
+           sqlSession.close();
+           return count;
+       }
+   }
+   ```
+
+5. 完善Mapper映射文件
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <!DOCTYPE mapper
+           PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+           "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   <!--namespace先随意写一个-->
+   <mapper namespace="account">
+   
+       <select id="selectByActno" resultType="cn.piggy.bank.pojo.Account">
+           select * from t_act where actno = #{actno}
+       </select>
+   
+       <update id="updateByActno">
+           update t_act set balance = #{balance} where actno = #{actno}
+       </update>
+   
+   </mapper>
+   ```
+
+
+
+
+
