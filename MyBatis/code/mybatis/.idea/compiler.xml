@@ -12,6 +12,7 @@
         <module name="godbatis" />
         <module name="parse-xml-by-dom4j" />
         <module name="mybatis-001-introduction" />
+        <module name="javassist-test" />
         <module name="mybatis-003-configuration" />
         <module name="godbatis-test" />
       </profile>

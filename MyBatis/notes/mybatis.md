@@ -3461,3 +3461,70 @@ try (SqlSession session = sqlSessionFactory.openSession()) {
 
 ## 7.1 Javassist的使用
 
+1. 创建maven项目`javassist-test`，并引入pom依赖：
+
+   ```xml
+   <dependencies>
+       <!--javassist依赖-->
+       <dependency>
+           <groupId>org.javassist</groupId>
+           <artifactId>javassist</artifactId>
+           <version>3.29.1-GA</version>
+       </dependency>
+       <!--junit依赖-->
+       <dependency>
+           <groupId>junit</groupId>
+           <artifactId>junit</artifactId>
+           <version>4.13.2</version>
+           <scope>test</scope>
+       </dependency>
+   </dependencies>
+   ```
+
+2. 编写类生成代码：
+
+   ```java
+   public class JavassistTest {
+       @Test
+       public void testGenerateFirstClass() throws Exception {
+           // 获取类池，这个类池就是用来生成class的
+           ClassPool pool = ClassPool.getDefault();
+           // 制造类（需要告知类名）
+           CtClass ctClass = pool.makeClass("cn.piggy.bank.dao.impl.AccountDaoImpl");
+           // 制造方法
+           String methodCode = "public void insert() {System.out.println(123);}";
+           CtMethod ctMethod = CtMethod.make(methodCode, ctClass);
+           // 将方法添加到类中
+           ctClass.addMethod(ctMethod);
+           // 在内存中生成class
+           ctClass.toClass();
+   
+           // 类加载到JVM中，返回AccountDaoImpl类的字节码文件
+           Class<?> clazz = Class.forName("cn.piggy.bank.dao.impl.AccountDaoImpl");
+           // 创建对象
+           Object obj = clazz.newInstance();
+           // 获取AccountDaoImpl中的insert方法
+           Method insertMethod = clazz.getDeclaredMethod("insert");
+           // 调用方法insert
+           insertMethod.invoke(obj);
+       }
+   }
+   ```
+
+3. 运行前要添加两个参数（否则在JDK>8环境下会报错）：
+
+   > + --add-opens java.base/java.lang=ALL-UNNAMED
+   > + --add-opens java.base/sun.net.util=ALL-UNNAMED
+
+   <img src="mybatis.assets/image-20260208225854166.png" alt="image-20260208225854166" style="zoom:80%;" />
+
+4. 执行测试：
+
+   ![image-20260208225917876](mybatis.assets/image-20260208225917876.png)
+
+
+
+## 7.2 使用Javassist生成DaoImpl类
+
+
+
