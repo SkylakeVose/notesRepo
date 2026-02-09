@@ -3524,7 +3524,151 @@ try (SqlSession session = sqlSessionFactory.openSession()) {
 
 
 
-## 7.2 使用Javassist生成DaoImpl类
+
+
+## 7.2 生成DaoImpl类
+
+我们使用javassist来生成DaoImpl类：
+
+1. 创建接口类`AccountDao`:
+
+   ```java
+   package cn.piggy.bank.dao;
+   
+   public interface AccountDao {
+       void delete();
+   }
+   ```
+
+2. 编写生成实现类的测试代码：
+
+   ```java
+   @Test
+   public void testGenerateImpl() throws Exception {
+       // 获取类池
+       ClassPool pool = ClassPool.getDefault();
+       // 制造类
+       CtClass ctClass = pool.makeClass("cn.piggy.bank.dao.impl.AccountDaoImpl");
+       // 制造接口
+       CtClass ctInterface = pool.makeInterface("cn.piggy.bank.dao.AccountDao");
+       // 添加接口到类中
+       ctClass.addInterface(ctInterface);  // AccountDaoImpl implements AccountDao
+       // 实现接口中的方法
+       // 制造方法
+       CtMethod ctMethod = CtMethod.make("public void delete() {System.out.println(\"hello delete!\");}", ctClass);
+       // 将方法添加到类中
+       ctClass.addMethod(ctMethod);
+   
+       // 在内存中生成类，同时将生成的类加载到JVM中
+       Class<?> clazz = ctClass.toClass();
+       AccountDao accountDao = (AccountDao) clazz.newInstance();
+       accountDao.delete();
+   }
+   ```
+
+   > 记得要配置两个命令参数：
+   >
+   > ![image-20260209100557816](mybatis.assets/image-20260209100557816.png)
+
+3. 运行测试：
+
+   <img src="mybatis.assets/image-20260209100614557.png" alt="image-20260209100614557" style="zoom:80%;" />
+
+   
+
+
+
+
+
+## 7.3 根据Dao接口类生成DaoImpl类
+
+7.2中我们只生成了固定的方法的实现类，现在提供一个Dao层的接口类，里面提供一些方法，要根据这些方法来动态生成相应的实现类：
+
+1. 创建一个Dao接口类`AccountDao`：
+
+   ```java
+   package cn.piggy.bank.dao;
+   
+   public interface AccountDao {
+       void delete();
+       int insert(String actno);
+       int update(String actno, Double balance);
+       String selectByActno(String actno);
+   }
+   ```
+
+2. 编写生成的测试方法：
+
+   ```java
+   @Test
+   public void testGenerateAccountDaoImpl() throws Exception {
+       // 制造类池
+       ClassPool pool = ClassPool.getDefault();
+       // 制造类
+       CtClass ctClass = pool.makeClass("cn.piggy.bank.dao.impl.AccountDaoImpl");
+       // 制造接口
+       CtClass ctInterface = pool.makeInterface("cn.piggy.bank.dao.AccountDao");
+       // 实现接口
+       ctClass.addInterface(ctInterface);
+       // 实现接口中所有的方法
+       // 获取接口中所有方法
+       Method[] methods = AccountDao.class.getDeclaredMethods();
+       Arrays.stream(methods).forEach(method -> {
+           // method是接口中的抽象方法
+           // 把method抽象方法给实现了
+           try{
+               // public void delete() {}
+               // public int update(String actno, Double balance) {}
+               StringBuilder methodCode = new StringBuilder();
+               methodCode.append("public ");   // 追加修饰符列表
+               methodCode.append(method.getReturnType().getName());    // 追加返回值类型
+               methodCode.append(" ");
+               methodCode.append(method.getName());    // 追加方法名
+               methodCode.append("(");
+               // 拼接参数 String actno, Double balance
+               Class<?>[] parameterTypes = method.getParameterTypes();	// 获取所有参数
+               for (int i = 0; i < parameterTypes.length; i++) {
+                   Class<?> parameterType = parameterTypes[i];	// 获取当前参数类型
+                   methodCode.append(parameterType.getName());	// 追加参数类型
+                   methodCode.append(" ");
+                   methodCode.append("arg" + i);				// 追加参数名称 按顺序以arg+i命名
+                   if(i != parameterTypes.length - 1){
+                       methodCode.append(",");
+                   }
+               }
+               methodCode.append("){System.out.println(11111);");
+               // 动态添加return语句
+               String returnTypeSimpleName = method.getReturnType().getSimpleName();	// 获取返回参数简单名
+               if ("void".equals(returnTypeSimpleName)) {
+   
+               } else if("int".equals(returnTypeSimpleName)){
+                   methodCode.append("return 1;");
+               } else if("String".equals(returnTypeSimpleName)){
+                   methodCode.append("return \"hello\";");
+               }
+               methodCode.append("}");
+               System.out.println(methodCode);
+               CtMethod ctMethod = CtMethod.make(methodCode.toString(), ctClass);
+               ctClass.addMethod(ctMethod);
+           } catch (Exception e) {
+               e.printStackTrace();
+           }
+       });
+       // 在内存中生成class,并且加载到JVM当中
+       Class<?> clazz = ctClass.toClass();
+       // 创建对象
+       AccountDao accountDao = (AccountDao) clazz.newInstance();
+       // 调用方法
+       accountDao.insert("aaa");
+       accountDao.delete();
+       accountDao.update("aaa", 1000.0);
+       accountDao.selectByActno("aaa");
+   }
+   ```
+
+3. 运行测试：
+
+   <img src="mybatis.assets/image-20260209160446122.png" alt="image-20260209160446122" style="zoom:80%;" />
 
 
 
