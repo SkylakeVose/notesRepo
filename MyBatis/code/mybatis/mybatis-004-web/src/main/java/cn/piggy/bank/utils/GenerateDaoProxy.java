@@ -1,6 +1,5 @@
 package cn.piggy.bank.utils;
 
-import org.apache.ibatis.javassist.CannotCompileException;
 import org.apache.ibatis.javassist.ClassPool;
 import org.apache.ibatis.javassist.CtClass;
 import org.apache.ibatis.javassist.CtMethod;
@@ -50,14 +49,14 @@ public class GenerateDaoProxy {
                     methodCode.append(parameterType.getName());
                     methodCode.append(" ");
                     methodCode.append("arg" + i);
-                    if (i!=parameterTypes.length) {
+                    if (i != parameterTypes.length - 1) {
                         methodCode.append(",");
                     }
                 }
                 methodCode.append(")");
                 methodCode.append("{");
                 // 需要方法体中的代码
-                methodCode.append("org.apache.ibatis.session.SqlSession sqlSession = org.apache.ibatis.session.SqlSessionUtil.openSession();");
+                methodCode.append("org.apache.ibatis.session.SqlSession sqlSession = cn.piggy.bank.utils.SqlSessionUtil.openSession();");
                 // 需要知道是什么类型的SQL语句
                 /**
                  * sql语句的id是框架使用这提供的，具有多变性。对于框架开发者来说，这个是没办法知道的。
@@ -65,7 +64,7 @@ public class GenerateDaoProxy {
                  * 凡是使用GenerateDaoProxy机制的，sqlId不能随便写：namespace必须是dao接口的全限定名，id必须是dao接口的方法名。
                  */
                 String sqlId = daoInterface.getName() + "." + method.getName();
-                SqlCommandType sqlCommandType = sqlSession.getConfiguration().getMappedStatement().getSqlCommandType();
+                SqlCommandType sqlCommandType = sqlSession.getConfiguration().getMappedStatement(sqlId).getSqlCommandType();
                 switch(sqlCommandType) {
                     case INSERT:
                         break;
@@ -75,7 +74,7 @@ public class GenerateDaoProxy {
                         methodCode.append("return sqlSession.update(\"" + sqlId +"\", arg0);");
                         break;
                     case SELECT:
-                        methodCode.append("return sqlSession.selectOne(\"" + sqlId + "\", arg0);");
+                        methodCode.append("return (" + method.getReturnType().getName() + ") sqlSession.selectOne(\"" + sqlId + "\", arg0);");
                         break;
                     default:
                         break;
@@ -83,7 +82,7 @@ public class GenerateDaoProxy {
 
                 methodCode.append("}");
 
-                CtMethod ctMethod = CtMethod.make("", ctClass);
+                CtMethod ctMethod = CtMethod.make(methodCode.toString(), ctClass);
                 ctClass.addMethod(ctMethod);
             } catch (Exception e) {
                 e.printStackTrace();

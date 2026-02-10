@@ -3672,3 +3672,421 @@ try (SqlSession session = sqlSessionFactory.openSession()) {
 
 
 
+## 7.4 在项目中使用生成工具类
+
+通过上面的例子我们大概了解了通过javassist动态生成实现类的方法，下面我们将在之前的项目`mybatis-004-web`中创建一个工具类，用于通过dao接口类来生成其实现类：
+
+1. 创建动态生成Dao的实现类`GenerateDaoProxy`：
+
+   ```java
+   /**
+    * 工具类：可以动态生成DAO的实现类（可以动态生成DAO的代理类）
+    */
+   public class GenerateDaoProxy {
+   
+       /**
+        * 生成DAO接口实现类，并且将实现类的对象创建并返回。
+        * @param daoInterface dao接口
+        * @return dao接口实现类的实例化对象
+        */
+       public static Object generate(SqlSession sqlSession, Class daoInterface) {
+           // 类池
+           ClassPool pool = ClassPool.getDefault();
+           // 制造类（cn.piggy.bank.dao.AccountDao -> cn.piggy.bank.dao.AccountDaoProxy）
+           CtClass ctClass = pool.makeClass(daoInterface.getName() + "Proxy"); // 本质上就是在内存中动态生成要给代理类
+           // 制造接口
+           CtClass ctInterface = pool.makeInterface(daoInterface.getName());
+           // 实现接口
+           ctClass.addInterface(ctInterface);
+           // 实现接口中所有方法
+           Method[] methods = daoInterface.getDeclaredMethods();
+           Arrays.stream(methods).forEach(method -> {
+               // method是接口中的抽象方法
+               // 将method这个抽象方法进行实现(拼接方法)
+               try {
+                   // Account selectByActno(String actno);
+                   // public  Account selectByActno(String actno) {代码}
+                   StringBuilder methodCode = new StringBuilder();
+                   methodCode.append("public ");
+                   methodCode.append(method.getReturnType().getName());
+                   methodCode.append(" ");
+                   methodCode.append(method.getName());
+                   methodCode.append("(");
+                   // 需要方法的形参列表
+                   Class<?>[] parameterTypes = method.getParameterTypes();
+                   for (int i = 0; i < parameterTypes.length; i++) {
+                       Class<?> parameterType = parameterTypes[i];
+                       methodCode.append(parameterType.getName());
+                       methodCode.append(" ");
+                       methodCode.append("arg" + i);
+                       if (i != parameterTypes.length - 1) {
+                           methodCode.append(",");
+                       }
+                   }
+                   methodCode.append(")");
+                   methodCode.append("{");
+                   // 需要方法体中的代码（里面的类需要全限定名）
+                   methodCode.append("org.apache.ibatis.session.SqlSession sqlSession = cn.piggy.bank.utils.SqlSessionUtil.openSession();");
+                   // 需要知道是什么类型的SQL语句
+                   /**
+                    * sql语句的id是框架使用这提供的，具有多变性。对于框架开发者来说，这个是没办法知道的。
+                    * 因此为了能正常获取到使用者编写的SQL语句细节，开发者对框架进行一个规定：
+                    * 凡是使用GenerateDaoProxy机制的，sqlId不能随便写：namespace必须是dao接口的全限定名，id必须是dao接口的方法名。
+                    */
+                   String sqlId = daoInterface.getName() + "." + method.getName();
+                   // 获取SQL语句的类型
+                   SqlCommandType sqlCommandType = sqlSession.getConfiguration().getMappedStatement(sqlId).getSqlCommandType();
+                   switch(sqlCommandType) {
+                       case INSERT:
+                           break;
+                       case DELETE:
+                           break;
+                       case UPDATE:
+                           methodCode.append("return sqlSession.update(\"" + sqlId +"\", arg0);");
+                           break;
+                       case SELECT:
+                           methodCode.append("return (" + method.getReturnType().getName() + ") sqlSession.selectOne(\"" + sqlId + "\", arg0);");
+                           break;
+                       default:
+                           break;
+                   }
+   
+                   methodCode.append("}");
+   
+                   CtMethod ctMethod = CtMethod.make(methodCode.toString(), ctClass);
+                   ctClass.addMethod(ctMethod);
+               } catch (Exception e) {
+                   e.printStackTrace();
+               }
+           });
+           // 创建对象
+           Object obj = null;
+           try {
+               Class<?> clazz = ctClass.toClass();
+               obj = clazz.newInstance();
+           } catch (Exception e) {
+               e.printStackTrace();
+           }
+           return obj;
+       }
+   }
+   ```
+
+   注意1：mybatis内部已经封装了javassist
+
+   <img src="mybatis.assets/image-20260210095414479.png" alt="image-20260210095414479" style="zoom:80%;" />
+
+   注意2：sqlId比如是全限定名的namespace + dao接口的id：
+
+   <img src="mybatis.assets/image-20260210100039343.png" alt="image-20260210100039343" style="zoom:80%;" />
+
+2. 修改一下业务类`AccountServiceImpl`：
+
+   <img src="mybatis.assets/image-20260210100748651.png" alt="image-20260210100748651" style="zoom:80%;" />
+
+3. 运行测试
+
+   <img src="mybatis.assets/image-20260210101424155.png" alt="image-20260210101424155" style="zoom:80%;" />
+
+
+
+# 八、MyBatis中接口代理机制及使用
+
+## 8.1 接口代理机制及使用
+
+实际上，我们上述封装的生成工具类，在mybatis中已经提供了相关的机制，可以动态生成dao接口的实现类。
+
+<img src="mybatis.assets/image-20260210102013554.png" alt="image-20260210102013554" style="zoom:80%;" />
+
+
+
+mybatis采用了代理模式，在内存中生成dao接口的代理类，然后创建代理类的实例。
+
+使用mybatis的这个代理机制的前提与我们封装的生成工具类一样：
+
++ Mapper映射文件中`namespace`必须是dao接口的全限定类名
++ id必须是dao接口的方法名
+
+本质上是通过会话对象获取接口类信息来创建实现类对象：
+
+```java
+AccountDao accountDao = sqlSession.getMapper(AccountDao.class);
+```
+
+
+
+在项目`mybatis-004-web`中测试结果与上面一致。
+
+
+
+## 8.2 项目演示
+
+1. 创建新项目`mybatis-005-curd2`，并引入依赖：
+
+   ```xml
+   <dependencies>
+       <dependency>
+           <groupId>org.mybatis</groupId>
+           <artifactId>mybatis</artifactId>
+           <version>3.5.10</version>
+       </dependency>
+       <dependency>
+           <groupId>mysql</groupId>
+           <artifactId>mysql-connector-java</artifactId>
+           <version>8.0.31</version>
+       </dependency>
+       <dependency>
+           <groupId>junit</groupId>
+           <artifactId>junit</artifactId>
+           <version>4.13.2</version>
+           <scope>test</scope>
+       </dependency>
+       <dependency>
+           <groupId>ch.qos.logback</groupId>
+           <artifactId>logback-classic</artifactId>
+           <version>1.2.11</version>
+       </dependency>
+   </dependencies>
+   ```
+
+2. 补充资源`resource`文件，以及补充pojo类`Car`和工具类`SqlSessionUtil`（从其他项目拉取过来）：
+
+   <img src="mybatis.assets/image-20260210105918998.png" alt="image-20260210105918998" style="zoom:50%;" />
+
+   主要看核心配置文件和mapper文件：
+
+   <img src="mybatis.assets/image-20260210110024174.png" alt="image-20260210110024174" style="zoom:67%;" />
+
+3. 添加接口类`CarMapper`：
+
+   > 使用mybatis时，可以将Dao接口类命名改为Mapper接口类命名，如CarDao.class -> CarMapper.class，本质上是一致的，为了规范还是改一下。
+
+   <img src="mybatis.assets/image-20260210110336006.png" alt="image-20260210110336006" style="zoom:80%;" />
+
+4. 完善映射文件`CarMapper.xml`：
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <!DOCTYPE mapper
+           PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+           "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   
+   <mapper namespace="cn.piggy.mybatis.mapper.CarMapper">
+       <insert id="insert">
+           insert into t_car values(null, #{carNum}, #{brand}, #{guidePrice}, #{produceTime}, #{carType})
+       </insert>
+   
+       <delete id="deleteById">
+           delete from t_car where id = #{id}
+       </delete>
+   
+       <update id="update">
+           update t_car set car_num=#{carNum}, brand=#{brand},guide_price=#{guidePrice},
+           produce_time=#{produceTime}, car_type=#{carType} where id = #{id}
+       </update>
+   
+       <select id="selectById" resultType="cn.piggy.mybatis.pojo.Car">
+           select
+           id,
+           car_num as carNum,
+           brand,
+           guide_price as guidePrice,
+           produce_time as produceTime,
+           car_type as carType
+           from t_car where id = #{id}
+       </select>
+   
+       <select id="selectAll" resultType="cn.piggy.mybatis.pojo.Car">
+           select
+           id,
+           car_num as carNum,
+           brand,
+           guide_price as guidePrice,
+           produce_time as produceTime,
+           car_type as carType
+           from t_car
+       </select>
+   </mapper>
+   ```
+
+5. 编写测试程序：
+
+   ```java
+   public class CarMapperTest {
+       @Test
+       public void testInsert() {
+           SqlSession sqlSession = SqlSessionUtil.openSession();
+           // 面向接口，获取接口的代理对象
+           CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+           Car car = new Car(null, "12345", "凯美瑞", 3.0, "2000-10-30", "新能源");
+           int count = mapper.insert(car);
+           System.out.println("影响行数：" + count);
+   
+           sqlSession.commit();
+       }
+   
+       @Test
+       public void testDelete() {
+           SqlSession sqlSession = SqlSessionUtil.openSession();
+           // 面向接口，获取接口的代理对象
+           CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+           int count = mapper.deleteById(54L);
+           System.out.println("影响行数：" + count);
+   
+           sqlSession.commit();
+       }
+   
+       @Test
+       public void testUpdate() {
+           SqlSession sqlSession = SqlSessionUtil.openSession();
+           // 面向接口，获取接口的代理对象
+           CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+           Car car = new Car(30L, "12345", "凯美瑞", 3.0, "2000-10-30", "新能源");
+           int count = mapper.update(car);
+           System.out.println("影响行数：" + count);
+   
+           sqlSession.commit();
+       }
+   
+       @Test
+       public void testSelect() {
+           SqlSession sqlSession = SqlSessionUtil.openSession();
+           // 面向接口，获取接口的代理对象
+           CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+           Car car = mapper.selectById(30L);
+           System.out.println(car);
+       }
+   
+       @Test
+       public void testSelectAll() {
+           SqlSession sqlSession = SqlSessionUtil.openSession();
+           // 面向接口，获取接口的代理对象
+           CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+           List<Car> cars = mapper.selectAll();
+           cars.forEach(System.out::println);
+       }
+   }
+   ```
+
+6. 测试结果：
+
+   <img src="mybatis.assets/image-20260210114144352.png" alt="image-20260210114144352" style="zoom:80%;" />
+
+<img src="mybatis.assets/image-20260210114349072.png" alt="image-20260210114349072" style="zoom:80%;" />
+
+<img src="mybatis.assets/image-20260210114919087.png" alt="image-20260210114919087" style="zoom:80%;" />
+
+<img src="mybatis.assets/image-20260210114746029.png" alt="image-20260210114746029" style="zoom:80%;" />
+
+<img src="mybatis.assets/image-20260210114943474.png" alt="image-20260210114943474" style="zoom:80%;" />
+
+
+
+
+
+# 九、MyBatis小技巧
+
+我们先创建新的项目`mybatis-006-antic`编译演示：
+
+1. 引入依赖
+
+   <img src="mybatis.assets/image-20260210163208573.png" alt="image-20260210163208573" style="zoom:67%;" />
+
+2. 从上一个项目`mybatis-005-curd2`中拉取相关文件，修改Mapper相关文件，并编写测试程序：
+
+   ![image-20260210163115998](mybatis.assets/image-20260210163115998.png)
+
+## 9.1 #{}和${}的区别
+
+**使用`#{}`的情况：**
+
+<img src="mybatis.assets/image-20260210163525733.png" alt="image-20260210163525733" style="zoom:80%;" />
+
+**使用`${}`的情况：**
+
+<img src="mybatis.assets/image-20260210163639443.png" alt="image-20260210163639443" style="zoom:80%;" />
+
+
+
+通过上述示例得知他们的区别：
+
++ 使用`#{}`：底层使用`PrepareedStatement`，会先对SQL语句进行编译，然后给SQL语句的占位符`?`传值，可以避免SQL注入的风险。
++ 使用`${}`：底层使用`Statement`，先对SQL语句进行拼接，然后在对SQL语句进行编译，存在SQL注入的风险。
+
+对于需要传值的SQL语句，优先使用`#{}`，这是原则，避免SQL注入的风险。
+
+对于需要将SQL关键字直接放到SQL语句，或者需要直接拼接的情况，就只能使用`${}`。
+
+
+
+**需要使用`${}`对SQL进行直接拼接的三种情况：**
+
+**示例1**：通过传入排序`asc`或`desc`来对查询结果进行排序
+
+<img src="mybatis.assets/image-20260210171820067.png" alt="image-20260210171820067" style="zoom:80%;" />
+
+**使用`${}`的情况：**
+
+<img src="mybatis.assets/image-20260210171915073.png" alt="image-20260210171915073" style="zoom:80%;" />
+
+**使用`#{}`的情况：**
+
+<img src="mybatis.assets/image-20260210172032424.png" alt="image-20260210172032424" style="zoom:80%;" />
+
+> 这个情况会mybatis会组合成：
+>
+> select id, car_num as carNum,brand, guide_price as guidePrice,produce_time as produceTime,car_type as carType from t_car order by produce_time ?，参数是desc，会传值进入，得到↓
+>
+> select id, car_num as carNum,brand, guide_price as guidePrice,produce_time as produceTime,car_type as carType from t_car order by produce_time ‘desc’，从而语法错误报错。
+
+
+
+因此对于需要拼接的语句来说，只能使用`${}`，因为`#{}`是以值的方式传入进去的。
+
+
+
+**示例2**：拼接表名
+
+现实业务中，可能会存在分表存储数据的情况。因为一张表存的话，数据量太大，查询效率比较低。
+
+可以将这些表有规律的分表存储，这样在查询的时候效率会比较高，因为扫描的数据量太少了。
+
+日志表：专门存储日志信息的。如果t_log只有一张表，那么每条增长的日志信息会导致其查询的效率变慢。
+
+因此我们可以将这张日志表以当前日期作为后缀名称，如：t_log_20260209、t_log_20260210等。
+
+如果我们想查询某一天的日志信息，就可以传入某天的日期来查询当天的日志信息了。我们要做的就是查询这一部分。
+
+
+
+1. 创建日志类`Log`，使其字段与数据库表`t_log_20260210`的字段一致，在该表中创建两条日志记录：
+
+   <img src="mybatis.assets/image-20260210174630570.png" alt="image-20260210174630570" style="zoom:80%;" />
+
+2. 创建mapper接口类`LogMapper.class`和映射文件`LogMapper.xml`，同时在核心配置文件中添加映射文件的扫描信息：
+
+   <img src="mybatis.assets/image-20260210174759655.png" alt="image-20260210174759655" style="zoom:80%;" />
+
+3. 编写测试程序，并运行：
+
+   ![image-20260210174905313](mybatis.assets/image-20260210174905313.png)
+
+
+
+**示例3：**批量删除，一次性删除多条记录
+
+批量删除的SQL语句有两种写法：
+
++ 第一种`OR`:
+
+  ```sql
+  delete from t_car where id = 1 or id = 2 or id = 3;
+  ```
+
++ 第二种`IN`：
+
+  ```sql
+  delete from t_car where id in (1,2,3);
+  ```
+
+  

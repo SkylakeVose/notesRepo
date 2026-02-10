@@ -6,12 +6,19 @@ import cn.piggy.bank.exceptions.MoneyNotEnoughException;
 import cn.piggy.bank.exceptions.TransferException;
 import cn.piggy.bank.pojo.Account;
 import cn.piggy.bank.service.AccountService;
+import cn.piggy.bank.utils.GenerateDaoProxy;
 import cn.piggy.bank.utils.SqlSessionUtil;
 import org.apache.ibatis.session.SqlSession;
 
 public class AccountServiceImpl implements AccountService {
 
-    private AccountDao accountDao = new AccountDaoImpl();
+    // private AccountDao accountDao = new AccountDaoImpl();
+
+    // 使用自己封装的生成工具类
+    // private AccountDao accountDao = (AccountDao) GenerateDaoProxy.generate(SqlSessionUtil.openSession(), AccountDao.class);
+
+    // 使用mybatis提供的代理生成实现类实例
+    private AccountDao accountDao = SqlSessionUtil.openSession().getMapper(AccountDao.class);
 
     @Override
     public void transfer(String fromActno, String toActno, double money) throws MoneyNotEnoughException, TransferException {
@@ -33,7 +40,7 @@ public class AccountServiceImpl implements AccountService {
         int count = accountDao.updateByActno(fromAct);
 
         // 模拟异常
-        int i = 10 / 0;
+        // int i = 10 / 0;
 
         // 4. 更新转入账户余额（update）
         count += accountDao.updateByActno(toAct);
