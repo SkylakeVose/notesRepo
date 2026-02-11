@@ -9,6 +9,26 @@ import org.junit.Test;
 import java.util.List;
 
 public class CarMapperTest {
+
+    @Test
+    public void testSelectByBrandLike() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+        List<Car> cars = mapper.selectByBrandLike("比亚迪");
+        cars.forEach(System.out::println);
+        sqlSession.close();
+    }
+
+    @Test
+    public void testDeleteBatch() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+        int count = mapper.deleteBatch("1,2,4");
+        System.out.println("影响行数：" + count);
+        sqlSession.commit();
+        sqlSession.close();
+    }
+
     @Test
     public void testSelectByCarType(){
         SqlSession sqlSession = SqlSessionUtil.openSession();

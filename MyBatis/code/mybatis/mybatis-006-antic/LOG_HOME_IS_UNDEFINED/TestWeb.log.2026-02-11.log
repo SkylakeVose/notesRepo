@@ -1,0 +1,308 @@
+2026-02-11 09:46:37.513 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 09:46:37.534 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:46:37.534 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:46:37.534 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:46:37.535 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:46:37.635 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 09:46:38.288 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 1532554556.
+2026-02-11 09:46:38.288 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@5b58ed3c]
+2026-02-11 09:46:38.300 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.deleteBatch - ==>  Preparing: delete from t_car where id in (?)
+2026-02-11 09:46:38.327 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.deleteBatch - ==> Parameters: 1,2,4(String)
+2026-02-11 09:47:52.518 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 09:47:52.541 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:47:52.541 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:47:52.541 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:47:52.542 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:47:52.672 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 09:47:53.294 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 901689694.
+2026-02-11 09:47:53.295 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@35beb15e]
+2026-02-11 09:47:53.307 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.deleteBatch - ==>  Preparing: delete from t_car where id in (1,2,4)
+2026-02-11 09:47:53.345 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.deleteBatch - ==> Parameters: 
+2026-02-11 09:47:53.363 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.deleteBatch - <==    Updates: 3
+2026-02-11 09:47:53.367 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Committing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@35beb15e]
+2026-02-11 09:47:53.380 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@35beb15e]
+2026-02-11 09:47:53.397 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@35beb15e]
+2026-02-11 09:47:53.397 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Returned connection 901689694 to pool.
+2026-02-11 09:59:08.064 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 09:59:08.082 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:59:08.082 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:59:08.082 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:59:08.083 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 09:59:08.175 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 09:59:08.720 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 1532554556.
+2026-02-11 09:59:08.721 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@5b58ed3c]
+2026-02-11 09:59:08.731 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.deleteBatch - ==>  Preparing: delete from t_car where id in (?)
+2026-02-11 09:59:08.763 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.deleteBatch - ==> Parameters: 1,2,4(String)
+2026-02-11 11:18:25.093 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 11:18:25.108 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:18:25.108 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:18:25.108 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:18:25.108 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:18:25.209 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 11:18:25.785 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 265577219.
+2026-02-11 11:18:25.786 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 11:18:25.795 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car where brand like '%比亚迪%'
+2026-02-11 11:18:25.826 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==> Parameters: 
+2026-02-11 11:18:25.862 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - <==      Total: 1
+2026-02-11 11:18:25.872 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 11:18:25.878 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 11:18:25.878 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Returned connection 265577219 to pool.
+2026-02-11 11:18:44.044 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 11:18:44.058 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:18:44.059 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:18:44.059 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:18:44.059 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:18:44.162 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 11:18:44.729 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 265577219.
+2026-02-11 11:18:44.729 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 11:18:44.740 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car where brand like '%比亚迪%'
+2026-02-11 11:18:44.765 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==> Parameters: 
+2026-02-11 11:18:44.798 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - <==      Total: 1
+2026-02-11 11:18:44.808 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 11:18:44.818 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 11:18:44.818 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Returned connection 265577219 to pool.
+2026-02-11 11:19:01.697 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 11:19:01.716 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:19:01.717 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:19:01.717 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:19:01.718 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:19:01.812 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 11:19:02.416 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 1119242936.
+2026-02-11 11:19:02.416 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@42b64ab8]
+2026-02-11 11:19:02.425 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car where brand like '%?%'
+2026-02-11 11:23:51.797 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 11:23:51.819 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:23:51.820 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:23:51.820 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:23:51.820 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:23:51.913 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 11:23:52.456 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 1119242936.
+2026-02-11 11:23:52.457 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@42b64ab8]
+2026-02-11 11:23:52.464 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car where brand like concat('%', ?, '%');
+2026-02-11 11:23:52.497 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==> Parameters: 比亚迪(String)
+2026-02-11 11:23:52.531 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - <==      Total: 1
+2026-02-11 11:23:52.544 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@42b64ab8]
+2026-02-11 11:23:52.550 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@42b64ab8]
+2026-02-11 11:23:52.550 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Returned connection 1119242936 to pool.
+2026-02-11 11:26:04.655 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 11:26:04.671 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:26:04.672 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:26:04.672 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:26:04.672 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 11:26:04.768 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 11:26:05.342 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 265577219.
+2026-02-11 11:26:05.343 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 11:26:05.354 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car where brand like concat('%', '比亚迪', '%');
+2026-02-11 11:26:05.388 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==> Parameters: 
+2026-02-11 11:26:05.433 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - <==      Total: 1
+2026-02-11 11:26:05.442 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 11:26:05.450 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 11:26:05.451 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Returned connection 265577219 to pool.
+2026-02-11 16:38:04.000 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 16:38:04.021 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:38:04.021 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:38:04.021 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:38:04.021 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:38:04.142 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 16:38:04.753 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 265577219.
+2026-02-11 16:38:04.754 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 16:38:04.765 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car where brand like concat('%', '比亚迪', '%');
+2026-02-11 16:38:04.807 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==> Parameters: 
+2026-02-11 16:38:04.852 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - <==      Total: 1
+2026-02-11 16:38:04.865 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 16:38:04.871 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 16:38:04.871 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Returned connection 265577219 to pool.
+2026-02-11 16:38:19.713 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 16:38:19.734 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:38:19.734 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:38:19.734 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:38:19.734 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:38:19.861 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 16:38:20.481 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 265577219.
+2026-02-11 16:38:20.482 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@fd46303]
+2026-02-11 16:38:20.495 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.selectByCarType - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car where car_type = 新能源
+2026-02-11 16:38:20.530 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.selectByCarType - ==> Parameters: 
+2026-02-11 16:39:01.580 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 16:39:01.599 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:39:01.599 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:39:01.599 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:39:01.599 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 16:39:01.704 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 16:39:02.333 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 1119242936.
+2026-02-11 16:39:02.333 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@42b64ab8]
+2026-02-11 16:39:02.346 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.selectByCarType - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car where car_type = ?
+2026-02-11 16:39:02.386 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.selectByCarType - ==> Parameters: 新能源(String)
+2026-02-11 16:39:02.435 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.selectByCarType - <==      Total: 2
+2026-02-11 16:39:02.451 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@42b64ab8]
+2026-02-11 16:39:02.472 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@42b64ab8]
+2026-02-11 16:39:02.473 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Returned connection 1119242936 to pool.
+2026-02-11 17:04:26.332 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 17:04:26.337 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VFS
+2026-02-11 17:04:26.337 [main] DEBUG org.apache.ibatis.io.JBoss6VFS - JBoss 6 VFS API is not available in this environment.
+2026-02-11 17:04:26.338 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VirtualFile
+2026-02-11 17:04:26.338 [main] DEBUG org.apache.ibatis.io.VFS - VFS implementation org.apache.ibatis.io.JBoss6VFS is not valid in this environment.
+2026-02-11 17:04:26.339 [main] DEBUG org.apache.ibatis.io.VFS - Using VFS adapter org.apache.ibatis.io.DefaultVFS
+2026-02-11 17:04:26.339 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:04:26.339 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:04:26.390 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Car.class
+2026-02-11 17:04:26.391 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Log.class
+2026-02-11 17:04:26.391 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Listing file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:04:26.391 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:04:26.392 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:04:26.392 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = L	      cn/piggy/mybatis/pojo/Car id Ljava/lang/Long;	   	 
+2026-02-11 17:04:26.394 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:04:26.394 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:04:26.395 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = :	      cn/piggy/mybatis/pojo/Log id Ljava/lang/Integer;	   	 
+2026-02-11 17:04:26.396 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Car matches criteria [is assignable to Object]
+2026-02-11 17:04:26.398 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Log matches criteria [is assignable to Object]
+2026-02-11 17:04:26.433 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:26.433 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:26.433 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:26.434 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:26.541 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 17:04:27.101 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 747870628.
+2026-02-11 17:04:27.102 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@2c9399a4]
+2026-02-11 17:04:27.111 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.selectByCarType - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car where car_type = ?
+2026-02-11 17:04:27.140 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.selectByCarType - ==> Parameters: 新能源(String)
+2026-02-11 17:04:27.181 [main] DEBUG cn.piggy.mybatis.mapper.CarMapper.selectByCarType - <==      Total: 2
+2026-02-11 17:04:27.191 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@2c9399a4]
+2026-02-11 17:04:27.198 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@2c9399a4]
+2026-02-11 17:04:27.198 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Returned connection 747870628 to pool.
+2026-02-11 17:04:31.282 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 17:04:31.289 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VFS
+2026-02-11 17:04:31.289 [main] DEBUG org.apache.ibatis.io.JBoss6VFS - JBoss 6 VFS API is not available in this environment.
+2026-02-11 17:04:31.290 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VirtualFile
+2026-02-11 17:04:31.290 [main] DEBUG org.apache.ibatis.io.VFS - VFS implementation org.apache.ibatis.io.JBoss6VFS is not valid in this environment.
+2026-02-11 17:04:31.291 [main] DEBUG org.apache.ibatis.io.VFS - Using VFS adapter org.apache.ibatis.io.DefaultVFS
+2026-02-11 17:04:31.291 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:04:31.291 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:04:31.331 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Car.class
+2026-02-11 17:04:31.332 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Log.class
+2026-02-11 17:04:31.333 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Listing file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:04:31.333 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:04:31.334 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:04:31.335 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = L	      cn/piggy/mybatis/pojo/Car id Ljava/lang/Long;	   	 
+2026-02-11 17:04:31.338 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:04:31.338 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:04:31.339 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = :	      cn/piggy/mybatis/pojo/Log id Ljava/lang/Integer;	   	 
+2026-02-11 17:04:31.340 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Car matches criteria [is assignable to Object]
+2026-02-11 17:04:31.341 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Log matches criteria [is assignable to Object]
+2026-02-11 17:04:31.376 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:31.377 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:31.377 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:31.377 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:31.484 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 17:04:32.034 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 747870628.
+2026-02-11 17:04:32.034 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@2c9399a4]
+2026-02-11 17:04:32.045 [main] DEBUG c.p.mybatis.mapper.CarMapper.selectAllByAscOrDesc - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car order by produce_time ?
+2026-02-11 17:04:32.073 [main] DEBUG c.p.mybatis.mapper.CarMapper.selectAllByAscOrDesc - ==> Parameters: desc(String)
+2026-02-11 17:04:52.262 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 17:04:52.266 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VFS
+2026-02-11 17:04:52.266 [main] DEBUG org.apache.ibatis.io.JBoss6VFS - JBoss 6 VFS API is not available in this environment.
+2026-02-11 17:04:52.266 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VirtualFile
+2026-02-11 17:04:52.267 [main] DEBUG org.apache.ibatis.io.VFS - VFS implementation org.apache.ibatis.io.JBoss6VFS is not valid in this environment.
+2026-02-11 17:04:52.268 [main] DEBUG org.apache.ibatis.io.VFS - Using VFS adapter org.apache.ibatis.io.DefaultVFS
+2026-02-11 17:04:52.268 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:04:52.268 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:04:52.310 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Car.class
+2026-02-11 17:04:52.311 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Log.class
+2026-02-11 17:04:52.312 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Listing file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:04:52.312 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:04:52.312 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:04:52.313 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = L	      cn/piggy/mybatis/pojo/Car id Ljava/lang/Long;	   	 
+2026-02-11 17:04:52.315 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:04:52.315 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:04:52.316 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = :	      cn/piggy/mybatis/pojo/Log id Ljava/lang/Integer;	   	 
+2026-02-11 17:04:52.318 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Car matches criteria [is assignable to Object]
+2026-02-11 17:04:52.319 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Log matches criteria [is assignable to Object]
+2026-02-11 17:04:52.350 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:52.351 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:52.351 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:52.351 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:04:52.468 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 17:04:53.190 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 1690050988.
+2026-02-11 17:04:53.191 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@64bc21ac]
+2026-02-11 17:04:53.199 [main] DEBUG c.p.mybatis.mapper.CarMapper.selectAllByAscOrDesc - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car order by produce_time desc
+2026-02-11 17:04:53.237 [main] DEBUG c.p.mybatis.mapper.CarMapper.selectAllByAscOrDesc - ==> Parameters: 
+2026-02-11 17:04:53.302 [main] DEBUG c.p.mybatis.mapper.CarMapper.selectAllByAscOrDesc - <==      Total: 23
+2026-02-11 17:04:53.317 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@64bc21ac]
+2026-02-11 17:04:53.323 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@64bc21ac]
+2026-02-11 17:04:53.323 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Returned connection 1690050988 to pool.
+2026-02-11 17:27:45.790 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 17:27:45.795 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VFS
+2026-02-11 17:27:45.795 [main] DEBUG org.apache.ibatis.io.JBoss6VFS - JBoss 6 VFS API is not available in this environment.
+2026-02-11 17:27:45.796 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VirtualFile
+2026-02-11 17:27:45.796 [main] DEBUG org.apache.ibatis.io.VFS - VFS implementation org.apache.ibatis.io.JBoss6VFS is not valid in this environment.
+2026-02-11 17:27:45.796 [main] DEBUG org.apache.ibatis.io.VFS - Using VFS adapter org.apache.ibatis.io.DefaultVFS
+2026-02-11 17:27:45.797 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:27:45.797 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:27:45.837 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Car.class
+2026-02-11 17:27:45.838 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Log.class
+2026-02-11 17:27:45.838 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Listing file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:27:45.839 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:27:45.839 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:27:45.840 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = L	      cn/piggy/mybatis/pojo/Car id Ljava/lang/Long;	   	 
+2026-02-11 17:27:45.841 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:27:45.842 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:27:45.843 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = :	      cn/piggy/mybatis/pojo/Log id Ljava/lang/Integer;	   	 
+2026-02-11 17:27:45.845 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Car matches criteria [is assignable to Object]
+2026-02-11 17:27:45.846 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Log matches criteria [is assignable to Object]
+2026-02-11 17:27:45.883 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:27:45.884 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:27:45.884 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:27:45.884 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:28:01.846 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 17:28:01.852 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VFS
+2026-02-11 17:28:01.852 [main] DEBUG org.apache.ibatis.io.JBoss6VFS - JBoss 6 VFS API is not available in this environment.
+2026-02-11 17:28:01.852 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VirtualFile
+2026-02-11 17:28:01.853 [main] DEBUG org.apache.ibatis.io.VFS - VFS implementation org.apache.ibatis.io.JBoss6VFS is not valid in this environment.
+2026-02-11 17:28:01.853 [main] DEBUG org.apache.ibatis.io.VFS - Using VFS adapter org.apache.ibatis.io.DefaultVFS
+2026-02-11 17:28:01.854 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:28:01.854 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:28:01.884 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Car.class
+2026-02-11 17:28:01.885 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Log.class
+2026-02-11 17:28:01.885 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Listing file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:28:01.886 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:28:01.886 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:28:01.886 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = L	      cn/piggy/mybatis/pojo/Car id Ljava/lang/Long;	   	 
+2026-02-11 17:28:01.887 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:28:01.888 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:28:01.888 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = :	      cn/piggy/mybatis/pojo/Log id Ljava/lang/Integer;	   	 
+2026-02-11 17:28:01.889 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Car matches criteria [is assignable to Object]
+2026-02-11 17:28:01.890 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Log matches criteria [is assignable to Object]
+2026-02-11 17:28:01.918 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:28:01.918 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:28:01.919 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:28:01.919 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:28:34.921 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2026-02-11 17:28:34.926 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VFS
+2026-02-11 17:28:34.926 [main] DEBUG org.apache.ibatis.io.JBoss6VFS - JBoss 6 VFS API is not available in this environment.
+2026-02-11 17:28:34.926 [main] DEBUG org.apache.ibatis.io.VFS - Class not found: org.jboss.vfs.VirtualFile
+2026-02-11 17:28:34.926 [main] DEBUG org.apache.ibatis.io.VFS - VFS implementation org.apache.ibatis.io.JBoss6VFS is not valid in this environment.
+2026-02-11 17:28:34.927 [main] DEBUG org.apache.ibatis.io.VFS - Using VFS adapter org.apache.ibatis.io.DefaultVFS
+2026-02-11 17:28:34.927 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:28:34.927 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:28:34.963 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Car.class
+2026-02-11 17:28:34.963 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: Log.class
+2026-02-11 17:28:34.964 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Listing file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo
+2026-02-11 17:28:34.964 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:28:34.964 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Car.class
+2026-02-11 17:28:34.964 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = L	      cn/piggy/mybatis/pojo/Car id Ljava/lang/Long;	   	 
+2026-02-11 17:28:34.966 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Find JAR URL: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:28:34.966 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Not a JAR: file:/D:/notesRepo/MyBatis/code/mybatis/mybatis-006-antic/target/classes/cn/piggy/mybatis/pojo/Log.class
+2026-02-11 17:28:34.967 [main] DEBUG org.apache.ibatis.io.DefaultVFS - Reader entry: ����   = :	      cn/piggy/mybatis/pojo/Log id Ljava/lang/Integer;	   	 
+2026-02-11 17:28:34.967 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Car matches criteria [is assignable to Object]
+2026-02-11 17:28:34.968 [main] DEBUG org.apache.ibatis.io.ResolverUtil - Checking to see if class cn.piggy.mybatis.pojo.Log matches criteria [is assignable to Object]
+2026-02-11 17:28:34.997 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:28:34.998 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:28:34.998 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:28:34.998 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - PooledDataSource forcefully closed/removed all connections.
+2026-02-11 17:28:35.109 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Opening JDBC Connection
+2026-02-11 17:28:35.683 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 1690050988.
+2026-02-11 17:28:35.684 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@64bc21ac]
+2026-02-11 17:28:35.697 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==>  Preparing: select id, car_num as carNum, brand, guide_price as guidePrice, produce_time as produceTime, car_type as carType from t_car where brand like concat('%', '比亚迪', '%');
+2026-02-11 17:28:35.739 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - ==> Parameters: 
+2026-02-11 17:28:35.789 [main] DEBUG c.piggy.mybatis.mapper.CarMapper.selectByBrandLike - <==      Total: 1
+2026-02-11 17:28:35.802 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@64bc21ac]
+2026-02-11 17:28:35.813 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@64bc21ac]
+2026-02-11 17:28:35.813 [main] DEBUG o.apache.ibatis.datasource.pooled.PooledDataSource - Returned connection 1690050988 to pool.

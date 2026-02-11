@@ -5,6 +5,19 @@
 <configuration>
 
     <properties resource="jdbc.properties"/>
+    <!--起别名-->
+    <typeAliases>
+        <!--
+            type: 指定给哪个类型起别名
+            alias:指定别名
+            注意：别名不区分大小写
+        -->
+        <!--<typeAlias type="cn.piggy.mybatis.pojo.Car" alias="aaa"/>
+        <typeAlias type="cn.piggy.mybatis.pojo.Log"/>-->
+
+        <package name="cn.piggy.mybatis.pojo"/>
+    </typeAliases>
+
     <environments default="development">
         <!--开发环境-->
         <environment id="development">
@@ -20,8 +33,11 @@
 
     <mappers>
         <!--加载根目录下的CarMapper映射文件-->
-        <mapper resource="CarMapper.xml"/>
-        <mapper resource="LogMapper.xml"/>
+        <!--<mapper resource="CarMapper.xml"/>
+        <mapper resource="LogMapper.xml"/>-->
+
+        <mapper class="cn.piggy.mybatis.mapper.CarMapper"/>
+        <mapper class="cn.piggy.mybatis.mapper.LogMapper"/>
     </mappers>
 
 </configuration>

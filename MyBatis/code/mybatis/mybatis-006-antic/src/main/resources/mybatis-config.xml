@@ -5,6 +5,19 @@
 <configuration>
 
     <properties resource="jdbc.properties"/>
+    <!--起别名-->
+    <typeAliases>
+        <!--
+            type: 指定给哪个类型起别名
+            alias:指定别名
+            注意：别名不区分大小写
+        -->
+        <!--<typeAlias type="cn.piggy.mybatis.pojo.Car" alias="aaa"/>
+        <typeAlias type="cn.piggy.mybatis.pojo.Log"/>-->
+
+        <package name="cn.piggy.mybatis.pojo"/>
+    </typeAliases>
+
     <environments default="development">
         <!--开发环境-->
         <environment id="development">
@@ -20,8 +33,21 @@
 
     <mappers>
         <!--加载根目录下的CarMapper映射文件-->
-        <mapper resource="CarMapper.xml"/>
-        <mapper resource="LogMapper.xml"/>
+        <!--<mapper resource="CarMapper.xml"/>
+        <mapper resource="LogMapper.xml"/>-->
+
+        <!--
+            使用class属性，mapper.xml需要遵守以下规范：
+                1. mapper.xml 跟 mapper.class的名字要一致
+                2. mapper.xml 跟 mapper.class要存放同一级目录下
+        -->
+        <mapper class="cn.piggy.mybatis.mapper.CarMapper"/>
+        <mapper class="cn.piggy.mybatis.mapper.LogMapper"/>
+
+        <!--这种方式在实际开发中比较常用-->
+        <!--前提跟使用class属性一致-->
+        <package name="cn.piggy.mybatis.mapper"/>
+        
     </mappers>
 
 </configuration>

@@ -4089,4 +4089,276 @@ AccountDao accountDao = sqlSession.getMapper(AccountDao.class);
   delete from t_car where id in (1,2,3);
   ```
 
+
+我们先测试第二种。
+
+1. `CarMapper.class`添加批量删除的接口方法：
+
+   ```java
+   /**
+       * 根据id批量删除
+       * @param ids
+       * @return
+   */
+   int deleteBatch(String ids);
+   ```
+
+2. `CarMapper.xml`添加批量删除的SQL语句：
+
+   ```xml
+   <delete id="deleteBatch">
+       delete from t_car where id in (${ids})
+   </delete>
+   ```
+
+3. 编写测试方法并测试：
+
+   <img src="mybatis.assets/image-20260211095817021.png" alt="image-20260211095817021" style="zoom:80%;" />
+
+如果SQL语句中使用`#{ids}`，则会报错：
+
+<img src="mybatis.assets/image-20260211095935502.png" alt="image-20260211095935502" style="zoom:80%;" />
+
+
+
+**示例3**：模糊查询`like`
+
+需求：根据汽车品牌进行模糊查询
+
+```sql
+select * from t_car where brand like '%奔驰%';
+select * from t_car where brand like '%比亚迪%';
+```
+
+方法有四种，SQL语句前段都一致，主要看`WHERE`后拼接的部分：
+
+```xml
+<select id="selectByBrandLike" resultType="cn.piggy.mybatis.pojo.Car">
+    select
+    	id,
+    	car_num as carNum,
+    	brand,
+    	guide_price as guidePrice,
+    	produce_time as produceTime,
+    	car_type as carType
+    from
+    	t_car
+    where
+    	brand like 拼接字符串
+</select>
+```
+
+
+
++ 使用`${}`进行拼接：
+
+  ```xml
+  brand like '%${brand}%'
+  ```
+
++ 配合`concat()`方法，使用`#{}`传值：
+
+  ```xml
+  brand like concat('%', #{brand}, '%');
+  ```
+
++ 配合`concat()`方法，使用`${}`拼接，注意单引号（很少使用）：
+
+  ```xml
+  brand like concat('%', '${brand}', '%');
+  ```
+
++ 使用`#{}`传值直接拼接：
+
+  ```xml
+  brand like "%"#{brand}"%"
+  ```
+
   
+
+## 9.2 typeAliases 起别名
+
+我们观察看mapper.xml文件中：
+
+![image-20260211165229819](mybatis.assets/image-20260211165229819.png)
+
+每次执行返回值类型的时候都要写全限定名，比较麻烦。我们可以在核心配置文件中`mybatis-config.xml`中使用`<typeAliases>`标签起别名，包括两种方式：`<typeAlias>`和`<package>`
+
+
+
+### 9.2.1 typeAlias
+
+对`Car`类起别名：
+
+```xml
+<typeAliases>
+    <!--
+        type: 指定给哪个类型起别名
+        alias:指定别名
+        注意：别名不区分大小写
+    -->
+    <typeAlias type="cn.piggy.mybatis.pojo.Car" alias="aaa"/>
+</typeAliases>
+```
+
+注意点：
+
++ 注意`<typeAliases>`的放置位置，如果不清楚可查看相关错误信息。
++ `<typeAliases>`标签中`<typeAlias>`子标签可以有多个。
++ 关于`<typeAlias>`:
+  + `type`属性：指定给哪个类起别名。
+  + `alias`属性：别名。
+    + `alias`属性是大小写不敏感的。
+    + `alias`属性不是必须的。在缺省情况下，将会使用`type`指定类型的简类名作为别名。
+
+![image-20260211170315039](mybatis.assets/image-20260211170315039.png)
+
+
+
+### 9.2.2 package
+
+如果一个包下的类太多，每个类都要起别名，会导致`typeAlias`标签配置较多，所以mybatis用提供`package`的配置方式，只需要指定包名，该包下的所有类都自动起别名，别名就是简类名。并且别名不区分大小写。
+
+![image-20260211170620861](mybatis.assets/image-20260211170620861.png)
+
+
+
+## 9.3 mappers
+
+SQL映射文件的配置方式包括四种：
+
++ `resource`：从类路径中加载
++ `url`：从指定的全限定资源路径中加载
++ `class`：使用映射器接口实现类的完全限定类名
++ `package`：将包内的映射器接口实现全部注册为映射器
+
+
+
+**resource**
+
+这种方式是从类路径中加载配置文件，所以这种方式要求SQL映射文件必须放在`resources`目录下或其子目录下。
+
+```xml
+<mappers>
+  <mapper resource="CarMapper.xml"/>
+  <mapper resource="LogMapper.xml"/>
+</mappers>
+```
+
+
+
+**url**
+
+这种方式显然使用了绝对路径的方式，这种配置对SQL映射文件存放的位置没有要求，但不适合移植，不常用。
+
+```xml
+<mappers>
+  <mapper url="file:///D:/CarMapper.xml"/>
+  <mapper url="file:///D:/LogMapper.xml"/>
+</mappers>
+```
+
+
+
+**class**
+
+如果使用这种方式必须满足以下条件：
+
++ SQL映射文件和mapper接口放在同一个目录下。
++ SQL映射文件的名字也必须和mapper接口名一致。
+
+
+
+将CarMapper.xml文件移动到和mapper接口同一个目录下：
+
++ 在resources目录下新建：cn/piggy/mybatis/mapper【这里千万要注意：**不能这样新建 cn.piggy.mybatis.mapper**】
++ 将`CarMapper.xml`和`LogMapper.xml`文件移动到mapper目录下
++ 修改`mybatis-config.xml`文件
+
+```xml
+<!-- 使用映射器接口实现类的完全限定类名 -->
+<mappers>
+    <mapper class="cn.piggy.mybatis.mapper.CarMapper"/>
+    <mapper class="cn.piggy.mybatis.mapper.LogMapper"/>
+</mappers>
+```
+
+<img src="mybatis.assets/image-20260211174408789.png" alt="image-20260211174408789" style="zoom:50%;" />
+
+
+
+**package**
+
+如果class较多，可以使用这种package的方式，但前提条件和上一种方式一样。
+
+```xml
+<!-- 将包内的映射器接口实现全部注册为映射器 -->
+<mappers>
+  <package name="cn.piggy.mybatis.mapper"/>
+</mappers>
+```
+
+
+
+## 9.4 idea配置文件模板
+
+可以通过IDEA提供的模板创建来配置一些模板，比如Mybatis的核心配置和映射文件的模板，以后可以通过这些模板创建配置文件。
+
+![image-20260211175428375](mybatis.assets/image-20260211175428375.png)
+
+
+
+**创建核心配置文件模板：**
+
+<img src="mybatis.assets/image-20260211175624982.png" alt="image-20260211175624982" style="zoom:67%;" />
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <properties resource=""/>
+    <typeAliases>
+        <package name=""/>
+    </typeAliases>
+
+    <environments default="dev">
+        <environment id="dev">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <package name=""/>
+    </mappers>
+</configuration>
+```
+
+
+
+**创建映射文件模板**
+
+<img src="mybatis.assets/image-20260211175734964.png" alt="image-20260211175734964" style="zoom:67%;" />
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="">
+</mapper>
+```
+
+
+
+
+
+## 9.5 插入数据时获取自动生成的主键
+

@@ -5,6 +5,21 @@ import cn.piggy.mybatis.pojo.Car;
 import java.util.List;
 
 public interface CarMapper {
+
+    /**
+     * 根据汽车品牌进行模糊查询
+     * @param brand
+     * @return
+     */
+    List<Car> selectByBrandLike(String brand);
+
+    /**
+     * 根据id批量删除
+     * @param ids
+     * @return
+     */
+    int deleteBatch(String ids);
+
     /**
      * 根据汽车类型查询汽车
      * @param carType

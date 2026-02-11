@@ -5,7 +5,7 @@
 
 <mapper namespace="cn.piggy.mybatis.mapper.LogMapper">
 
-    <select id="selectAllByTable" resultType="cn.piggy.mybatis.pojo.Log">
+    <select id="selectAllByTable" resultType="Log">
         select * from t_log_${date}
     </select>
 </mapper>
