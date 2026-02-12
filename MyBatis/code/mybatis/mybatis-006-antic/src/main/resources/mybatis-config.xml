@@ -41,8 +41,8 @@
                 1. mapper.xml 跟 mapper.class的名字要一致
                 2. mapper.xml 跟 mapper.class要存放同一级目录下
         -->
-        <mapper class="cn.piggy.mybatis.mapper.CarMapper"/>
-        <mapper class="cn.piggy.mybatis.mapper.LogMapper"/>
+        <!--<mapper class="cn.piggy.mybatis.mapper.CarMapper"/>
+        <mapper class="cn.piggy.mybatis.mapper.LogMapper"/>-->
 
         <!--这种方式在实际开发中比较常用-->
         <!--前提跟使用class属性一致-->

@@ -11,6 +11,18 @@ import java.util.List;
 public class CarMapperTest {
 
     @Test
+    public void testInsertCarUseGeneratedKey() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+        Car car = new Car(null, "527", "大众迈腾",
+                20.0, "2016-12-12", "燃油车");
+        mapper.insertCarUseGeneratedKey(car);
+        System.out.println("插入汽车：" + car);
+        sqlSession.commit();
+        sqlSession.close();
+    }
+
+    @Test
     public void testSelectByBrandLike() {
         SqlSession sqlSession = SqlSessionUtil.openSession();
         CarMapper mapper = sqlSession.getMapper(CarMapper.class);

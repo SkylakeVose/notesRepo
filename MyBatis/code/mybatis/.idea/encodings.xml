@@ -19,6 +19,8 @@
     <file url="file://$PROJECT_DIR$/mybatis-005-curd2/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mybatis-006-antic/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mybatis-006-antic/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mybatis-007-param/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mybatis-007-param/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parse-xml-by-dom4j/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parse-xml-by-dom4j/src/main/resources" charset="UTF-8" />
   </component>

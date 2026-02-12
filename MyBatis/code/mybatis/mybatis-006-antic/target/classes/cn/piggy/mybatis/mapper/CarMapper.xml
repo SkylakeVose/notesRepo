@@ -5,6 +5,14 @@
 
 <mapper namespace="cn.piggy.mybatis.mapper.CarMapper">
 
+    <!--
+        useGeneratedKeys="true" 使用自动生成的主键值
+        keyProperty="id" 指定主键值赋值给对象的哪个属性（将主键值赋给Car对象的id属性）
+    -->
+    <insert id="insertCarUseGeneratedKey" useGeneratedKeys="true" keyProperty="id">
+        insert into t_car values(null, #{carNum}, #{brand}, #{guidePrice}, #{produceTime}, #{carType})
+    </insert>
+
     <select id="selectByCarType" resultType="car">
         select
             id,

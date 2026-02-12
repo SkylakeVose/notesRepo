@@ -3,10 +3,10 @@
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
-    <properties resource=""/>
+    <properties resource="jdbc.properties"/>
     <!--起别名-->
     <typeAliases>
-        <package name=""/>
+        <package name="cn.piggy.mybatis.pojo"/>
     </typeAliases>
 
     <environments default="dev">
@@ -21,6 +21,6 @@
         </environment>
     </environments>
     <mappers>
-        <package name=""/>
+        <package name="cn.piggy.mybatis.mapper"/>
     </mappers>
 </configuration>

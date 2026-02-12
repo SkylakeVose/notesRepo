@@ -7,6 +7,13 @@ import java.util.List;
 public interface CarMapper {
 
     /**
+     * 插入汽车并返回自增主键
+     * @param car
+     * @return
+     */
+    int insertCarUseGeneratedKey(Car car);
+
+    /**
      * 根据汽车品牌进行模糊查询
      * @param brand
      * @return
