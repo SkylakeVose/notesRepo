@@ -4392,3 +4392,72 @@ SQL映射文件的配置方式包括四种：
 
 # 十、MyBatis参数处理
 
+先准备新的项目`mybatis-007-param`和数据库表，便于后续测试
+
+1. 创建数据库表`t_student`：
+
+   <img src="mybatis.assets/image-20260213104907207.png" alt="image-20260213104907207" style="zoom:67%;" />
+
+2. 创建新项目`mybatis-007-param`，引入依赖：
+
+   ```xml
+   <dependencies>
+       <dependency>
+           <groupId>org.mybatis</groupId>
+           <artifactId>mybatis</artifactId>
+           <version>3.5.10</version>
+       </dependency>
+       <dependency>
+           <groupId>mysql</groupId>
+           <artifactId>mysql-connector-java</artifactId>
+           <version>8.0.31</version>
+       </dependency>
+       <dependency>
+           <groupId>junit</groupId>
+           <artifactId>junit</artifactId>
+           <version>4.13.2</version>
+           <scope>test</scope>
+       </dependency>
+       <dependency>
+           <groupId>ch.qos.logback</groupId>
+           <artifactId>logback-classic</artifactId>
+           <version>1.2.11</version>
+       </dependency>
+   </dependencies>
+   ```
+
+3. 创建相关的目录，从之前的项目拉取一些配置文件和工具类：
+
+   <img src="mybatis.assets/image-20260213105033994.png" alt="image-20260213105033994" style="zoom:67%;" />
+
+4. 核心配置文件的一些设置：
+
+   <img src="mybatis.assets/image-20260213111127701.png" alt="image-20260213111127701" style="zoom: 67%;" />
+
+5. 创建pojo类`Student`要与数据库表`t_student`的字段对应上：
+
+   <img src="mybatis.assets/image-20260213105124072.png" alt="image-20260213105124072" style="zoom:80%;" />
+
+
+
+
+
+## 10.1 单个简单类型参数
+
+简单类型包括：
+
++ byte short int long float double char
++ Byte Short Integer Long Float Double Character
++ String
++ java.util.Date
++ java.sql.Date
+
+
+
+需求：根据name查、根据id查、根据birth查、根据sex查
+
+1. 根据id查询：
+
+   ![image-20260213112537882](mybatis.assets/image-20260213112537882.png)
+
+2. 根据
