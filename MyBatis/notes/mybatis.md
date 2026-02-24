@@ -4456,8 +4456,129 @@ SQL映射文件的配置方式包括四种：
 
 需求：根据name查、根据id查、根据birth查、根据sex查
 
-1. 根据id查询：
 
-   ![image-20260213112537882](mybatis.assets/image-20260213112537882.png)
 
-2. 根据
+学生数据SQL映射：
+
+```java
+public interface StudentMapper {
+    /**
+     * 当接口中的方法的参数只有一个（单个参数），并且参数的数据类型都是简单类型
+     * 根据id查询、name查询、birth查询，sex查询
+     */
+    List<Student> selectById(Long id);
+    List<Student> selectByName(String name);
+    List<Student> selectByBirth(Date birth);
+    List<Student> selectBySex(Character sex);
+}
+```
+
+查询演示：
+
+1. 根据`id`查询：
+
+   ```xml
+   <select id="selectById" resultType="student" parameterType="java.lang.Long">
+       select * from t_student where id = #{id}
+   </select>
+   ```
+
+   其中，`parameterType`属性的作用：告诉mybatis框架，我这个方法的参数类型是什么类型。
+
+   > 如上面的SQL语句会转换成：
+   >     **select * from t_student where id = ?**
+   >
+   > JDBC代码是一定要给?传值的 -> ps.setXxx(第几个问号?, 传的值)
+   >     ps.setLong(1, 1L);
+   >     ps.setString(1, "zhangsan");
+   >     ps.setDate(1, new Date());
+   >     ps.setInt(1, 100);
+   >     ...
+   >
+   > **mybatis底层到底调用setXxx()的哪个方法，取决于`parameterType`属性的值。**
+   >
+   > 因为这个语句的`parameterType`属性是`Long`型，因此底层会调用`ps.setLong()`给`?`赋值。
+
+   
+
+   但**mybatis框架自身带有类型自动推断机制**，所以大部分情况下`parameterType`属性都是可以省略不写的。如下所示：
+
+   ```xml
+   <select id="selectById" resultType="student">
+       select * from t_student where id = #{id}
+   </select>
+   ```
+
+   测试运行：
+
+   <img src="mybatis.assets/image-20260224082056987.png" alt="image-20260224082056987" style="zoom: 67%;" />
+
+   
+
+2. 根据`name`查询：
+
+   ```xml
+   <select id="selectByName" resultType="student" parameterType="java.lang.String">
+       select * from t_student where name = #{name}
+   </select>
+   ```
+
+   `parameterType`属性可以使用类型别名来替换，mybatis提供了一些内建的类型别名，且不区分大小写。更多可查看官方文档[类型别名]([mybatis – MyBatis 3 | 配置](https://mybatis.p2hp.com/configuration.html#typeAliases))。
+
+   我们使用String的类型别名来替换：
+
+   <img src="mybatis.assets/image-20260224082511496.png" alt="image-20260224082511496" style="zoom:67%;" />
+
+   ```xml
+   <select id="selectByName" resultType="student" parameterType="string">
+       select * from t_student where name = #{name}
+   </select>
+   ```
+
+   
+
+   如果我们不想使用mybatis提供的自动类型转换，也可以手动指定java和jdbc中的字段类型：
+
+   ```xml
+   <select id="selectByName" resultType="student">
+       select * from t_student where name = #{name, javaType=String, jdbcType=VARCHAR}
+   </select>
+   ```
+
+   
+
+   测试运行：
+
+   <img src="mybatis.assets/image-20260224082749211.png" alt="image-20260224082749211" style="zoom:67%;" />
+
+   
+
+3. 根据`birth`查询：
+
+   省略`parameterType`和不指定类型，直接使用内置的自动类型推断。
+
+   ```xml
+   <select id="selectByBirth" resultType="student">
+       select * from t_student where birth = #{birth}
+   </select>
+   ```
+
+   测试运行：
+
+   <img src="mybatis.assets/image-20260224082859207.png" alt="image-20260224082859207" style="zoom:67%;" />
+
+   
+
+4. 根据`sex`查询：
+
+   使用完整的SQL映射的写法：
+
+   ```xml
+   <select id="selectBySex" resultType="student" parameterType="java.lang.Character">
+       select * from t_student where sex = #{sex, javaType=Character, jdbcType=CHAR}
+   </select>
+   ```
+
+   运行测试：
+
+   <img src="mybatis.assets/image-20260224083351458.png" alt="image-20260224083351458" style="zoom:67%;" />
