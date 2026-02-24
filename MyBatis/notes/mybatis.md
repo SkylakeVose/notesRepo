@@ -4440,9 +4440,11 @@ SQL映射文件的配置方式包括四种：
 
 
 
+## 10.1 单参数传值
 
+单参数传值主要有三种类型：简单类型参数、Map集合和POJO实体类。
 
-## 10.1 单个简单类型参数
+### 10.1.1 简单类型参数
 
 简单类型包括：
 
@@ -4582,3 +4584,138 @@ public interface StudentMapper {
    运行测试：
 
    <img src="mybatis.assets/image-20260224083351458.png" alt="image-20260224083351458" style="zoom:67%;" />
+
+
+
+**总结：**
+
++ 简单类型对于mybatis来说都是可以自动类型推断的，也即mybatis可以根据简单类型来自行推断出ps.setXxx()方法。
+
++ SQL映射文件中的配置比较完整的写法：
+
+  ```xml
+  <select id="selectByName" resultType="student" parameterType="java.lang.String">
+      select * from t_student where name = #{name, javaType=String, jdbcType=VARCHAR}
+  </select>
+  ```
+
+  其中语句中的`javaType`，`jdbcType`，和`parameterType`属性都是来帮助mybatis进行类型确定的。但因为mybatis强大的自动类型推断机制，这些配置大多是可以省略的。
+
++ 如果参数只有一个的话，那么`#{}`里面的内容可以随便写的。对于`${}`来说，需要注意加单引号。
+
+
+
+### 10.1.2 Map参数
+
+需求：插入新的学生信息
+
+在`StudentMapper.class`编写映射配置：
+
+```java
+/**
+    * 保存学生信息，通过Map参数。
+    * 以下是单个参数，但是参数的类型不是简单类型，是Map集合
+    * @param map
+    * @return
+*/
+int insertStudentByMap(Map<String, Object > map);
+```
+
+在`StudentMapper.xml`编写SQL语句：
+
+```xml
+<insert id="insertStudentByMap" parameterType="map">
+    insert into t_student(id, name, age, sex, birth, height)
+    values (null, #{姓名}, #{年龄}, #{性别}, #{生日}, #{身高})
+</insert>
+```
+
+> 因mybatis的自动推断机制，`parameterType`属性是可以省略的。
+
+测试代码；
+
+```java
+@Test
+public void testInsertStudentByMap() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    StudentMapper mapper = sqlSession.getMapper(StudentMapper.class);
+
+    Map<String, Object> map = new HashMap<>();
+    map.put("姓名", "张三");
+    map.put("年龄", 20);
+    map.put("身高", 1.81);
+    map.put("性别", '男');
+    map.put("生日", new Date());
+    int count = mapper.insertStudentByMap(map);
+
+    sqlSession.commit();
+    sqlSession.close();
+}
+```
+
+运行测试：
+
+<img src="mybatis.assets/image-20260224204341739.png" alt="image-20260224204341739" style="zoom:80%;" />
+
+
+
+**这种方式是手动封装Map集合，将每个条件以key和value的形式存放到集合中。然后在使用的时候通过`#{map集合的key}`来取值。**
+
+
+
+
+
+### 10.1.3 实体类参数
+
+需求：插入新的学生信息
+
+在`StudentMapper.class`编写映射配置：
+
+```java
+/**
+    * 保存学生信息，通过POJO参数。
+    * 以下是单个参数，但是参数的类型不是简单类型，是POJO实体类
+    * @param student
+    * @return
+*/
+int insertStudentByPOJO(Student student);
+```
+
+在`StudentMapper.xml`编写SQL语句：
+
+```xml
+<insert id="insertStudentByPOJO">
+    insert into t_student(id, name, age, sex, birth, height)
+    values (null, #{name}, #{age}, #{sex}, #{birth}, #{height})
+</insert>
+```
+
+> 得益于自动推断机制，insert标签中属性`parameterType=Student`可以被省略。
+
+测试代码：
+
+```java
+@Test
+public void testInsertStudentByPOJO() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    StudentMapper mapper = sqlSession.getMapper(StudentMapper.class);
+    // POJO对象
+    Student student = new Student(null, "王五", 16, 1.56, new Date(), '女');
+    mapper.insertStudentByPOJO(student);
+    sqlSession.commit();
+    sqlSession.close();
+}
+```
+
+运行测试：
+
+<img src="mybatis.assets/image-20260224210133190.png" alt="image-20260224210133190" style="zoom:80%;" />
+
+
+
+**这里需要注意的是：`#{} `里面写的是属性名字。这个属性名其本质上是：set/get方法名去掉set/get之后的名字。**
+
+
+
+## 10.2 多参数
+

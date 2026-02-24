@@ -9,11 +9,42 @@ import org.junit.Test;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.SimpleFormatter;
 
 public class StudentMapperTest {
 
+    @Test
+    public void testInsertStudentByPOJO() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        StudentMapper mapper = sqlSession.getMapper(StudentMapper.class);
+
+        // POJO对象
+        Student student = new Student(null, "王五", 16, 1.56, new Date(), '女');
+        mapper.insertStudentByPOJO(student);
+
+        sqlSession.commit();
+        sqlSession.close();
+    }
+
+    @Test
+    public void testInsertStudentByMap() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        StudentMapper mapper = sqlSession.getMapper(StudentMapper.class);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("姓名", "张三");
+        map.put("年龄", 20);
+        map.put("身高", 1.81);
+        map.put("性别", '男');
+        map.put("生日", new Date());
+        int count = mapper.insertStudentByMap(map);
+
+        sqlSession.commit();
+        sqlSession.close();
+    }
 
     // java.util.Date java.sql.Date 都是简单数据类型
     @Test
