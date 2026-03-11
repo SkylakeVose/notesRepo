@@ -4719,3 +4719,245 @@ public void testInsertStudentByPOJO() {
 
 ## 10.2 多参数
 
+需求：根据name和sex来查询学生信息
+
+Mpper接口：
+
+```java
+/**
+	* 根据name和sex来查询Student信息
+	* @param name
+	* @param sex
+	* @return
+*/
+List<Student> selectByNameAndSex(String name, Character sex);
+```
+
+Mapper映射文件：
+
+```xml
+<select id="selectByNameAndSex" resultType="Student">
+    <!-- 方式1：使用arg方式来传值-->
+    select * from t_student where name = #{arg0} and sex = #{arg1}
+    <!-- 方式2：使用param方式来传值-->
+    select * from t_student where name = #{param1} and sex = #{param2}
+    <!-- 方式3：使用arg和param混合方式来传值-->
+    select * from t_student where name = #{arg0} and sex = #{param2}
+</select>
+```
+
+测试代码：
+
+<img src="mybatis.assets/image-20260310203458399.png" alt="image-20260310203458399" style="zoom:80%;" />
+
+
+
+**多参数传值的底层实现：**
+
+当我们通过多参数来传值的时候，mybatis框架会自动创建一个Map集合，并通过**arg**和**parma**来跟函数参数下标进行组合作为map的键，同时将函数参数作为对应的值。
+
+在这个函数中的两个参数`name`和`sex`都被添加进同一个生成的map集合：
+
+```java
+map.put("arg0", name);
+map.put("arg1", sex);
+map.put("param1", name);
+map.put("param2", sex);
+```
+
+因此我们在映射文件中使用这些map集合中的键进行传参。
+
+
+
+>注意：在低版本的mybatis中，多参数传值使用`#{0}`、`#{1}`进行传值。
+>
+>只有在高版本中才会使用`#{arg0}`、`#{param1}`等进行传值。
+
+
+
+## 10.3 @Param注解
+
+在10.2多参数的多参数查询学生信息的实现中，使用arg0或者param1可读性不强，因此我们在这一节中使用`@Param`注释实现。
+
+Mapper接口函数：
+
+```java
+/**
+    * 多参数传值，Param注解实现
+    * @param name
+    * @param sex
+	* @return
+*/
+List<Student> selectByNameAndSex2(@Param("name") String name, @Param("sex") Character sex);
+```
+
+Mapper映射文件：
+
+```xml
+<select id="selectByNameAndSex2" resultType="Student">
+    select * from t_student where name = #{name} and sex = #{sex}
+</select>
+```
+
+测试函数：
+
+<img src="mybatis.assets/image-20260310205921986.png" alt="image-20260310205921986" style="zoom:80%;" />
+
+
+
+**使用`@Param`注释的底层实现：**
+
+使用`@Param`会根据用户指定的键名来向map集合存放的键值对，比如：
+
+<img src="mybatis.assets/image-20260310210410370.png" alt="image-20260310210410370" style="zoom: 80%;" />
+
+这样，我们就可以在mapper映射文件中直接使用这些键名了。
+
+
+
+注意：我们使用了`@Param`注解，之前的`arg+参数下标`的方式会失效，此时的map集合只存在用户指定的键值和`param`组合的键值。
+
+<img src="mybatis.assets/image-20260310210839989.png" alt="image-20260310210839989" style="zoom:80%;" />
+
+
+
+
+
+## 10.4 @Param源码分析
+
+1. 我们在测试函数获取mapper代理对象的地方设置一个断点，并开始进行跟踪。
+
+   <img src="mybatis.assets/image-20260310213545645.png" alt="image-20260310213545645" style="zoom:80%;" />
+
+2. 进入Mapper代理类的invoke()方法：
+
+   <img src="mybatis.assets/image-20260310213734737.png" alt="image-20260310213734737" style="zoom:80%;" />
+
+3. 继续步入，知道走到MapperMethod类的execute()方法：
+
+   <img src="mybatis.assets/image-20260310214142556.png" alt="image-20260310214142556" style="zoom:80%;" />
+
+4. 继续步入，可以看到生成map集合的函数：
+
+   <img src="mybatis.assets/image-20260310214341548.png" alt="image-20260310214341548" style="zoom:80%;" />
+
+   继续步入可以看到会调用paramNameResolver类来获取Map集合：
+
+   ![image-20260310214518682](mybatis.assets/image-20260310214518682.png)
+
+5. 继续步入，查看getNamedParams()方法：
+
+   **大体逻辑：**
+
+   ![image-20260310222237955](mybatis.assets/image-20260310222237955.png)
+
+   **具体实现：**
+
+   <img src="mybatis.assets/image-20260310222557055.png" alt="image-20260310222557055" style="zoom:80%;" />
+
+
+
+# 十一、Mybatis查询语句专题
+
+新建一个项目`mybatis-008-select`用于测试查询功能。
+
+<img src="mybatis.assets/image-20260311215453095.png" alt="image-20260311215453095" style="zoom:80%;" />
+
+> 我们对篮框的pom配置文件可以参考上个项目的依赖引用，绿框中的文件也可以从上个项目中拉取过去，我们主要是对黄框里的文件进行修改。
+
+
+
+mybatis核心配置文件`mybatis-config.xml`：
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <properties resource="jdbc.properties"/>
+    <typeAliases>
+        <package name="cn.piggy.mybatis.pojo"/>
+    </typeAliases>
+
+    <environments default="dev">
+        <environment id="dev">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <package name="cn.piggy.mybatis.mapper"/>
+    </mappers>
+</configuration>
+```
+
+
+
+## 11.1 返回Car
+
+当查询结果有对应的实体类，并且查询结果只有一条：通过id查询Car信息。
+
+```java
+// CarMapper.java
+public interface CarMapper {
+    /**
+     * 根据id查询Car信息
+     * @param id
+     * @return
+     */
+    Car selectById(Long id);
+}
+```
+
+```xml
+<!--CarMapper.xml-->
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.piggy.mybatis.mapper.CarMapper">
+    <select id="selectById" resultType="car">
+        select
+            id,
+            car_num as carNum,
+            brand,
+            guide_price as guidePrice,
+            produce_time as produceTime,
+            car_type as carType
+        from t_car
+        where id = #{id}
+    </select>
+</mapper>
+```
+
+```java
+// 测试函数
+public class CarMapperTest {
+    @Test
+    public void testSelectById() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+        Car car = mapper.selectById(1L);
+        System.out.println(car);
+        sqlSession.close();
+    }
+}
+```
+
+测试运行：
+
+![image-20260311220231802](mybatis.assets/image-20260311220231802.png)
+
+
+
+
+
+## 11.2 返回List
+

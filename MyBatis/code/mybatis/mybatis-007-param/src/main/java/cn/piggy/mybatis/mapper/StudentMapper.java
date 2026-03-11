@@ -1,6 +1,7 @@
 package cn.piggy.mybatis.mapper;
 
 import cn.piggy.mybatis.pojo.Student;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
 import java.util.List;
@@ -8,6 +9,32 @@ import java.util.Map;
 
 public interface StudentMapper {
 
+    /**
+     * 多参数传值，Param注解实现
+     * mybaits框架底层实现原理：
+     *      map.put("name", name);
+     *      map.put("sex“, sex);
+     * @param name
+     * @param sex
+     * @return
+     */
+    List<Student> selectByNameAndSex2(@Param("name") String name, @Param("sex") Character sex);
+
+    /**
+     * 多参数
+     * 根据name和sex来查询Student信息
+     * 如果是多个参数的话，mybatis框架底层是怎么做的呢？
+     *  mybatis框架会自动创建一个Map集合，并且Map集合是以下列这种方式存储参数的：
+     *      map.put("arg0", name);
+     *      map.put("arg1“, sex);
+     *      map.put("param1", name);
+     *      map.put("param2", sex);
+     *
+     * @param name
+     * @param sex
+     * @return
+     */
+    List<Student> selectByNameAndSex(String name, Character sex);
 
     /**
      * 保存学生信息，通过POJO参数。

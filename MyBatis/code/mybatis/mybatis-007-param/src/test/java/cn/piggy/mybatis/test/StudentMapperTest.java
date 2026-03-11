@@ -17,6 +17,28 @@ import java.util.logging.SimpleFormatter;
 public class StudentMapperTest {
 
     @Test
+    public void testSelectByNameAndSex2() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        StudentMapper mapper = sqlSession.getMapper(StudentMapper.class);
+
+        List<Student> students = mapper.selectByNameAndSex2("张三", '男');
+        students.forEach(System.out::println);
+
+        sqlSession.close();
+    }
+
+    @Test
+    public void testSelectByNameAndSex() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        StudentMapper mapper = sqlSession.getMapper(StudentMapper.class);
+
+        List<Student> students = mapper.selectByNameAndSex("张三", '男');
+        students.forEach(System.out::println);
+
+        sqlSession.close();
+    }
+
+    @Test
     public void testInsertStudentByPOJO() {
         SqlSession sqlSession = SqlSessionUtil.openSession();
         StudentMapper mapper = sqlSession.getMapper(StudentMapper.class);
