@@ -4961,3 +4961,887 @@ public class CarMapperTest {
 
 ## 11.2 返回List
 
+当查询返回的记录条数是多条时，必须使用集合接收。如果使用的那个实体类接受会出现异常。
+
+
+
+**1. 查询所有Car信息**
+
+```java
+/**
+    * 获取所有的Car
+	* @return
+*/
+List<Car> selectAll();
+```
+
+```xml
+<select id="selectAll" resultType="car">
+    select
+    	id,
+    	car_num as carNum,
+    	brand,
+    	guide_price as guidePrice,
+    	produce_time as produceTime,
+    	car_type as carType
+    from t_car
+</select>
+```
+
+运行测试：
+
+<img src="mybatis.assets/image-20260312230549230.png" alt="image-20260312230549230" style="zoom:80%;" />
+
+
+
+
+
+**2. 通过品牌名进行模糊查询：**
+
+但是只使用单个POJO类来接收。
+
+```java
+/**
+    * 根据品牌进行模糊查询
+    * @param brand
+    * @return
+*/
+Car selectByBrandLike(String brand);
+```
+
+```xml
+<select id="selectByBrandLike" resultType="car">
+    select
+    	id,
+    	car_num as carNum,
+    	brand,
+    	guide_price as guidePrice,
+    	produce_time as produceTime,
+    	car_type as carType
+    from t_car
+    where brand like "%"#{brand}"%"
+</select>
+```
+
+查询结果只返回一个，则是可以被接收的：
+
+<img src="mybatis.assets/image-20260312231021810.png" alt="image-20260312231021810" style="zoom:80%;" />
+
+查询结果返回多个，则会报错`TooManyResultsException`：
+
+<img src="mybatis.assets/image-20260312231114781.png" alt="image-20260312231114781" style="zoom:80%;" />
+
+
+
+**总结：因此在查询返回多个对象的时候，应采用集合来接收这些对象。**
+
+
+
+## 11.3 返回Map
+
+如果查询的返回结果没有合适的POJO类接收，且保证只有一个返回结果，可以直接使用Map集合来接收查询信息，字段名做为key，字段值作为value。
+
+![image-20260314205657439](mybatis.assets/image-20260314205657439.png)
+
+
+
+需求：根据id查询汽车信息，并使用Map来接收。
+
+```java
+/**
+    * 根据id获取汽车信息，将汽车信息放到Map集合中
+    * @param id
+    * @return
+*/
+Map<String, Object> selectByIdRetMap(Long id);
+```
+
+```xml
+<!--resultType="java.util.Map"，有别名map-->
+<select id="selectByIdRetMap" resultType="map">
+    select * from t_car where id = #{id}
+</select>
+```
+
+运行结果：
+
+![image-20260314204942326](mybatis.assets/image-20260314204942326.png)
+
+
+
+注意：
+
++ mybatis内置了很多别名，在`resultType`中`java.util.Map`可以简写成`map`，其他可以参考手册。
++ 使用Map集合只能接收一条返回结果，如果是多条返回结果则会同样报错`TooManyResultsException`。
+
+
+
+
+
+## 11.4 返回List\<Map>
+
+查询结果条数大于等于1条数据，则可以返回一个存储Map集合的List集合。
+
+![image-20260314210042323](mybatis.assets/image-20260314210042323.png)
+
+
+
+需求：查询所有Car信息，并使用List\<Map>接收。
+
+```java
+/**
+    * 查询所有Car信息，返回一个存放Map集合的List集合
+    * @return
+*/
+List<Map<String, Object>> selectAllRetListMap();
+```
+
+```xml
+<select id="selectAllRetListMap" resultType="map">
+    select * from t_car;
+</select>
+```
+
+运行结果：
+
+<img src="mybatis.assets/image-20260314210643599.png" alt="image-20260314210643599" style="zoom:80%;" />
+
+
+
+注意：为什么`resultType`还是等于`map`？
+
+<img src="mybatis.assets/image-20260314211115226.png" alt="image-20260314211115226" style="zoom: 80%;" />
+
+
+
+
+
+## 11.5 返回Map\<String, Map>
+
+上述使用List\<Map>来接收封装所有信息，但是如果我们需要找到指定id的信息，则需要遍历List，判断id字段才能获取到相关信息。
+
+如果我们拿Car的`id`的key，相关信息用Map封装作为value存入更大的Map集合中，之后取出相应的信息Map集合会更方便。
+
+![image-20260314212908401](mybatis.assets/image-20260314212908401.png)
+
+
+
+需求：查询所有Car信息，并通过Map集合封装每条记录。并使用id字段来作为key，封装记录的Map集合作为value，来组合成一个更大的Map集合返回回来。
+
+```java
+/**
+    * 查询所有Car，返回一个大Map集合
+    * 大Map集合：
+    *      key：每条记录的主键值
+    *      value: 返回的记录
+    * @return
+*/
+@MapKey("id")   // 将查询结果的id值作为大Map集合的key
+Map<Long, Map<String, Object>> selectAllRetMap();
+```
+
+```xml
+<select id="selectAllRetMap" resultType="map">
+    select * from t_car;
+</select>
+```
+
+运行结果;
+
+<img src="mybatis.assets/image-20260314213222607.png" alt="image-20260314213222607" style="zoom:80%;" />
+
+返回记录的封装结果：
+
+![image-20260314213617997](mybatis.assets/image-20260314213617997.png)
+
+
+
+## 11.6 ResultMap
+
+我们使用POJO类对结果进行封装的时候，有时会出现查询结果的类型和java类的属性名对应不上的情况。我们一般有三种解决方式：
+
+1. 使用`as`起别名。（之前的项目用过的方法）
+2. 使用`resultMap`进行结果映射。
+3. 开启驼峰命名自动映射（配置settings）。
+
+
+
+### 11.6.1 使用resultMap进行结果映射
+
+需求：查询所有信息，使用Car类对结果进行封装。
+
+```java
+/**
+	* 查询所有的Car信息，使用resultMap标签进行结果映射
+    * @return
+*/
+List<Car> selectAllByResultMap();
+```
+
+```xml
+<!--专门定义一个结果映射，在这个结果映射当中指定数据库表的字段名和Java类的属性名的对应关系-->
+<resultMap id="carResultMap" type="cn.piggy.mybatis.pojo.Car">
+    <id property="id" column="id"/>
+    
+    <result property="carNum" column="car_num"/>
+    <result property="brand" column="brand"/>
+    <result property="guidePrice" column="guide_price"/>
+    <result property="produceTime" column="produce_time"/>
+    <result property="carType" column="cat_type"/>
+</resultMap>
+
+<!--使用select标签中的resultMap属性，用来指定结果映射-->
+<select id="selectAllByResultMap" resultMap="carResultMap">
+    select * from t_car
+</select>
+```
+
+测试结果：
+
+<img src="mybatis.assets/image-20260315165820131.png" alt="image-20260315165820131" style="zoom:80%;" />
+
+
+
+注意事项：
+
+先使用resultMap标签来定义结果映射，后续在使用的时候指定该结果映射的id即可。
+
+![image-20260315170207723](mybatis.assets/image-20260315170207723.png)
+
+
+
+
+
+### 11.6.2  是否开启驼峰命名自动映射
+
+使用这种方式的前提是：属性名遵循Java的命名规范，数据库表的列名遵循SQL的命名规范。
+
+Java命名规范：首字母小写，后面每个单词首字母大写，遵循驼峰命名方式。
+
+SQL命名规范：全部小写，单词之间采用下划线分割。
+
+
+
+比如以下的对应关系：
+
+| **实体类中的属性名** | **数据库表的列名** |
+| -------------------- | ------------------ |
+| carNum               | car_num            |
+| carType              | car_type           |
+| produceTime          | produce_time       |
+
+如何启用该功能，在`mybatis-config.xml`文件中进行配置：
+
+![image-20260315171751923](mybatis.assets/image-20260315171751923.png)
+
+
+
+需求：开启驼峰命名自动映射，查询所有信息，并使用Car类进行封装。
+
+```java
+/**
+    * 查询所有的Car信息，但是启用了驼峰命名自动映射
+    * @return
+*/
+List<Car> selectAllByMapUnderscoreToCamelCase();
+```
+
+```xml
+<select id="selectAllByMapUnderscoreToCamelCase" resultType="Car">
+    select * from t_car
+</select>
+```
+
+测试结果：
+
+<img src="mybatis.assets/image-20260315171937678.png" alt="image-20260315171937678" style="zoom:80%;" />
+
+
+
+## 11.7 返回总记录条数
+
+需求：查询总记录条数。
+
+```java
+/**
+    * 获取Car的总记录条数
+    * @return
+*/
+Long selectTotal();
+```
+
+```xml
+<!--resultType也可以写别名 _long-->
+<select id="selectTotal" resultType="Long">
+    select count(*) from t_car
+</select>
+```
+
+测试结果：
+
+![image-20260315172901904](mybatis.assets/image-20260315172901904.png)
+
+
+
+
+
+# 十二、动态SQL
+
+我们先创建一个测试项目`mybatis-009-dynamic-sql`，像之前创建项目一样，目录如下：
+
+![image-20260320210823142](mybatis.assets/image-20260320210823142.png)
+
+> 红框需要自己创建并编写。
+
+
+
+## 12.1 \<if>标签
+
+需求：多条件查询。
+
+可能的条件包括：品牌（brand）、指导价格（guide_price）、汽车类型（car_type）
+
+
+
+```java
+**
+	* 多条件查询
+    * @param brand 品牌
+    * @param guidePrice    指导价
+    * @param carType   汽车类ing
+    * @return
+*/
+    List<Car> selectByMultiCondition(@Param("brand") String brand, @Param("guidePrice") Double guidePrice, @Param("carType") String carType);
+```
+
+```xml
+<select id="selectByMultiCondition" resultType="Car">
+    select * from t_car where 1 = 1
+    <!--
+		1. if标签中的test属性是必须的
+        2. if标签中的test属性的值是true或false
+        3. 如果test是true，则if标签中的sql语句就会拼接，反之不会拼接。
+        4. test属性中可以是用的是：
+        	当使用了@Param注解，则test中要出现注解指定的参数名。比如@Param("brand")，属性只能使用brand。
+        	当没有使用@Param注解，则test中使用默认参数名：param1, param2, arg0, arg1...
+            当使用了POJO类，则test中要使用POJO类的属性名。
+        5. 在mybatis的动态SQL中，需要连接时不能使用&&，只能使用and。
+    -->
+    <if test="brand != null and brand != ''">
+        and brand like "%"#{brand}"%"
+    </if>
+    <if test="guidePrice != null and guidePrice != ''">
+        and guide_price > #{guidePrice}
+    </if>
+    <if test="carType != null and carType != ''">
+        and car_type = #{carType}
+    </if>
+</select>
+```
+
+```java
+@Test
+public void testSelectByMultiCondition() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+
+    // 三个条件都不是空
+    // List<Car> cars = mapper.selectByMultiCondition("比亚迪", 2.0, "新能源");
+
+    // 三个条件都是空
+    // List<Car> cars = mapper.selectByMultiCondition("", null, "");
+
+    // 三个条件不全满足
+    List<Car> cars = mapper.selectByMultiCondition("", 4.0, "");
+
+    cars.forEach(System.out::println);
+    sqlSession.close();
+}
+```
+
+
+
+注意：
+
+![image-20260321142957871](mybatis.assets/image-20260321142957871.png)
+
+![image-20260321143333632](mybatis.assets/image-20260321143333632.png)
+
+
+
+## 12.2 \<where>标签
+
+`<where>`标签的作用：让where子句更加动态智能。
+
++ 所有条件都为空时，`<where>`标签保证不会生成where子句。
++ 自动去除某些条件**<font style="color:#E8323C;">前面</font>**多余的`and`或`or`。
+
+
+
+继续处理12.1的需求：
+
+```java
+/**
+    * 使用where标签，让where子句更加智能
+    * @param brand
+    * @param guidePrice
+    * @param carType
+    * @return
+*/
+List<Car> selectByMultiConditionWithWhere(@Param("brand") String brand, @Param("guidePrice") Double guidePrice, @Param("carType") String carType);
+```
+
+```xml
+<select id="selectByMultiConditionWithWhere" resultType="Car">
+    select * from t_car
+    <!--where标签是专门负责where子句动态生成的-->
+    <where>
+        <if test="brand != null and brand != ''">
+            and brand like "%"#{brand}"%"
+        </if>
+        <if test="guidePrice != null and guidePrice != ''">
+            and guide_price > #{guidePrice}
+        </if>
+        <if test="carType != null and carType != ''">
+            and car_type = #{carType}
+        </if>
+    </where>
+</select>
+```
+
+```java
+@Test
+public void testSelectByMultiConditionWithWhere() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+
+    // 三个条件都不是空
+    // List<Car> cars = mapper.selectByMultiConditionWithWhere("比亚迪", 2.0, "新能源");
+
+    // 三个条件都是空
+    List<Car> cars = mapper.selectByMultiConditionWithWhere("", null, "");
+
+    // 三个条件不全满足
+    // List<Car> cars = mapper.selectByMultiConditionWithWhere("", 4.0, "燃油车");
+
+    cars.forEach(System.out::println);
+    sqlSession.close();
+}
+```
+
+
+
+注意：
+
+![image-20260321225910180](mybatis.assets/image-20260321225910180.png)
+
+
+
+
+
+## 12.3 \<trim>标签
+
+trim标签的属性：
+
++ `prefix`：在trim标签中的语句前**<font style="color:#E8323C;">添加</font>**内容
++ `suffix`：在trim标签中的语句后**<font style="color:#E8323C;">添加</font>**内容
++ `prefixOverrides`：前缀**<font style="color:#E8323C;">覆盖掉（去掉）</font>**
++ `suffixOverrides`：后缀**<font style="color:#E8323C;">覆盖掉（去掉）</font>**
+
+
+
+重写12.1的需求：
+
+```java
+/**
+    * 使用trim标签
+    * @param brand
+    * @param guidePrice
+    * @param carType
+    * @return
+*/
+    List<Car> selectByMultiConditionWithTrim(@Param("brand") String brand, @Param("guidePrice") Double guidePrice, @Param("carType") String carType);
+```
+
+```xml
+<select id="selectByMultiConditionWithTrim" resultType="Car">
+    select * from t_car
+    <!--
+        prefix: 加前缀
+        suffix: 加后缀
+        prefixOverrides: 删除前缀
+        suffixOverrides: 删除后缀
+    -->
+    <trim prefix="where" suffixOverrides="and|or">
+        <!--prefix="where" 是在trim标签所有内容的前面添加where-->
+        <!--suffixOverrides="and|or" 把trim标签中内容的后缀and或or去掉-->
+        <if test="brand != null and brand != ''">
+            brand like "%"#{brand}"%" and
+        </if>
+        <if test="guidePrice != null and guidePrice != ''">
+            guide_price > #{guidePrice} and
+        </if>
+        <if test="carType != null and carType != ''">
+            car_type = #{carType}
+        </if>
+    </trim>
+</select>
+```
+
+```java
+@Test
+public void testSelectByMultiConditionWithTrim() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+
+    // 三个条件都不是空
+    // List<Car> cars = mapper.selectByMultiConditionWithTrim("比亚迪", 2.0, "新能源");
+
+    // 三个条件都是空
+    // List<Car> cars = mapper.selectByMultiConditionWithTrim("", null, "");
+
+    // 三个条件不全满足
+    // List<Car> cars = mapper.selectByMultiConditionWithTrim("", 4.0, "燃油车");
+
+    // 三个条件不全满足
+    List<Car> cars = mapper.selectByMultiConditionWithTrim("比亚迪", null, "");
+
+    cars.forEach(System.out::println);
+    sqlSession.close();
+}
+```
+
+
+
+注意：
+
+![image-20260321231434066](mybatis.assets/image-20260321231434066.png)
+
+
+
+
+
+## 12.4 \<set>标签
+
+`<set>`标签主要使用在update语句当中，用来生成set关键字，同时去掉最后多余的“`,`”。
+
+比如我们只更新提交的不为空的字段，如果提交的数据是空或者""，那么这个字段我们将不更新。
+
+
+
+```java
+/**
+    * 更新Car
+    * @param car
+    * @return
+*/
+int updateById(Car car);
+```
+
+```xml
+<update id="updateById">
+    update t_car
+    <set>
+        <if test="carNum != null and carNum != ''">car_num = #{carNum},</if>
+        <if test="brand != null and brand != ''">brand = #{brand},</if>
+        <if test="guidePrice != null and guidePrice != ''">guide_price = #{guidePrice},</if>
+        <if test="produceTime != null and produceTime != ''">produce_time = #{produceTime},</if>
+        <if test="carType != null and carType != ''">car_type = #{carType},</if>
+    </set>
+    where
+    id = #{id}
+</update>
+```
+
+```java
+@Test
+public void testUpdateById() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+    Car car = new Car(3L, null, null, 26.0, null, "油电混动");
+    mapper.updateById(car);
+    sqlSession.commit();
+    sqlSession.close();
+}
+```
+
+测试运行：
+
+<img src="mybatis.assets/image-20260323210449759.png" alt="image-20260323210449759" style="zoom:80%;" />
+
+
+
+## 12.5 \<choose> \<when> \<otherwise>标签
+
+这三个标签`choose`、`when`、`otherwise`是在一起使用的：
+
+```xml
+<choose>
+    <when test=""></when>
+    <when test=""></when>
+    <when test=""></when>
+    <otherwise></otherwise>
+</choose>
+```
+
+等同于：
+
+```java
+if(){
+    
+}else if(){
+    
+}else if(){
+    
+}else if(){
+    
+}else{
+
+}
+```
+
+只有一个分支会被选择！！！！
+
+
+
+需求：先根据品牌查询，如果没有提供品牌，再根据指导价格查询，如果没有提供指导价格，就根据汽车类型查询。
+
+```java
+/**
+* 使用choose when otherwise标签查询
+* @param brand
+* @param guidePrice
+* @param produceTime
+* @return
+*/
+List<Car> selectWithChoose(@Param("brand") String brand, @Param("guidePrice") Double guidePrice, @Param("produceTime") String produceTime);
+```
+
+```xml
+<select id="selectByChoose" resultType="Car">
+    select * from t_car
+    <where>
+        <choose>
+            <when test="brand != null and brand != ''">
+                brand like "%"#{brand}"%"
+            </when>
+            <when test="guidePrice != null and guidePrice != ''">
+                guide_price > #{guidePrice}
+            </when>
+            <otherwise>
+                car_type = #{carType}
+            </otherwise>
+        </choose>
+    </where>
+</select>
+```
+
+```java
+@Test
+public void testSelectByChoose() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+
+    // 第一个参数不为空
+    // List<Car> cars = mapper.selectByChoose("比亚迪", null, null);
+    // cars.forEach(System.out::println);
+
+
+    // 第二个参数不为空
+    // List<Car> cars = mapper.selectByChoose("", 10.0, null);
+    // cars.forEach(System.out::println);
+
+
+    // 第三个参数不为空
+    // List<Car> cars = mapper.selectByChoose("", null, "新能源");
+    // cars.forEach(System.out::println);
+
+    // 三个参数全为空
+    List<Car> cars = mapper.selectByChoose("", null, null);
+    cars.forEach(System.out::println);
+
+    sqlSession.close();
+}
+```
+
+测试结果：
+
+![image-20260325153351349](mybatis.assets/image-20260325153351349.png)
+
+
+
+
+
+## 12.6 \<foreach>标签
+
+循环数组或集合，用来动态生成sql语句。
+
+
+
+### 12.6.1 批量删除 - in关键字
+
+需求：提供Long数组，使用`in`关键字来进行批量删除。
+
+```java
+/**
+    * 批量删除：foreach标签
+    * @param ids
+    * @return
+*/
+int deleteByIds(@Param("ids") Long[] ids);
+```
+
+```xml
+<!--
+    <foreach> 标签的属性:
+        collection：指定数组或者集合
+        item：代表数组或集合中的元素
+        separator：循环之间的分隔符
+        open: 拼接字符串的首字符
+        close: 拼接字符串的尾字符
+-->
+<delete id="deleteByIds">
+    delete from t_car where id in
+    <foreach collection="ids" item="id" separator="," open="(" close=")">
+        #{id}
+    </foreach>
+</delete>
+```
+
+```java
+@Test
+public void testDeleteByIds() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+    int count = mapper.deleteByIds(new Long[]{1L, 2L, 3L});
+    System.out.println("影响行数：" + count);
+    // sqlSession.commit();
+    sqlSession.close();
+}
+```
+
+测试结果：
+
+![image-20260325160830436](mybatis.assets/image-20260325160830436.png)
+
+
+
+注意：
+
+1. 如果不使用`@Param`注解给参数起别名的话，其底层Map默认会生成array和arg0两个键值对。
+
+   ![image-20260325161149185](mybatis.assets/image-20260325161149185.png)
+
+2. 如果不使用`open`和`close`两个属性，也可以写成：
+
+   ```xml
+   <delete id="deleteByIds">
+       delete from t_car where id in(
+       <foreach collection="ids" item="id" separator=",">
+           #{id}
+       </foreach>
+       )
+   </delete>
+   ```
+
+
+
+
+
+### 12.6.2 批量删除 - or关键字
+
+需求：提供Long数组，使用`or`关键字来进行批量删除。
+
+java代码部分与12.6.1一样，修改映射文件部分：
+
+```xml
+<delete id="deleteByIds">
+    delete from t_car where
+    <foreach collection="ids" item="id" separator="or">
+        id = #{id}
+    </foreach>
+</delete>
+```
+
+测试结果：
+
+![image-20260325170935757](mybatis.assets/image-20260325170935757.png)
+
+
+
+
+
+### 12.6.3 批量添加
+
+需求：提供一个汽车集合`List<Car>`，使用`<foreach>`标签循环生成sql批量插入语句。
+
+```java
+/**
+    * 批量插入汽车信息
+    * @param cars
+    * @return
+*/
+int insertBatch(@Param("cars") List<Car> cars);
+```
+
+```xml
+<insert id="insertBatch">
+    insert into t_car values
+    <foreach collection="cars" item="car" separator=",">
+        (null, #{car.carNum}, #{car.brand}, #{car.guidePrice}, #{car.produceTime}, #{car.carType})
+    </foreach>
+</insert>
+```
+
+```java
+@Test
+public void testInsertBatch() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+
+    List<Car> cars = new ArrayList<>();
+    cars.add(new Car(null, "1008", "宝马x3", 20.0, "2022-12-10", "燃油车"));
+    cars.add(new Car(null, "1009", "宝马x5", 44.0, "2022-11-12", "燃油车"));
+    cars.add(new Car(null, "1010", "宝马x7", 87.0, "2024-05-13", "燃油车"));
+
+    int count = mapper.insertBatch(cars);
+    System.out.println("影响行数：" + count);
+    sqlSession.commit();
+    sqlSession.close();
+}
+```
+
+测试结果：
+
+![image-20260325170414483](mybatis.assets/image-20260325170414483.png)
+
+
+
+
+
+## 12.7 \<sql> 与 \<include>标签
+
+`<sql>`标签用来声明sql片段。
+
+`<include>`标签用来将声明的sql片段 包含到另一个sql语句当中
+
+作用：**代码复用。易维护**。
+
+
+
+我们在之前的映射文件中可以看到，重复的部分比较多：
+
+<img src="mybatis.assets/image-20260325171505014.png" alt="image-20260325171505014" style="zoom:80%;" />
+
+我们可以将这部分sql语句提取出来，用`<sql>`标签封装起来，在原本的地方使用`<include>`标签把封装好的sql片段引用进来：
+
+<img src="mybatis.assets/image-20260325171919133.png" alt="image-20260325171919133" style="zoom:80%;" />
+
+测试结果与之前一样。
+
+
+
+
+
+# 十三、MyBatis的高级映射及延迟加载
+

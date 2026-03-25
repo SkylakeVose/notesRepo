@@ -4,15 +4,73 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="cn.piggy.mybatis.mapper.CarMapper">
+
+    <select id="selectTotal" resultType="Long">
+        select count(*) from t_car
+    </select>
+
+    <select id="selectAllByMapUnderscoreToCamelCase" resultType="Car">
+        select * from t_car
+    </select>
+
+    <!--
+        1. 专门定义一个结果映射，在这个结果映射当中指定数据库表的字段名和Java类的属性名的对应关系
+        2. type属性：用来指定POJO类的类型
+        3. id属性: 指定resultMap的唯一标识。这个id将来要在select标签中使用
+    -->
+    <resultMap id="carResultMap" type="cn.piggy.mybatis.pojo.Car">
+        <!--如果数据库表中有主键（一般都有主键，不然不符合数据库表设计第一范式）-->
+        <!--如果有主键，建议配置一个id标签。（这不是必须的，但是配置id可以提高mybatis的效率）-->
+        <id property="id" column="id"/>
+
+        <!--property：POJO的属性名-->
+        <!--column: 数据库表的字段名-->
+        <result property="carNum" column="car_num"/>
+        <!--如果属性名property和字段名column是一样的，可以省略不写-->
+        <result property="brand" column="brand"/>
+        <result property="guidePrice" column="guide_price"/>
+        <result property="produceTime" column="produce_time"/>
+        <result property="carType" column="cat_type"/>
+    </resultMap>
+
+    <!--select标签中的resultMap属性，用来指定结果映射-->
+    <!--resultMap属性的值是之前定义的结果映射的id-->
+    <select id="selectAllByResultMap" resultMap="carResultMap">
+        select * from t_car
+    </select>
+
+    <select id="selectAllRetMap" resultType="map">
+        select * from t_car
+    </select>
+
+    <select id="selectAllRetListMap" resultType="map">
+        select * from t_car
+    </select>
+
+    <!--resultType="java.util.Map"，有别名map-->
+    <select id="selectByIdRetMap" resultType="map">
+        select * from t_car where id = #{id}
+    </select>
+
+    <sql id="carColumnNameSql">
+        id,
+        car_num as carNum,
+        brand,
+        guide_price as guidePrice,
+        produce_time as produceTime,
+        car_type as carType
+    </sql>
+
+    <select id="selectByBrandLike" resultType="car">
+        select <include refid="carColumnNameSql"/> from t_car
+        where brand like "%"#{brand}"%"
+    </select>
+
+    <select id="selectAll" resultType="car">
+        select <include refid="carColumnNameSql"/> from t_car
+    </select>
+
     <select id="selectById" resultType="car">
-        select
-            id,
-            car_num as carNum,
-            brand,
-            guide_price as guidePrice,
-            produce_time as produceTime,
-            car_type as carType
-        from t_car
-        where id = #{id}
+        select <include refid="carColumnNameSql"/> from t_car where id = #{id}
     </select>
 </mapper>

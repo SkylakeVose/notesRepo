@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.piggy.mybatis.mapper.CarMapper">
+
+
+    <insert id="insertBatch">
+        insert into t_car values
+        <foreach collection="cars" item="car" separator=",">
+            (null, #{car.carNum}, #{car.brand}, #{car.guidePrice}, #{car.produceTime}, #{car.carType})
+        </foreach>
+    </insert>
+
+    <!--
+        <foreach> 标签的属性:
+            collection：指定数组或者集合
+            item：代表数组或集合中的元素
+            separator：循环之间的分隔符
+            open: 拼接字符串的首字符
+            close: 拼接字符串的尾字符
+    -->
+    <!--<delete id="deleteByIds">
+        delete from t_car where id in(
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+        )
+    </delete>-->
+
+    <delete id="deleteByIds">
+        delete from t_car where
+            <foreach collection="ids" item="id" separator="or">
+                id = #{id}
+            </foreach>
+    </delete>
+
+    <select id="selectByChoose" resultType="Car">
+        select * from t_car
+        <where>
+            <choose>
+                <when test="brand != null and brand != ''">
+                    brand like "%"#{brand}"%"
+                </when>
+                <when test="guidePrice != null and guidePrice != ''">
+                    guide_price > #{guidePrice}
+                </when>
+                <otherwise>
+                    car_type = #{carType}
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <update id="updateById">
+        update t_car
+        <set>
+            <if test="carNum != null and carNum != ''">car_num = #{carNum},</if>
+            <if test="brand != null and brand != ''">brand = #{brand},</if>
+            <if test="guidePrice != null and guidePrice != ''">guide_price = #{guidePrice},</if>
+            <if test="produceTime != null and produceTime != ''">produce_time = #{produceTime},</if>
+            <if test="carType != null and carType != ''">car_type = #{carType},</if>
+        </set>
+        where
+            id = #{id}
+    </update>
+
+    <select id="selectByMultiConditionWithTrim" resultType="Car">
+        select * from t_car
+        <!--
+            prefix: 加前缀
+            suffix: 加后缀
+            prefixOverrides: 删除前缀
+            suffixOverrides: 删除后缀
+        -->
+        <trim prefix="where" suffixOverrides="and|or">
+            <!--prefix="where" 是在trim标签所有内容的前面添加where-->
+            <!--suffixOverrides="and|or" 把trim标签中内容的后缀and或or去掉-->
+            <if test="brand != null and brand != ''">
+                brand like "%"#{brand}"%" and
+            </if>
+            <if test="guidePrice != null and guidePrice != ''">
+                guide_price > #{guidePrice} and
+            </if>
+            <if test="carType != null and carType != ''">
+                car_type = #{carType}
+            </if>
+        </trim>
+    </select>
+
+    <select id="selectByMultiConditionWithWhere" resultType="Car">
+        select * from t_car
+        <!--where标签是专门负责where子句动态生成的-->
+        <where>
+            <if test="brand != null and brand != ''">
+                and brand like "%"#{brand}"%"
+            </if>
+            <if test="guidePrice != null and guidePrice != ''">
+                and guide_price > #{guidePrice}
+            </if>
+            <if test="carType != null and carType != ''">
+                and car_type = #{carType}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByMultiCondition" resultType="Car">
+        select * from t_car where 1 = 1
+        <!--
+            1. if标签中的test属性是必须的
+            2. if标签中的test属性的值是true或false
+            3. 如果test是true，则if标签中的sql语句就会拼接，反之不会拼接。
+            4. test属性中可以是用的是：
+                当使用了@Param注解，则test中要出现注解指定的参数名。比如@Param("brand")，属性只能使用brand。
+                当没有使用@Param注解，则test中使用默认参数名：param1, param2, arg0, arg1...
+                当使用了POJO类，则test中要使用POJO类的属性名。
+            5. 在mybatis的动态SQL中，需要连接时不能使用&&，只能使用and。
+        -->
+        <if test="brand != null and brand != ''">
+            and brand like "%"#{brand}"%"
+        </if>
+        <if test="guidePrice != null and guidePrice != ''">
+            and guide_price > #{guidePrice}
+        </if>
+        <if test="carType != null and carType != ''">
+            and car_type = #{carType}
+        </if>
+    </select>
+</mapper>
