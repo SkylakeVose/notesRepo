@@ -5845,3 +5845,21 @@ public void testInsertBatch() {
 
 # 十三、MyBatis的高级映射及延迟加载
 
+我们先准备一个数据库表：班级表`t_clazz`和学生表`t_stu`。
+
+![image-20260326172753464](mybatis.assets/image-20260326172753464.png)
+
+
+
+再来新建一个项目`mybatis-010-advanced-mapping`。
+
+![image-20260327162015309](mybatis.assets/image-20260327162015309.png)
+
+
+
+其他文件与之前项目基本一致，但是`StudentMapper.class`中的`clazz`属性先别写。
+
+<img src="mybatis.assets/image-20260327162638269.png" alt="image-20260327162638269" style="zoom:80%;" />
+
+
+
