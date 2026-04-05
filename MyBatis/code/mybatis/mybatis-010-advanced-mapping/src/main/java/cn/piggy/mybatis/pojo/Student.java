@@ -3,9 +3,19 @@ package cn.piggy.mybatis.pojo;
 /**
  * 学生信息
  */
-public class Student {
+public class Student {  // Student是多的一方
     private Integer sid;
     private String sname;
+    private Clazz clazz;    // Clazz是少的一方
+
+    @Override
+    public String toString() {
+        return "Student{" +
+                "sid=" + sid +
+                ", sname='" + sname + '\'' +
+                ", clazz=" + clazz +
+                '}';
+    }
 
     public Student() {
     }
@@ -15,12 +25,12 @@ public class Student {
         this.sname = sname;
     }
 
-    @Override
-    public String toString() {
-        return "Student{" +
-                "sid=" + sid +
-                ", sname='" + sname + '\'' +
-                '}';
+    public Clazz getClazz() {
+        return clazz;
+    }
+
+    public void setClazz(Clazz clazz) {
+        this.clazz = clazz;
     }
 
     public Integer getSid() {
