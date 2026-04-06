@@ -25,6 +25,12 @@ public class Student {  // Student是多的一方
         this.sname = sname;
     }
 
+    public Student(Integer sid, String sname, Clazz clazz) {
+        this.sid = sid;
+        this.sname = sname;
+        this.clazz = clazz;
+    }
+
     public Clazz getClazz() {
         return clazz;
     }

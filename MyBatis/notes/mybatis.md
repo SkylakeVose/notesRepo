@@ -5879,7 +5879,7 @@ public void testInsertBatch() {
 
 
 
-案例：在班级和学生表中，我们先设定学生表`t_student`为多的一方，班级表`t_clazz`为少的一方。
+案例：查询学生信息及其所在的班级信息。在班级和学生表中，我们先设定学生表`t_student`为多的一方，班级表`t_clazz`为少的一方。
 
 
 
@@ -5917,3 +5917,111 @@ public void testInsertBatch() {
 
 ### 13.1.2 association
 
+新增映射方法：
+
+![image-20260406154824200](mybatis.assets/image-20260406154824200.png)测试部分：
+
+![image-20260406154910776](mybatis.assets/image-20260406154910776.png)
+
+
+
+### 13.1.3 分步查询
+
+![image-20260406161532383](mybatis.assets/image-20260406161532383.png)
+
+![image-20260406161705830](mybatis.assets/image-20260406161705830.png)
+
+
+
+**分布查询的优点：**
+
+1. 复用性增强，可以重复利用。将大步拆成若干小步，每个小步都可以重复利用。
+2. 采用分布查询，可以充分利用他们的延迟加载/懒加载机制。
+
+
+
+## 13.2 多对一：延迟加载
+
+**什么是延迟加载（懒加载），有什么用？**
+
++ 延迟加载的核心原理是：用的时候再执行查询语句，不用的时候不查询。
++ 作用：提高性能。尽可能的不查，或者说尽可能的少查，来提高效率。
+
+
+
+**在mybatis中怎么开启延迟加载？**
+
++ 局部开启延迟加载：
+
+  在`association`标签中添加`fetchType="lazy"`，默认情况下是不开启延迟加载的。
+
+  <img src="mybatis.assets/image-20260406193554066.png" alt="image-20260406193554066"  />
+
+  测试结果：
+
+  <img src="mybatis.assets/image-20260406193929959.png" alt="image-20260406193929959" style="zoom:80%;" />
+
++ 全局开启延迟加载：
+
+  局部延迟加载只对当前的`resultMap`范围有效，如果要想开启全局延迟加载机制，需要设置mybatis配置文件中添加设置：
+
+  ```xml
+  <setting name="lazyLoadingEnabled" value="true"/>
+  ```
+
+  
+
+  ![image-20260406194404698](mybatis.assets/image-20260406194404698.png)
+
+  ![image-20260406194428249](mybatis.assets/image-20260406194428249.png)
+
+  在实际开发中，大部分都是需要使用延迟加载的，所以建议开启全局的延迟加载机制。
+
++ 开启全局延迟加载，部分方法不开启：
+
+  可以在配置文件中设置开启全局加载，不需要加载的方法添加`fetchType="eager"`来关闭延迟加载。
+
+  这也是大部分开发情况下的设置。
+
+  ![image-20260406194915811](mybatis.assets/image-20260406194915811.png)
+
+
+
+## 13.3 一对多
+
+案例：查询某个班级中的所有学生信息。班级表`t_clazz`为一的一方，学生表`t_student`为多的一方。
+
+<img src="mybatis.assets/image-20260406220946262.png" alt="image-20260406220946262" style="zoom:80%;" />
+
+
+
+先补充班级类`clazz`类中用于学生信息的列表集合。
+
+![image-20260406221135399](mybatis.assets/image-20260406221135399.png)
+
+
+
+如上所示，一对多的实现，通常在一的一方中有`List`集合属性。
+
+一对多的实现通常有两种方式：
+
+1. collection
+2. 分步查询
+
+
+
+### 13.3.1 collection
+
+![image-20260406221418458](mybatis.assets/image-20260406221418458.png)
+
+![image-20260406221522466](mybatis.assets/image-20260406221522466.png)
+
+
+
+### 13.3.2 分步查询
+
+![image-20260406224332599](mybatis.assets/image-20260406224332599.png)![image-20260406224411508](mybatis.assets/image-20260406224411508.png)
+
+
+
+同样的，当开启延迟加载时，
