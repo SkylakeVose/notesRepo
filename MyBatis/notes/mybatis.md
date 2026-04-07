@@ -6024,4 +6024,18 @@ public void testInsertBatch() {
 
 
 
-同样的，当开启延迟加载时，
+
+
+## 13.4 一对多：延迟加载
+
+同样的，有两种方式开启延迟加载：
+
++ 第一种：`fetchType="lazy"。`
++ 第二种：修改全局的配置setting，`lazyLoadingEnabled=true`，如果开启全局延迟加载，想让某个sql不使用延迟加载：`fetchType="eager"`。
+
+
+
+
+
+# 十四、MyBatis缓存
+
