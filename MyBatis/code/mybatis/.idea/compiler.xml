@@ -16,6 +16,7 @@
         <module name="junit-test" />
         <module name="mybatis-006-antic" />
         <module name="mybatis-004-web" />
+        <module name="mybatis-011-cache" />
         <module name="mybatis-002-curd" />
         <module name="parse-xml-by-dom4j" />
         <module name="mybatis-008-select" />

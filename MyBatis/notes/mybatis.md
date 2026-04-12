@@ -6039,3 +6039,115 @@ public void testInsertBatch() {
 
 # 十四、MyBatis缓存
 
+缓存：cache
+
+缓存的作用：通过减少IO的方式，来提高程序的执行效率。
+
+![image-20260412114744944](mybatis.assets/image-20260412114744944.png)
+
+
+
+mybatis的缓存：将select语句的查询结果放到缓存（内存）当中，下一次还是这条select语句的话，直接从缓存中取，不再查数据库。一方面是减少了IO。另一方面不再执行繁琐的查找算法。效率大大提升。
+
+> 如果在两次相同查询之间使用了增删改操作，myBatis会立即将该缓存失效。
+
+
+
+mybatis缓存包括：
+
++ 一级缓存：将查询到的数据存储到SqlSession中。
++ 二级缓存：将查询到的数据存储到SqlSessionFactory中。
++ 或者集成其它第三方的缓存：比如EhCache【Java语言开发的】、Memcache【C语言开发的】等。
+
+
+
+**缓存只针对于DQL语句，也就是说缓存机制只对应select语句。**
+
+
+
+我们新建项目`mybatis-011-cache`（开启驼峰命名），并在此作测试：
+
+![image-20260412121339831](mybatis.assets/image-20260412121339831.png)
+
+
+
+## 14.1 一级缓存
+
+一级缓存默认是开启的。不需要做任何配置。
+
+原理：只要使用同一个SqlSession对象执行同一条SQL语句，就会走缓存。
+
+
+
+### 14.1.1 一级缓存测试
+
+**测试1 使用同一个mapper对象查询：**
+
+代码：
+
+```java
+public interface CarMapper {
+    /**
+     * 根据id获取汽车信息
+     * @param id
+     * @return
+     */
+    Car selectById(Long id);
+}
+```
+
+```xml
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.piggy.mybatis.mapper.CarMapper">
+    <select id="selectById" resultType="Car">
+        select * from t_car where id = #{id}
+    </select>
+</mapper>
+```
+
+```java
+public class CarMapperTest {
+
+    @Test
+    public void testSelectById() {
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+
+        Car car1 = mapper.selectById(2L);
+        System.out.println(car1);
+
+        Car car2 = mapper.selectById(2L);
+        System.out.println(car2);
+
+        sqlSession.close();
+    }
+}
+```
+
+运行测试：
+
+<img src="mybatis.assets/image-20260412122944911.png" alt="image-20260412122944911" style="zoom:80%;" />
+
+
+
+
+
+**测试2 使用不同的SqlSession对象查询：**
+
+<img src="mybatis.assets/image-20260412123435730.png" alt="image-20260412123435730" style="zoom:80%;" />
+
+
+
+**测试3 使用不同的SqlSession对象查询：**
+
+<img src="mybatis.assets/image-20260412124102812.png" alt="image-20260412124102812" style="zoom:80%;" />
+
+
+
+
+
+### 14.1.2 一级缓存失效
+
