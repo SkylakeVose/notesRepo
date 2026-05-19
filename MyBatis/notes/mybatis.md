@@ -6151,3 +6151,112 @@ public class CarMapperTest {
 
 ### 14.1.2 一级缓存失效
 
+根据上面的测试，我们能够知道mybatis在什么情况下不走缓存：
+
+1. 使用了不同的SqlSession对象。
+2. 查询条件不一样。
+
+
+
+但mybatis的一级缓存失效，主要有以下两种情况：
+
+1. 两次DQL查询之间，手动清空了一级缓存。
+
+   ```java
+   // 手动清空一级缓存
+   sqlSession.clearCache();
+   ```
+
+2. 两次DQL查询之间，执行了增删改操作。（这个增删改跟处理那张表没有关系，只要有INSERT、DELETE或UPDATE操作，一级缓存就会失效。）
+
+   
+
+测试：
+
+<img src="mybatis.assets/image-20260519135127491.png" alt="image-20260519135127491" style="zoom:80%;" />
+
+
+
+
+
+## 14.2 二级缓存
+
+二级缓存的作用范围是`SqlSessionFactory`。
+
+使用二级缓存需要满足以下几个条件：
+
+1. 配置设置`cacheEnabled`使能，默认开启。
+
+   <img src="mybatis.assets/image-20260519135946336.png" alt="image-20260519135946336" style="zoom:80%;" />
+
+2. 在需要使用二级缓存的`SqlMapper.xml`文件中添加配置：`<cache/>`
+
+3. 使用二级缓存的实体类对象必须是可序列化的，也就是必须实现`java.io.Serializable`接口
+
+4. `SqlSession`对象关闭或提交之后，一级缓存中的数据才会被写入到二级缓存当中。此时二级缓存才可用。
+
+
+
+### 14.2.1 二级缓存测试
+
+`cacheEnable`默认是开启状态，我们使用`Car`类相关文件进行测试。
+
+在`CarMapper.xml`中使用二级缓存，在该文件中添加`<cache/>`标签：
+
+<img src="mybatis.assets/image-20260519140340975.png" alt="image-20260519140340975"  />
+
+在`Car.class`中实现序列化接口：
+
+<img src="mybatis.assets/image-20260519140430307.png" alt="image-20260519140430307"  />
+
+依旧使用`selectById(Long id)`进行两次相同条件的查询。
+
+
+
+**测试一：两次查询之间没有关闭sqlSession1对象。**
+
+![image-20260519141936191](mybatis.assets/image-20260519141936191.png)
+
+
+
+**测试二：两次查询之间关闭了sqlSession1对象。**
+
+![image-20260519142339010](mybatis.assets/image-20260519142339010.png)
+
+
+
+
+
+### 14.2.2 二级缓存失效
+
+只要两次查询之间有执行增删改操作，二级缓存就会失效。（一级缓存也会失效）
+
+
+
+
+
+### 14.2.3 二级缓存相关配置
+
+![image-20260519152203973](mybatis.assets/image-20260519152203973.png)
+
+主要配置介绍：
+
+1. **eviction**：指定从缓存中移除某个对象的淘汰算法。默认采用LRU策略。
+   1. LRU：Least Recently Used。最近最少使用。优先淘汰在间隔时间内使用频率最低的对象。(其实还有一种淘汰算法LFU，最不常用。)
+   2. FIFO：First In First Out。一种先进先出的数据缓存器。先进入二级缓存的对象最先被淘汰。
+   3. SOFT：软引用。淘汰软引用指向的对象。具体算法和JVM的垃圾回收算法有关。
+   4. WEAK：弱引用。淘汰弱引用指向的对象。具体算法和JVM的垃圾回收算法有关。
+2. **flushInterval**：
+   1. 二级缓存的刷新时间间隔。单位毫秒。如果没有设置。就代表不刷新缓存，只要内存足够大，一直会向二级缓存中缓存数据。除非执行了增删改。
+3. **readOnly**：
+   1. true：多条相同的sql语句执行之后返回的对象是共享的同一个。性能好。但是多线程并发可能会存在安全问题。
+   2. false：多条相同的sql语句执行之后返回的对象是副本，调用了clone方法。性能一般。但安全。
+4. **size**：
+   1. 设置二级缓存中最多可存储的java对象数量。默认值1024。
+
+
+
+
+
+## 14.3 Mybatis继承EhCache
+

@@ -1,9 +1,11 @@
 package cn.piggy.mybatis.pojo;
 
+import java.io.Serializable;
+
 /**
  * 封装汽车相关信息的POJO类，普通的java类
  */
-public class Car {
+public class Car implements Serializable {
     // 数据库表中的字段应该和POJO类的属性一一对应
 
     // 建议使用包装类，防止遇到null的问题
