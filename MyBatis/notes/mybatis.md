@@ -869,7 +869,7 @@ public class SqlSessionUtil {
 
 
 
-# 三、使用MyBatis完成CRUD
+# 三、使用MyBatis完成CURD
 
 先做一些准备工作，创建一个新的模块`mybatis-002-curd`，并拉取他们的依赖、各种配置文件、工具类`SqlSessionUtil`和测试用例`CarMapperTest`：
 
@@ -4121,7 +4121,7 @@ AccountDao accountDao = sqlSession.getMapper(AccountDao.class);
 
 
 
-**示例3**：模糊查询`like`
+**示例4**：模糊查询`like`
 
 需求：根据汽车品牌进行模糊查询
 
