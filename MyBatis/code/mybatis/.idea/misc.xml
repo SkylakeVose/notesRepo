@@ -20,7 +20,14 @@
         <option value="$PROJECT_DIR$/mybatis-009-dynamic-sql/pom.xml" />
         <option value="$PROJECT_DIR$/mybatis-010-advanced-mapping/pom.xml" />
         <option value="$PROJECT_DIR$/mybatis-011-cache/pom.xml" />
+        <option value="$PROJECT_DIR$/mybatis-012-generator1/pom.xml" />
+        <option value="$PROJECT_DIR$/mybatis-013-generator2/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/mybatis-012-generator1/mybatis-013-generator2/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="JDK17" project-jdk-type="JavaSDK">
