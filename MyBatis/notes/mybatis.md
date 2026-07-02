@@ -6594,3 +6594,159 @@ public class CarMapperTest {
 
 # 十六、MyBatis使用PageHelper
 
+在与前端的交互过程中，传递页码信息主要有两个参数：
+
++ 页码`pageNum`（用户会发送请求，携带页码pageNum给服务器）
++ 每页显示的记录条数`pageSize`，例如百度默认就是每页展示10条记录。
+
+实际上每一次在进行分页请求发送的时候，都是要发送两个数据的，前端提交表单的话，数据格式为：
+
+> uri?pageNum-1&pageSize-10
+
+
+
+## 16.1 limit分页
+
+关于mysql当中的分页sql应该怎么写？使用`limit`关键字。
+
+**limit语法格式：**
+
++ `limit`开始下标，显示的记录条数
++ `limit startIndex, pageSize`
+
+```sql
+select * from t_car limit 0, 3;
+select * from t_car limit 2;	// 跟下面sql语句是等效的
+select * from t_car limit 0, 2;	
+```
+
+mysql当中起始行的下标从0开始。第一条记录的下标是0.
+
+
+
+mysql的`limit`后面两个数字：
+
++ 第一个数字：`startIndex`（起始下标。下标从0开始。）
++ 第二个数字：`pageSize`（每页显示的记录条数）
+
+
+
+动态获取初始下表的规则推演：
+
+> 假设每页显示3条记录
+>
+> + 第1页:limit 0, 3	(0 12)
+> + 第2页:limit 3, 3    (3 4 5)
+> + 第3页:limit 6, 3    (6 7 8)
+> + 第4页:limit 9, 3    (9 10 11)
+> + 。。。。。。
+>
+> 假设每页显示pageSize条记录:
+>
+> 第pageNum页：`limit (pageNum-1)*pageSize, pageSize`
+>
+> //每页显示的记录条数
+> int pageSize = 3;
+>
+> //页码
+> int pageNum = 10;
+>
+> //起始下标
+> int startIndex(pageNum-1)pageSize;
+
+因此已知页码pageNum，还有每页显示的记录条数pageSize，第一个数字（起始下标）就可以动态去获取：
+
+```java
+// 起始下标
+int startIndex = (pageNum - 1) * pageSize
+```
+
+
+
+
+
+所以，标准通用的mysql分页SQL：
+
+```sql
+select 
+  * 
+from 
+  tableName ...... 
+limit 
+  (pageNum - 1) * pageSize, pageSize
+```
+
+
+
+使用mybatis应该怎么做？
+
+
+
+## 16.2 使用mybatis进行分页
+
+我们新建个项目，把相关的配置文件都拉去下来。
+
+![image-20260702174937031](mybatis.assets/image-20260702174937031.png)
+
+
+
+编写函数；
+
+```java
+public interface CarMapper {
+    /**
+     * 分页查询
+     * @param startIndex 起始下标
+     * @param pageSize  每页显示的分页条数
+     * @return
+     */
+    List<Car> selectByPage(@Param("startIndex") Integer startIndex, @Param("pageSize") Integer pageSize);
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.piggy.mybatis.mapper.CarMapper">
+
+    <select id="selectByPage" resultType="Car">
+        select * from t_car limit #{startIndex}, #{pageSize}
+    </select>
+
+</mapper>
+```
+
+测试函数：
+
+```java
+public class CarMapperTest {
+
+    @Test
+    public void testSelectByPage() {
+        // 每页显示的记录条数
+        int pageSize = 3;
+        // 页码
+        int pageNum = 2;
+        // 计算起始下标
+        int startIndex = (pageNum - 1) * pageSize;
+
+        SqlSession sqlSession = SqlSessionUtil.openSession();
+        CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+        List<Car> cars = mapper.selectByPage(startIndex, pageSize);
+        cars.forEach(System.out::println);
+    }
+}
+```
+
+执行结果：
+
+
+
+获取数据不难，难的是获取分页相关的数据比较难。可以借助mybatis的PageHelper插件。
+
+
+
+## 16.3 使用pageHelper进行分页

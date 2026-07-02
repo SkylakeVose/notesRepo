@@ -6,6 +6,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="mybatis-014-page" />
         <module name="mybatis-005-curd2" />
         <module name="mybatis-009-dynamic-sql" />
         <module name="godbatis" />

@@ -22,6 +22,7 @@
         <option value="$PROJECT_DIR$/mybatis-011-cache/pom.xml" />
         <option value="$PROJECT_DIR$/mybatis-012-generator1/pom.xml" />
         <option value="$PROJECT_DIR$/mybatis-013-generator2/pom.xml" />
+        <option value="$PROJECT_DIR$/mybatis-014-page/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
