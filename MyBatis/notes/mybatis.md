@@ -6743,6 +6743,8 @@ public class CarMapperTest {
 
 执行结果：
 
+![image-20260703172837450](mybatis.assets/image-20260703172837450.png)
+
 
 
 获取数据不难，难的是获取分页相关的数据比较难。可以借助mybatis的PageHelper插件。
@@ -6750,3 +6752,248 @@ public class CarMapperTest {
 
 
 ## 16.3 使用pageHelper进行分页
+
+使用PageHelper插件进行分页，更加的便捷。
+
+**第一步：引入依赖：**
+
+```xml
+<dependency>
+    <groupId>com.github.pagehelper</groupId>
+    <artifactId>pagehelper</artifactId>
+    <version>5.3.1</version>
+</dependency>
+```
+
+**第二步：在mybatis配置文件中配置插件：**
+
+```xml
+<plugins>
+    <plugin interceptor="com.github.pagehelper.PageInterceptor"></plugin>
+</plugins>
+```
+
+![image-20260703174257250](mybatis.assets/image-20260703174257250.png)
+
+**第三步：编写java代码：**
+
+```java
+// CarMapper.java
+/**
+* 	查询所有的Car，通过分页查询擦火箭PageHelper完成
+* 	@return
+*/
+List<Car> selectAll();
+```
+
+```xml
+// CarMapper.xml
+<select id="selectAll" resultType="Car">
+    select * from t_car
+</select>
+```
+
+测试代码：
+
+> 需要在查询SQL执行之前启动分页功能
+
+```java
+// CarMapperTest.java
+@Test
+public void testSelectAll() {
+    SqlSession sqlSession = SqlSessionUtil.openSession();
+    CarMapper mapper = sqlSession.getMapper(CarMapper.class);
+
+    // 执行SQL之前，开启分页功能
+    int pageNum = 2;
+    int pageSize = 3;
+    PageHelper.startPage(pageNum, pageSize);
+
+    List<Car> cars = mapper.selectAll();
+    cars.forEach(System.out::println);
+    sqlSession.close();
+}
+```
+
+执行结果：
+
+![image-20260703174613824](mybatis.assets/image-20260703174613824.png)
+
+
+
+
+
+## 16.4 使用pageHelper获取分页信息
+
+在查询SQL执行完成之后，可以new一个`pageInfo`对象来封装获取到的分页信息。
+
+![image-20260703180930592](mybatis.assets/image-20260703180930592.png)
+
+
+
+执行之后我们可以获得分页信息：
+
+```json
+PageInfo{
+    pageNum=2, pageSize=3, size=3, startRow=4, endRow=6, total=7, pages=3, 
+    list=Page{count=true, pageNum=2, pageSize=3, startRow=3, endRow=6, total=7, pages=3, reasonable=false, pageSizeZero=false}		[
+        Car{id=4, carNum='1004', brand='宝马mini', guidePrice=20.0, produceTime='2021-09-30', carType='燃油车'}, 
+		Car{id=5, carNum='1005', brand='沃尔沃XC50', guidePrice=70.0, produceTime='2024-10-05', carType='燃油车'}, 
+		Car{id=6, carNum='1006', brand='比亚迪 海豹', guidePrice=22.0, produceTime='2023-05-10', carType='新能源'}
+	], 
+	prePage=1, nextPage=3, isFirstPage=false, isLastPage=false, hasPreviousPage=true, hasNextPage=true, 
+	navigatePages=5, navigateFirstPage=1, navigateLastPage=3, navigatepageNums=[1, 2, 3]
+}
+```
+
+
+
+获取的PageInfo对象信息可以存储到request域中，给前端渲染相应的分页组件样式。
+
+
+
+**关于pageInfo对象构造函数中的`navigatePages`的作用：**
+
+> `navigatePages`的主要作用是**控制导航栏显示多少页码**。
+>
+> 这个参数决定了 UI 界面上分页导航条显示的页码数量，通常设为**奇数**（如 5 或 7）。它最终会影响 `PageInfo` 对象里的这两个属性：
+>
+> - **`navigatePages`**：就是你传入的这个参数值，表示导航栏的页码总数。
+> - **`navigatepageNums`**：是一个 `int[]` 数组，里面存放的是**根据当前页和 `navigatePages` 计算出来，要在导航栏上具体显示的页码列表**。
+>
+> 
+>
+> 底层计算逻辑大致如下：
+>
+> - **情况一：总页数 ≤ `navigatePages`**
+>   显示所有页码。例如总页数只有 3 页，`navigatePages=5`，则 `navigatepageNums = [1, 2, 3]`。
+> - **情况二：总页数 > `navigatePages`**
+>   会以当前页为中心，显示 `navigatePages` 个页码，并处理边界情况：
+>   - **中间页**：当前页在中间，如总页数 20，当前第 10 页，`navigatePages=5`，则显示 `[8, 9, 10, 11, 12]`。
+>   - **靠近首页**：当前页靠近开头，如当前第 2 页，`navigatePages=5`，则显示 `[1, 2, 3, 4, 5]`。
+>   - **靠近末页**：当前页靠近结尾，如当前第 19 页，`navigatePages=5`，则显示 `[16, 17, 18, 19, 20]`。
+>
+> 
+>
+> 简单来说，这个参数就是为了让分页导航栏在页码很多时，能优雅地展示一组连续的页码，而不是把所有页码都显示出来。
+
+
+
+
+
+# 十七、MyBatis的注解式开发
+
+mybatis中也提供了注解式开发方式，采用注解可以减少Sql映射文件的配置。
+
+当然，使用注解式开发的话，sql语句是写在java程序中的，这种方式也会给sql语句的维护带来成本。
+
+官方是这么说的：
+
+> 使用注解来映射简单语句会使代码显得更加简洁，但对于稍微复杂一点的语句，Java 注解不仅力不从心，还会让你本就复杂的 SQL 语句更加混乱不堪。 因此，如果你需要做一些很复杂的操作，最好用 XML 来映射语句。
+
+
+
+使用注解编写复杂的SQL是这样的：
+
+![image-20260703183806432](mybatis.assets/image-20260703183806432.png)
+
+**原则：简单sql可以注解。复杂sql使用xml。**
+
+
+
+准备工作：新建一个新模块`mybatis-015-annotation`，目录结果跟上个模块差不多。
+
+
+
+## 17.1 @Insert
+
+```java
+// CarMapper.java
+public interface CarMapper {
+
+    @Insert(value="insert into t_car values(null,#{carNum},#{brand},#{guidePrice},#{produceTime},#{carType})")
+    int insert(Car car);
+}
+```
+
+运行测试：
+
+![image-20260703184826231](mybatis.assets/image-20260703184826231.png)
+
+
+
+
+
+## 17.2 @Delete
+
+```java
+// CarMapper.java
+
+@Delete("delete from t_car where id = #{id}")
+int deleteById(Long id);
+```
+
+运行测试：
+
+![image-20260703185027613](mybatis.assets/image-20260703185027613.png)
+
+
+
+
+
+## 17.3 @Update
+
+```java
+// CarMapper.java
+
+@Update("update t_car set car_num=#{carNum},brand=#{brand},guide_price=#{guidePrice},produce_time=#{produceTime},car_type=#{carType} where id=#{id}")
+int update(Car car);
+```
+
+运行测试：
+
+![image-20260703185508415](mybatis.assets/image-20260703185508415.png)
+
+
+
+## 17.4 @Select
+
+```java
+// CarMapper.java
+@Select("select * from t_car where id = #{id}")
+Car selectById(Long id);
+```
+
+运行测试：
+
+![image-20260703185924230](mybatis.assets/image-20260703185924230.png)
+
+
+
+## 17.5 @Results
+
+如果去掉或关闭配置文件中的驼峰命名，我们就需要对查询后的信息进行转换才能转到Car对象。
+
+![image-20260703190048599](mybatis.assets/image-20260703190048599.png)
+
+修改`@Select`函数：
+
+```java
+@Select("select * from t_car where id = #{id}")
+@Results({
+    @Result(column = "id", property = "id", id = true),
+    @Result(column = "car_num", property = "carNum"),
+    @Result(column = "brand", property = "brand"),
+    @Result(column = "guide_price", property = "guidePrice"),
+    @Result(column = "produce_time", property = "produceTime"),
+    @Result(column = "car_type", property = "carType")
+})
+Car selectById(Long id);
+```
+
+运行测试，测试结果跟17.4一致。
+
+
+
+
+

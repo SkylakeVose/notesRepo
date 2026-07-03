@@ -5,6 +5,10 @@
 
 <mapper namespace="cn.piggy.mybatis.mapper.CarMapper">
 
+    <select id="selectAll" resultType="Car">
+        select * from t_car
+    </select>
+
     <select id="selectByPage" resultType="Car">
         select * from t_car limit #{startIndex}, #{pageSize}
     </select>

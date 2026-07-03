@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.piggy</groupId>
-    <artifactId>mybatis-014-page</artifactId>
+    <artifactId>mybatis-015-annotation</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 

@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
-    <file url="file://$APPLICATION_HOME_DIR$/src/main/java" charset="UTF-8" />
-    <file url="file://$APPLICATION_HOME_DIR$/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/godbatis-test/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/godbatis-test/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/godbatis/src/main/java" charset="UTF-8" />
@@ -39,7 +37,11 @@
     <file url="file://$PROJECT_DIR$/mybatis-013-generator2/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mybatis-014-page/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mybatis-014-page/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mybatis-015-annotation/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mybatis-015-annotation/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parse-xml-by-dom4j/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parse-xml-by-dom4j/src/main/resources" charset="UTF-8" />
+    <file url="file://$APPLICATION_HOME_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$APPLICATION_HOME_DIR$/src/main/resources" charset="UTF-8" />
   </component>
 </project>

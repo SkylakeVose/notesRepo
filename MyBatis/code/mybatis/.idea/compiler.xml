@@ -17,6 +17,7 @@
         <module name="mybatis-003-configuration" />
         <module name="junit-test" />
         <module name="mybatis-006-antic" />
+        <module name="mybatis-015-annotation" />
         <module name="mybatis-004-web" />
         <module name="mybatis-011-cache" />
         <module name="mybatis-002-curd" />
