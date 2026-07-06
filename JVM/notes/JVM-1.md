@@ -220,9 +220,69 @@
 
 
 
-
-
 ## 2.3 类加载器分类
+
+JVM支持两种类型的类加载器，分别为**引导类加载器**（BootstrapClassLoader）和**自定义类加载器** （User-Defined ClassLoader）。
+
+
+
+从概念上来讲，**自定义类加载器**一般指的是程序中由开发人员自定义的一类类加载器，但是Java虚拟机规范却没有这么定义，而是**将所有派生于抽象类ClassLoader的类加载器都划分为自定义类加载器**。
+
+
+
+无论类加载器的类型如何划分，在程序中我们最常见的类加载器始终只有3个，如下所示：
+
+![image-20260706101429049](JVM-1.assets/image-20260706101429049.png)
+
+这里的四者之间的关系是包含关系。不是上层下层，也不是子父类的继承关系。
+
+
+
+**类加载器输出测试：**
+
+```java
+public class ClassLoaderTest {
+    public static void main(String[] args) {
+
+        // 获取系统类加载器
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        System.out.println(systemClassLoader);  // sun.misc.Launcher$AppClassLoader@18b4aac2
+
+        // 获取其上层:拓展类加载器
+        ClassLoader extClassLoader = systemClassLoader.getParent();
+        System.out.println(extClassLoader);     // sun.misc.Launcher$ExtClassLoader@1b6d3586
+
+        // 获取其上层：获取不到引导类加载器
+        ClassLoader bootstrapClassLoader = extClassLoader.getParent();
+        System.out.println(bootstrapClassLoader);   // null
+
+
+        // 对于用户自定义类来说：默认使用系统类加载器进行加载
+        ClassLoader classLoader = ClassLoaderTest.class.getClassLoader();
+        System.out.println(classLoader);       // sun.misc.Launcher$AppClassLoader@18b4aac2
+
+        // String类使用引导类加载器进行加载 -> Java核心类库都是
+        ClassLoader classLoader1 = String.class.getClassLoader();
+        System.out.println(classLoader1);       // null
+    }
+}
+```
+
+
+
+### 2.3.1 启动类加载器
+
+启动类加载器（引导类加载器，Bootstrap ClassLoader）
+
++ 这个类加载使用C/C++语言实现的，嵌套在JVM内部。
++ 它用来加载Java的核心库（`JAVA HOME/jre/lib/rt.jar`、`resources.jar`或`sun.boot.class.path`路径下的内容），用于提供JVM自身需要的类。
++ 并不继承自`java.lang.ClassLoader`，没有父加载器。
++ 加载扩展类和应用程序类加载器，并指定为他们的父类加载器。
++ 出于安全考虑，Bootstrap启动类加载器只加载包名为`java`、`javax`、`sun`等开头的类
+
+
+
+### 2.3.2 扩展类加载器
 
 
 
