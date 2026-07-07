@@ -1,4 +1,4 @@
-package cn.piggy.java;
+package cn.piggy.java1;
 
 public class ClassLoaderTest {
     public static void main(String[] args) {

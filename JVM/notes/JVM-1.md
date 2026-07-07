@@ -284,6 +284,144 @@ public class ClassLoaderTest {
 
 ### 2.3.2 扩展类加载器
 
+扩展类加载器（Extension ClassLoader）
+
++ Java语言编写, 由`sun.misc.Launcher$ExtClassLoader`实现。
++ 派生于`ClassLoader`类。
++ 父类加载器为启动类加载器。
++ 从`java.ext.dirs`系统属性所指定的目录中加载类库，或从JDK的安装目录的`jre/lib/ext`子目录（扩展目录）下加载类库。**如果用户创建的JAR放在此目录下，也会自动由扩展类加载器加载。**
+
+
+
+### 2.3.3 应用程序类加载器
+
+应用程序类加载器（系统类加载器，AppClassLoader）
+
++ java言编写, 由`sun.misc.Launcher$AppClassLoader`实现。
++ 派生于`ClassLoader`类。
++ 父类加载器为扩展类加载器。
++ 它负责加载环境变量`classpath`或系统属性`java.class.path`指定路径下的类库。
++ **该类加载是程序中默认的类加载器**，一般来说，Java应用的类都是由它来完成加载。
++ 通过`classLoader#getSystemclassLoader()`方法可以获取到该类加载器。
+
+
+
+
+
+### 2.3.4 类加载器测试及注意事项
+
+1. 获取引导类加载器能加载的api路径
+
+   ```java
+   public class ClassLoaderTest1 {
+       public static void main(String[] args) {
+           System.out.println("=====启动类加载器=====");
+           // 获取BootstrapClassLoader能够加载的api的路径
+           URL[] urLs = Launcher.getBootstrapClassPath().getURLs();
+           for (URL urL : urLs) {
+               System.out.println(urL);
+           }
+       }
+   }
+   ```
+
+   测试结果：
+
+   ![image-20260707101726116](JVM-1.assets/image-20260707101726116.png)
+
+   其中`rt.jar`加载的是java中的常用类库（如String等）。
+
+   随便找一个加载进来的库里的类，看其类加载器是否是引导类加载器？
+
+   ![image-20260707102305618](JVM-1.assets/image-20260707102305618.png)
+
+   
+
+2. 获取扩展类加载器能加载的api路径
+
+   ```java
+   System.out.println("=====扩展类加载器=====");
+   String extDirs = System.getProperty("java.ext.dirs");
+   for (String path : extDirs.split(";")) {
+       System.out.println(path);
+   }
+   ```
+
+   测试结果：
+
+   ![image-20260707102835182](JVM-1.assets/image-20260707102835182.png)
+
+   随便找一个加载进来的库里的类，看其类加载器是否是引导类加载器？
+
+   ![image-20260707104241758](JVM-1.assets/image-20260707104241758.png)
+
+
+
+
+
+### 2.3.5 用户自定义类加载器（了解）
+
+用户自定义类加载器：
+
++ 在Java的日常应用程序开发中，类的加载几乎是由上述3种类加载器相互配合执行的，在必要时，我们还可以自定义类加载器，来定制类的加载方式。
++ 为什么要自定义类加载器？
+  + 隔离加载类
+  + 修改类加载的方式
+  + 扩展加载源
+  + 防止源码泄漏
+
+
+
+**用户自定义类加载器实现步骤：**
+
+1. 开发人员可以通过继承抽象类`java.lang.ClassLoader`类的方式，实现自己的类加载器，以满足一些特殊的需求。
+2. 在JDK1.2之前，在自定义类加载器时，总会去继承`ClassLoader`类并重写`loadClass()`方法，从而实现自定义的类加载类。但是在JDK1.2之后已不再建议用户去覆盖`loadClass()`方法，而是建议把自定义的类加载逻辑写在`findClass()`方法中。
+3. 在编写自定义类加载器时，如果没有太过于复杂的需求，可以直接继承`URLClassLoader`类，这样就可以避免自己去编写`findClass()`方法及其获取字节码流的方式，使自定义类加载器编写更加简洁。
+
+
+
+用户自定义类加载器的简单框架：
+
+```java
+public class CustomClassLoader extends ClassLoader {
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        try {
+            byte[] result = getClassFromCustomPath(name);
+            if (result == null) {
+                throw new FileNotFoundException();
+            } else {
+                return defineClass(name, result, 0, result.length);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        throw new ClassNotFoundException(name);
+    }
+
+    private byte[] getClassFromCustomPath(String name) {
+        // 从自定义路径中加载指定类：细节略
+        // 如果指定路径的字节码文件进行了加密，则需要在此方法中进行解密操作
+
+        return null;
+    }
+
+    public static void main(String[] args) {
+        CustomClassLoader customClassLoader = new CustomClassLoader();
+        try {
+            Class<?> clazz = Class.forName("One", true, customClassLoader);
+            Object obj = clazz.newInstance();
+            System.out.println(obj.getClass().getClassLoader());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+
+
 
 
 
