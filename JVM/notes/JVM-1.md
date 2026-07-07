@@ -424,9 +424,54 @@ public class CustomClassLoader extends ClassLoader {
 
 
 
-
-
 ## 2.4 ClassLoader的使用说明
+
+`ClassLoader`类，它是一个抽象类，其后所有的类加载器都继承自`ClassLoader`（启动类加载器除外）。
+
+![image-20260707164916970](JVM-1.assets/image-20260707164916970.png)
+
+
+
+类加载器的继承关系：
+
+<img src="JVM-1.assets/image-20260707165029846.png" alt="image-20260707165029846" style="zoom:67%;" />
+
+`sun.misc.Launcher`是一个java虚拟机的入口应用，扩展类和应用类加载器都是`Launcher`类的内部类：
+
+![image-20260707165607072](JVM-1.assets/image-20260707165607072.png)
+
+
+
+**获取类加载器的方法：**
+
+```java
+public class ClassLoaderTest2 {
+    public static void main(String[] args) {
+        try {
+            // 1. 获取当前类的ClassLoader
+            ClassLoader classLoader = Class.forName("java.lang.String").getClassLoader();
+            System.out.println(classLoader);    // null
+
+            // 2. 获取当前线程上下文的ClassLoader
+            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+            System.out.println(contextClassLoader);
+
+            // 3. 获取系统的ClassLoader
+            ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+            System.out.println(systemClassLoader);
+            // 通过系统类加载器获取应用类加载器
+            ClassLoader appClassLoader = systemClassLoader.getParent();
+            System.out.println(appClassLoader);
+
+            // 4. 获取调用者的ClassLoader(sql相关)
+            // DriverManager.getCallerClassLoader();
+
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
 
 
 
