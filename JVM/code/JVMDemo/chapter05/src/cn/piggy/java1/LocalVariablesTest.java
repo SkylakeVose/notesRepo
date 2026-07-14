@@ -11,6 +11,17 @@ public class LocalVariablesTest {
         test.test1();
     }
 
+    public LocalVariablesTest() {
+        this.count = 1;
+    }
+
+    public static void testStatic() {
+        LocalVariablesTest test = new LocalVariablesTest();
+        Date date = new Date();
+        int count = 10;
+        System.out.println(count);
+    }
+
     public void test1() {
         Date date = new Date();
         String name1 = "cn.piggy";
@@ -27,10 +38,16 @@ public class LocalVariablesTest {
     }
 
     public void test3() {
-        count++;
+        this.count++;
     }
 
     public void test4() {
-
+        int a = 0;
+        {
+            int b = 0;
+            b = a + 1;
+        }
+        // 此时的变量c占据了已经销毁的变量b的slot位置
+        int c = a + 1;
     }
 }
