@@ -50,4 +50,6 @@ public class LocalVariablesTest {
         // 此时的变量c占据了已经销毁的变量b的slot位置
         int c = a + 1;
     }
+
+
 }
