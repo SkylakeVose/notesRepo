@@ -51,5 +51,10 @@ public class LocalVariablesTest {
         int c = a + 1;
     }
 
+    public void test5Temp() {
+        int num;
+        // System.out.println(num);
+    }
+
 
 }
