@@ -1273,11 +1273,100 @@ public class StackFrameTest {
 
 
 
-
-
-
-
 ## 5.8 方法的调用：解析与分派
+
+在JVM中，将符号引用转换为调用方法的直接引用与方法的绑定机制相关。
+
++ **静态链接**：
+
+  当一个字节码文件被装载进JVM内部时，如果**被调用的目标方法在编译期可知**，且运行期保持不变时。这种情况下将调用方法的符号引用转换为直接引用的过程称之为静态链接。
+
++ **动态链接**：
+
+  如果**被调用的方法在编译期无法被确定下来**，也就是说，只能够在程序运行期将调用方法的符号引用转换为直接引用，由于这种引用转换过程具备动态性，因此也就被称之为动态链接。
+
+
+
+对应的方法的绑定机制为：早期绑定（Early Binding）和晚期绑定（Late Binding）。**绑定是一个字段、方法或者类在符号引用被替换为直接引用的过程，这仅仅发生一次**。
+
++ **早期绑定**：
+
+  早期绑定就是指被调用的**目标方法如果在编译期可知，且运行期保持不变**时，即可将这个方法与所属的类型进行绑定，这样一来，由于明确了被调用的目标方法究竟是哪一个，因此也就可以使用静态链接的方式将符号引用转换为直接引用。
+
++ **晚期绑定**：
+
+  **如果被调用的方法在编译期无法被确定下来，只能够在程序运行期根据实际的类型绑定相关的方法**，这种绑定方式也就被称之为晚期绑定。
+
+
+
+随着高级语言的横空出世，类似于Java一样的基于面向对象的编程语言如今越来越多，尽管这类编程语言在语法风格上存在一定的差别，但是它们彼此之间始终保持着一个共性，那就是都支持封装、继承和多态等面向对象特性，既然**这一类的编程语言具备多态特性，那么自然也就具备早期绑定和晚期绑定两种绑定方式**。
+
+Java中任何一个普通的方法其实都具备虚函数的特征，它们相当于C++语言中的虚函数（C++中则需要使用关键字`virtual`来显式定义）。如果在Java程序中不希望某个方法拥有虚函数的特征时，则可以使用关键字`final`来标记这个方法。
+
+
+
+**实例：**
+
+```java
+/**
+ * AnimalTest.java
+ * 说明早期绑定和晚期绑定的例子
+ */
+class Animal {
+    public void eat() {
+        System.out.println("动物进食"); // 早期绑定，虚方法调用：invokevirtual
+    }
+}
+
+interface Huntable {
+    void hunt();
+}
+
+class Dog extends Animal implements Huntable {
+    @Override
+    public void eat() {
+        System.out.println("狗吃骨头");
+    }
+
+    @Override
+    public void hunt() {
+        System.out.println("狗抓耗子，多管闲事");
+    }
+}
+
+class Cat extends Animal implements Huntable {
+
+    public Cat() {
+        super(); // 调用父类空参构造方法（已经确定，早期绑定：invokespecial）
+    }
+
+    public Cat(String name) {
+        this(); // 调用本类空参构造方法（已经确定，早期绑定：invokespecial）
+    }
+
+    @Override
+    public void eat() {
+        System.out.println("猫吃鱼");
+    }
+
+    @Override
+    public void hunt() {
+        System.out.println("猫抓老鼠，天经地义");
+    }
+}
+
+public class AnimalTest {
+    public void showAnimal(Animal animal) {
+        animal.eat();   // 表现为：晚期绑定，invokevirtual
+    }
+
+    public void showHunt(Huntable h) {
+        h.hunt();       // 表现为：晚期绑定，invokeinterface
+    }
+}
+```
+
+
 
 
 
