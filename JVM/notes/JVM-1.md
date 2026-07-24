@@ -1387,6 +1387,104 @@ public class AnimalTest {
 
 
 
+虚拟机中提供了以下几条方法调用指令：
+
++ 普通调用指令:
+  1. `invokestatic`：调用静态方法，解析阶段确定唯一方法版本。
+  2. `invokespecial`：调用`<init>`方法、私有及父类方法，解析阶段确定唯一方法版本。
+  3. `invokevirtual`：调用所有虚方法。
+  4. `invokeinterface`：调用接口方法。
++ 动态调用指令：
+  5. `invokedynamic`：动态解析出需要调用的方法，然后执行。
+
+
+
+前四条指令固化在虚拟机内部，方法的调用执行不可人为干预，而invokedynamic指令则支持由用户确定方法版本。**其中`invokestatic`指令和`invokespecial`指令调用的方法称为非虚方法，其余的（final修饰的除外）称为虚方法**。
+
+
+
+**演示：**不同方法的调用
+
+```java
+class Father {
+    public Father() {
+        System.out.println("father的构造器");
+    }
+
+    public static void showStatic(String str) {
+        System.out.println("father " + str);
+    }
+
+    public final void showFinal() {
+        System.out.println("father show final");
+    }
+
+    public void showCommon() {
+        System.out.println("father 普通方法");
+    }
+}
+
+public class Son extends Father {
+    public Son() {
+        // invokespecial
+        super();
+    }
+
+    public Son(int age) {
+        // invokespecial
+        this();
+    }
+
+    // 不是重写的父类的静态方法，因此静态方法不能被重写！
+    public static void showStatic(String str) {
+        System.out.println("Son " + str);
+    }
+
+    private void showPrivate(String str) {
+        System.out.println("son private " + str);
+    }
+
+    public void show() {
+        // invokestatic
+        showStatic("PIGGY");
+        // invokestatic
+        super.showStatic("good!");
+        // invokestatic
+        showPrivate("hello!");
+        // invokestatic
+        super.showCommon();
+
+        // invokevirtual（虽然调用了invokevirtual，但仍是非虚方法）
+        showFinal();
+        // 如果指定调用父类的final方法，则是调用了invokespecial
+        super.showFinal();
+
+        // 以下都为invokevirtual（虚方法）
+        showCommon();
+        info();
+
+        MethodInterface in = null;
+        in.methodA();   // invokeinterface（虚方法）
+    }
+
+    public void info() {
+    }
+
+    public void display(Father f) {
+        f.showCommon();
+    }
+
+    public static void main(String[] args) {
+        Son son = new Son();
+        son.show();
+    }
+}
+
+interface MethodInterface {
+    void methodA();
+}
+```
+
 
 
 
