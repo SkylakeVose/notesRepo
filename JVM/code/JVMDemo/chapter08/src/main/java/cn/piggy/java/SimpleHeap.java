@@ -13,5 +13,11 @@ public class SimpleHeap {
 
         int[] arr = new int[10];
         Object[] arr1 = new Object[10];;
+
+        try {
+            Thread.sleep(1000000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

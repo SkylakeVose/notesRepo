@@ -1906,6 +1906,8 @@ Java使用起来非常方便，然而有些层次的任务用Java实现起来不
 
 ## 8.1 堆的核心概述
 
+### 8.1.1 堆概述
+
 + 一个JVM实例只存在一个堆内存，堆也是Java内存管理的核心区域。
 
 + Java 堆区在JVM 启动的时候即被创建，其空间大小也就确定了。是JVM管理的最大一块内存空间。
@@ -1943,7 +1945,7 @@ public class SimpleHeap {
         SimpleHeap simpleHeap2 = new SimpleHeap(2);
 
         int[] arr = new int[10];
-        Object[] arr1 = new Object[10];;
+        Object[] arr1 = new Object[10];
     }
 }
 ```
@@ -1960,9 +1962,140 @@ public class SimpleHeap {
 
 
 
+### 8.1.2 内存细分概述
+
+现代垃圾收集器大部分都基于分代收集理论设计，堆空间细分为：
+
++ JDK 7 及之前堆内存逻辑上分为三个部分：
+  + **新生区**（Young Generation Space, Young/New）
+    + 新生区又划分为Eden区和Survivor区。
+  + **养老区**（Tenure generation Space, Old/Tenure）
+  + <font color="red">**永久区**</font>（Permanent Space, Perm）
++ JDK 8 及之后堆内存逻辑上分为三个部分：
+  + **新生区**（Young Generation Space, Young/New）
+    + 新生区又划分为Eden区和Survivor区。
+  + **养老区**（Tenure generation Space, Old/Tenure）
+  + <font color="red">**元空间**</font>（Meta Space, Meta）
+
+
+
+约定：同一个区可能有不同的叫法
+
+>+ 新生区 === 新生代 === 年轻代
+>+ 养老区 === 老年区 === 老年代
+>+ 永久区 === 永久代
+
+
+
+**演示-通过`jvisualvm`查看内存空间分配情况：**
+
+1. 在8.1.1堆概述演示代码中加入延时代码，可以让代码卡在延时部分，更好观察当前内存现象。
+
+   ```java
+   public class SimpleHeap {
+       // ...省略
+   
+       public static void main(String[] args) {
+           SimpleHeap simpleHeap1 = new SimpleHeap(1);
+           SimpleHeap simpleHeap2 = new SimpleHeap(2);
+   
+           int[] arr = new int[10];
+           Object[] arr1 = new Object[10];
+           
+           // 加入延时函数
+           try {
+               Thread.sleep(1000000);
+           } catch (InterruptedException e) {
+               throw new RuntimeException(e);
+           }
+       }
+   }
+   ```
+
+2. 打开`jvisualvm`，安装`Visual GC`插件。
+
+   我们可以通过cmd输入`jvisualvm`，启动软件。
+
+   或者进入jdk8目录下，找到`jvisualvm`的位置并启动，默认在`jdk8安装路径\jdk1.8.0_201\bin\jvisualvm.exe`。
+
+   进入软件后，在菜单栏中，找到工具 -> 插件 -> 可用插件，勾选`Visual GC`并安装，等待安装完毕即可。
+
+3. 启动测试程序，并在`jvisualvm`软件->应用程序栏进入测试函数进程，点开`Visual GC`即可查看当前进程的内存分配情况。
+
+   ![image-20260803154923180](JVM-1.assets/image-20260803154923180.png)
+
+
+
+
+
+### 8.1.3 堆空间内部结构
+
++ JDK7及之前的堆结构：
+
+  <img src="JVM-1.assets/image-20260803155206212.png" alt="image-20260803155206212" style="zoom:50%;" />
+
++ JDK8及之后的堆结构：
+
+  <img src="JVM-1.assets/image-20260803155224505.png" alt="image-20260803155224505" style="zoom:50%;" />
+
+
+
+
+
+
+
+
+
+
+
 ## 8.2 设置堆内存大小与OOM
 
+### 8.2.1 堆空间大小的设置
 
++ Java堆区用于存储Java对象实例，那么堆的大小在JVM启动时就已经设定好了，大家可以通过选项`-Xmx`和`-Xms`来进行设置。
+  + `-Xms`用于表示堆区的起始内存，等价于`-XX:InitialHeapSize`；
+  + `-Xmx`则用于表示堆区的最大内存，等价于`-XX:MaxHeapSize`。
+
++ 一旦堆区中的内存大小超过`-Xmx`所指定的最大内存时，将会抛出`OutOfMemoryError`异常。
+
++ 通常会将` -Xms`和`-Xmx`两个参数配置相同的值，**其目的是为了能够在java垃圾回收机制清理完堆区后不需要重新分隔计算堆区的大小，从而提高性能**。
++ 默认情况下的堆内存大小设置：
+  + 初始内存大小：物理电脑内存大小 / 64；
+  + 最大内存大小：物理电脑内存大小 / 4。
+
+
+
+扩展：
+
+> `-Xms`和`-Xmx`的解释：
+>
+> + `-X`：是JVM的 “非标准参数”前缀。
+> + `ms`：是Memory Start的缩写，指起始内存。
+> + `mx`：是Memory Maximum的缩写，指最大内存。
+>
+> 设置堆内容大小的单位：不写（默认是字节`B`）、`k`（KB）、`m`（MB）、`g`（GB）（不区分大小写）。
+
+
+
+演示：默认情况下堆空间分配
+
+```java
+public class HeapSpaceInitial {
+    public static void main(String[] args) {
+        // 返回java虚拟机中堆内存量（换算成MB）
+        long initialMemory = Runtime.getRuntime().totalMemory() / 1024 / 1024;
+        // 返回java虚拟机中试图使用的最大堆内容量（换算成MB）
+        long maxMemory = Runtime.getRuntime().maxMemory() / 1024 / 1024;
+
+        System.out.println("-Xms: " + initialMemory + "MB");    // 491MB
+        System.out.println("-Xmx: " + maxMemory + "MB");        // 7259MB
+    }
+}
+```
+
+> 使用`Runtime`类来获取当前进行的运行时数据区对象。
+>
+> 一般情况下，系统加载系统文件会占用空间，因此jvm可以利用的空间不完全等同实际物理内存大小。
 
 
 
