@@ -2175,7 +2175,21 @@ Heap
 
 
 
+### 8.2.2 OOM说明
 
+**OOM** 全称是 **OutOfMemoryError**，是 Java 程序中一个非常严重的致命错误。它代表 **JVM 堆内存（或其他内存区域）已经被耗尽，无法再为新对象分配内存空间**。
+
+
+
+OOM的核心分类：
+
+| 错误信息                                                     | 所属区域        | 常见原因                                               |
+| :----------------------------------------------------------- | :-------------- | :----------------------------------------------------- |
+| `java.lang.OutOfMemoryError: Java heap space`                | **堆内存**      | 创建了海量对象，或内存泄漏导致无法回收。               |
+| `java.lang.OutOfMemoryError: Metaspace`                      | **元空间**      | 加载了大量类（如动态生成类）导致元空间满。             |
+| `java.lang.OutOfMemoryError: GC overhead limit exceeded`     | **堆内存**      | GC 回收时间过长（超过98%时间都在GC），但回收效果极差。 |
+| `java.lang.OutOfMemoryError: Direct buffer memory`           | **直接内存**    | NIO 操作分配的堆外内存未释放。                         |
+| `java.lang.OutOfMemoryError: Unable to create new native thread` | **栈内存/系统** | 创建的线程数量超过了操作系统限制。                     |
 
 
 
