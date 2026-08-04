@@ -2077,7 +2077,7 @@ public class SimpleHeap {
 
 
 
-演示：默认情况下堆空间分配
+**演示：默认情况下堆空间分配**
 
 ```java
 public class HeapSpaceInitial {
@@ -2089,17 +2089,99 @@ public class HeapSpaceInitial {
 
         System.out.println("-Xms: " + initialMemory + "MB");    // 491MB
         System.out.println("-Xmx: " + maxMemory + "MB");        // 7259MB
+        
+        // 延时函数
+        /*try {
+            Thread.sleep(1000000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }*/
     }
 }
 ```
 
 > 使用`Runtime`类来获取当前进行的运行时数据区对象。
 >
-> 一般情况下，系统加载系统文件会占用空间，因此jvm可以利用的空间不完全等同实际物理内存大小。
+> 一般情况下，系统加载系统文件会占用空间，因此JVM可以利用的空间都小于实际物理内存大小。
+
+
+
+
+
+**演示：自定义设置堆空间分配**
+
+继续使用`HeapSpaceInitial`类进行测试，并设置堆空间起始和最大内存为600m。
+
+![image-20260804105331391](JVM-1.assets/image-20260804105331391.png)
+
+继续执行程序，会发现输出结果和预期不一致，只有575MB：
+
+```shell
+-Xms: 575MB
+-Xmx: 575MB
+```
+
+我们可以进一步对其内存结构进行分析，除了使用`jvisulvm`，还可以使用其他方法进行查看分析。
+
+
+
+**方法1：**使用`jps` + `jstat`。（需要在代码中末尾添加延时函数，便于观察现象）
+
+```shell
+> jps		# 列出所有java进程
+# ...省略
+14608 HeapSpaceInitial	# 当前要查看的java进程
+
+> jstat -gc 14608		# 查看14608进程的gc状态(只列前八个数据)
+  S0C     S1C    S0U    S1U      EC       EU        OC         OU       
+25600.0 25600.0  0.0    0.0   153600.0  30748.0   409600.0     0.0
+```
+
+> 参数说明（单位都是KB）：
+>
+> | 参数 (Column) |       全称 / 含义       | 占用空间 |
+> | :-----------: | :---------------------: | :------: |
+> |    **S0C**    |  Survivor 0 区当前容量  |  25600   |
+> |    **S1C**    |  Survivor 1 区当前容量  |  25600   |
+> |    **S0U**    | Survivor 0 区当前使用量 |    0     |
+> |    **S1U**    | Survivor 1 区当前使用量 |    0     |
+> |    **EC**     |     Eden 区当前容量     |  153600  |
+> |    **EU**     |    Eden 区当前使用量    |  30748   |
+> |    **OC**     |     老年代当前容量      |  409600  |
+> |    **OU**     |    老年代当前使用量     |    0     |
+>
+> 堆空间总量：S0C + S1C + EC + OC = 614400KB = 600MB，是符合设置大小的。
+>
+> 但是S0和S1总会有一个处于非使用状态，因此实际可用的堆空间总量：S(0 OR 1)C + EC + OC = 588800KB = 575MB。
+
+
+
+**方法2：**添加虚拟机参数`-XX:+PrintGCDetails`。（不需要添加延时函数，程序结束会主动输出GC信息）
+
+```shell
+# HeapSpaceInitial.class 输出信息
+-Xms: 575MB
+-Xmx: 575MB
+Heap
+ PSYoungGen      total 179200K, used 39964K [0x00000000f3800000, 0x0000000100000000, 0x0000000100000000)
+  eden space 153600K, 26% used [0x00000000f3800000,0x00000000f5f07098,0x00000000fce00000)
+  from space 25600K, 0% used [0x00000000fe700000,0x00000000fe700000,0x0000000100000000)
+  to   space 25600K, 0% used [0x00000000fce00000,0x00000000fce00000,0x00000000fe700000)
+ ParOldGen       total 409600K, used 0K [0x00000000da800000, 0x00000000f3800000, 0x00000000f3800000)
+  object space 409600K, 0% used [0x00000000da800000,0x00000000da800000,0x00000000f3800000)
+ Metaspace       used 8580K, capacity 8854K, committed 9088K, reserved 1056768K
+  class space    used 1032K, capacity 1114K, committed 1152K, reserved 1048576K
+```
+
+
+
+
 
 
 
 ## 8.3 年轻代与老年代
+
+
 
 
 

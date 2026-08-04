@@ -7,7 +7,13 @@ public class HeapSpaceInitial {
         // 返回java虚拟机中试图使用的最大堆内容量（换算成MB）
         long maxMemory = Runtime.getRuntime().maxMemory() / 1024 / 1024;
 
-        System.out.println("-Xms: " + initialMemory + "MB");    // 491MB
-        System.out.println("-Xmx: " + maxMemory + "MB");        // 7259MB
+        System.out.println("-Xms: " + initialMemory + "MB");    // 575MB
+        System.out.println("-Xmx: " + maxMemory + "MB");        // 575MB
+
+        /*try {
+            Thread.sleep(1000000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }*/
     }
 }
