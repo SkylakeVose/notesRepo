@@ -2193,9 +2193,71 @@ OOM的核心分类：
 
 
 
+
+
 ## 8.3 年轻代与老年代
 
+### 8.3.1 概述
 
+存储在JVM中的Java对象可以被划分为两类：
+
++ 一类是生命周期较短的瞬时对象，这类对象的创建和消亡都非常迅速；
++ 另外一类对象的生命周期却非常长，在某些极端的情况下还能够与JVM的生命周期保持一致。
+
+Java堆区进一步细分的话，可以划分为年轻代（YoungGen）和老年代（OldGen）。
+
+其中年轻代又可以划分为`Eden`空间、`Survivor0`空间和`Survivor1`空间（有时也叫做`from`区、`to`区）。
+
+<img src="JVM-1.assets/image-20260807151642859.png" alt="image-20260807151642859" style="zoom:50%;" />
+
+
+
+### 8.3.2 设置年轻代与老年代的比例
+
+使用`-XX:NewRatio`参数可以调整堆中年轻代与老年代的比例：
+
++ 默认设置`-XX:NewRatio=2`，表示年轻代与老年代的比例为1：2；
++ 一般情况下不会调整这个参数。
+
+
+
+演示：默认与调整比例（`-XX:NewRatio=4`）的情况（堆空间设置为600m）
+
+```java
+// -Xms600m -Xmx600m
+public class EdenSurvivorTest {
+    public static void main(String[] args) {
+        System.out.println("新生区测试...");
+        try {
+            Thread.sleep(1000000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+![image-20260807154630253](JVM-1.assets/image-20260807154630253.png)
+
+
+
+
+
+### 8.3.3 设置年轻代结构的内存比例
+
++ 在HotSpot中，`Eden`空间和另外两个`Survivor`空间缺省所占的比例是**8:1:1**。
+
++ 可以通过选项`-XX:SurvivorRatio`调整这个空间比例。
+
++ 几乎所有的Java对象都是在`Eden`区被new出来的。
+
++ 绝大部分的Java对象的销毁都在新生代进行了。
+
+  > IBM公司的专门研究表明，新生代中80%的对象都是“朝生夕死”的。
+
++ 可以使用选项"-Xmn"设置新生代最大内存大小
+
+  > 这个参数一般使用默认值就可以了。
 
 
 
