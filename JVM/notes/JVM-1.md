@@ -2376,7 +2376,126 @@ JVM在进行GC时，并非每次都对上面三个内存区域（新生代、老
 
 ### 8.5.2 分代式GC策略的触发条件
 
-年轻代GC（Minor GC）触发机制：
+**年轻代GC（Minor GC）触发机制：**
+
++ 当年轻代空间不足时，就会触发`Minor GC`，这里的年轻代满指的是`Eden`区满，`Survivor`满不会触发GC。(每次`Minor GC` 会清理年轻代的内存。)
++ 因为 Java 对象大多都具备朝生夕灭的特性，所以`Minor GC`非常频繁，一般回收速度也比较快。这一定义既清晰又易于理解。
++ `Minor GC`会引发`STW`（Stop The World），暂停其它用户的线程，等垃圾回收结束，用户线
+  程才恢复运行。
+
+
+
+`Minor GC`一般过程演示图：
+
+![image-20260810102212056](JVM-1.assets/image-20260810102212056.png)
+
+
+
+
+
+**老年代GC（Major GC / Full GC）触发机制：**
+
++ 指发生在老年代的GC，对象从老年代消失时，我们说`Major Gc`或`Full GC`发生了。
+
++ 出现了`Major GC`，经常会伴随至少一次的`Minor GC` （但非绝对的，在`Parallel Scavenge`收集器的收集策略里就有直接进行`Major GC`的策略选择过程）。
+
+  >  也就是在老年代空间不足时，会先尝试触发`Minor GC`。如果之后空间还不足，则触发`Major GC`
+
++ `Major GC`的速度一般会比`Minor GC`慢10倍以上，`STW`的时间更长。
++ 如果`Major GC`后，内存还不足，就报OOM了。
+
+
+
+**Full GC触发机制：**(后面细讲)
+
+触发`Full GC`执行的情况有如下五种：
+
++ 调用`System.gc()`时，系统建议执行`Full GC`，但是不必然执行。
++ 老年代空间不足。
++ 方法区空间不足。
++ 通过`Minor GC`后进入老年代的对象大小大于老年代的可用内存。
++ `Eden`区、 `survivor`区的`from`区 向`to`区复制时，对象大小大于`to`区可用内存，将该对象转存到老年代，但老年代的可用内存也小于该对象大小。
+
+
+
+说明：**`Full GC`是开发或调优中尽量要避免的。这样暂时时间会短一些。**
+
+
+
+
+
+### 8.5.3 GC演示
+
+编写代码查看具体的GC执行情况：
+
+```java
+// -Xms9m -Xmx9m -XX:+PrintGCDetails
+public class GCTest {
+    public static void main(String[] args) {
+        int i = 0;
+        try {
+            List<String> list = new ArrayList<>();
+            String a = "hello, piggy!";
+            while(true) {
+                list.add(a);
+                a = a + a;
+                i++;
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.out.println("遍历次数: " + i);
+        }
+    }
+}
+```
+
+```shell
+# 输出结果
+# 第一次Minor GC: 
+# 	触发原因：分配失败(Allocation Failure)
+#	Parallel Scavenge 年轻代垃圾回收器(PSYoungGen)
+#		回收详情：1995K->486K(2560K)：年轻代的内存变化 >> GC前占有量(1995K) -> GC后占有量（486K），总量（2560K）
+#	总体回收：1995K->875K(9728K)：整个Java堆（年轻代 + 老年代）的内存变化 >>  GC前占有量(1995K) -> GC后占有量（875K），总量（9728K）
+#	耗时：GC执行耗时
+[GC (Allocation Failure) [PSYoungGen: 1995K->486K(2560K)] 1995K->875K(9728K), 0.0013446 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+
+# 第二次Minor GC
+[GC (Allocation Failure) [PSYoungGen: 2210K->506K(2560K)] 2599K->1515K(9728K), 0.0006727 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+
+# 第三次Minor GC
+[GC (Allocation Failure) [PSYoungGen: 1809K->368K(2560K)] 2818K->2417K(9728K), 0.0007572 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+
+# 第一次Full GC
+#	触发原因：自适应调节策略(Ergonomics)
+# 	Parallel Scavenge 年轻代垃圾回收器(PSYoungGen)
+#		回收详情：1995K->486K(2560K)：年轻代的内存变化 >> GC前占有量(2266K) -> GC后占有量（0k），总量（2560K）
+#	Parallel Scavenge 老年代垃圾回收器(ParOldGen)
+#		回收详情：7041K->5641K(7168K)：老年代的内存变化 >> GC前占有量(7041K) -> GC后占有量（5641K），总量（7168K）
+#	总体回收：1995K->875K(9728K)：整个Java堆（年轻代 + 老年代）的内存变化 >>  GC前占有量(1995K) -> GC后占有量（875K），总量（9728K）
+# 	元空间：Metaspace: 3278K->3278K(1056768K)，无变化
+#	耗时：GC执行耗时
+[Full GC (Ergonomics) [PSYoungGen: 2266K->0K(2560K)] [ParOldGen: 7041K->5641K(7168K)] 9307K->5641K(9728K), [Metaspace: 3278K->3278K(1056768K)], 0.0048652 secs] [Times: user=0.01 sys=0.00, real=0.00 secs] 
+
+# 第四次Minor GC
+[GC (Allocation Failure) [PSYoungGen: 0K->0K(2560K)] 5641K->5641K(9728K), 0.0003044 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+
+# 第二次Full GC
+# 此次老年代GC后仍不足以分配空间，进而导致OOM
+[Full GC (Allocation Failure) [PSYoungGen: 0K->0K(2560K)] [ParOldGen: 5641K->5579K(7168K)] 5641K->5579K(9728K), [Metaspace: 3278K->3278K(1056768K)], 0.0063220 secs] [Times: user=0.00 sys=0.00, real=0.01 secs] 
+遍历次数: 16
+# Full GC后也无法分配内存空间，抛出OOM
+Heap
+ PSYoungGen      total 2560K, used 175K [0x00000000ffd00000, 0x0000000100000000, 0x0000000100000000)
+  eden space 2048K, 8% used [0x00000000ffd00000,0x00000000ffd2bcf8,0x00000000fff00000)
+  from space 512K, 0% used [0x00000000fff80000,0x00000000fff80000,0x0000000100000000)
+  to   space 512K, 0% used [0x00000000fff00000,0x00000000fff00000,0x00000000fff80000)
+ ParOldGen       total 7168K, used 5579K [0x00000000ff600000, 0x00000000ffd00000, 0x00000000ffd00000)
+  object space 7168K, 77% used [0x00000000ff600000,0x00000000ffb72c28,0x00000000ffd00000)
+ Metaspace       used 3360K, capacity 4564K, committed 4864K, reserved 1056768K
+  class space    used 361K, capacity 388K, committed 512K, reserved 1048576K
+java.lang.OutOfMemoryError: Java heap space
+...
+```
 
 
 
