@@ -2505,11 +2505,127 @@ java.lang.OutOfMemoryError: Java heap space
 
 ## 8.6 对空间分代思想
 
+分代是基于“弱分代假说”（Weak Generational Hypothesis）——**绝大多数对象都是朝生夕灭的**。
 
+基于这个观察，分代设计能让垃圾回收（GC）的**吞吐量更高**、**停顿时间更可控**。
+
+
+
+具体来说，分代带来了三大核心好处：
+
++ **提升GC效率**（最重要）：
+
+  + 新生代（Young Gen）：对象存活率低，每次GC都能回收大部分垃圾。采用复制算法，只需移动少量存活对象，效率极高。
+  + 老年代（Old Gen）：对象存活率高，GC频率极低。采用标记-整理或标记-清除算法，牺牲部分效率来节省内存空间。
+
+  大部分GC只发生在新生代（Minor GC），速度快、影响小。
+
++ **降低GC停顿时间**：
+
+  分代允许对**不同区域使用不同的GC算法**：
+
+  - 新生代追求**吞吐量**，因为要频繁清理。
+  - 老年代追求**延迟**，因为空间大且不常清理。
+
+  如果混在一起，为了清理少量死亡对象，却要扫描大量长期存活的对象，STW时间就会急剧上升。
+
++ **优化内存分配速度**：
+
+  有了分代，内存分配（TLAB，即线程本地分配缓冲区）主要在新生代的`Eden`区进行。
+
+  - `Eden`区被视为一个巨大的连续空闲空间，分配对象只需移动一个指针（指针碰撞），非常快。
+  - 如果没有分代，需要在碎片化的老年代中寻找合适空间，分配速度会慢一个数量级。
+
+
+
+
+
+总结：**分代不是目的，而是手段。** 它是为了利用对象生命周期的统计规律，用**空间（划分区域）换时间（减少扫描范围）**，从而在有限的硬件资源下，达到吞吐量和延迟的最佳平衡。
 
 
 
 ## 8.7 内存分配策略
+
+一般情况下，对象在`Eden`区创建并经过首次`Minoc GC`后存活，且能被`Survivor`区容纳，就会被移到`Survivor`区中，年龄置为1。之后每熬过一次`Minor GC`年龄都会增加一岁。当该对象年龄增加到一定程度（默认为15岁）时，就会将该对象移入老年代。
+
+> 对象晋升老年代的年龄阈值，可以通过选项`-XX:MaxTenuringThreshold`设置。
+
+
+
+内存分配一般策略有以下几点：
+
+1. **优先在`Eden`区分配**
+
+   这是绝大部分普通对象的分配路径。
+
+2. **长期存活的对象分配到老年代**
+
+   对于对象大小超过规定阈值的，在分配时会直接进入老年代。
+
+   > 这个大小阈值可以通过选项`-XX:PretenureSizeThreshold`设置。
+   >
+   > 该选项默认值为0，在默认情况下，对象创建时都会尝试在年轻代中分配空间，只有当对象大小超过了`Eden`区容量时才会直接在老年代中分配。
+
+3. **长期存活的对象分配到老年代**
+
+   这是一般情况，对象每熬过一次`Minor GC`，年龄都会增加一岁。当年龄到达了年龄阈值时，对象晋升移入老年代。
+
+   > 年龄阈值可以通过选项`-XX:MaxTenuringThreshold`设置。
+
+4. **动态对象年龄判断**
+
+   在`Survivor`区中，按年龄从小到大累计对象大小，当执行到某个年龄时，对象累计大小已经超过`Survivor`区容量的一半（默认50%），则将所有大于当前执行年龄的对象晋升到老年代。
+
+   > 这个容量判定可以通过`-XX:TargetSurvivorRatio`设置，默认50%。
+
+5. **空间分配担保**
+
+   在`Minor GC`前，JVM会预测一下 ”这次GC后会有多少对象会晋升到老年代“，如果预测结果显示老年代可能装不下，就会先触发`Full GC`来腾空间，避免`Minoc GC`完成之后晋升失败导致更严重的停顿。
+
+
+
+
+
+**扩展 - 关于动态对象年龄判断的源码展示**：
+
+源码 >> [jdk/src/hotspot/share/gc/shared/ageTable.cpp at master · openjdk/jdk · GitHub](https://github.com/openjdk/jdk/blob/master/src/hotspot/share/gc/shared/ageTable.cpp)
+
+```java
+uint AgeTable::compute_tenuring_threshold(size_t desired_survivor_size) {
+    uint result;
+
+	// 1. 特殊情况直接返回
+    //	+ AlwaysTenure：如果开启`-XX:AlwaysTenure`，表示所有对象只要熬过一次YGC就晋升（默认关闭）
+    //	+ NeverTenure:如果开启`-XX:NeverTenure`，表示禁止晋升（默认关闭）
+    if (AlwaysTenure || NeverTenure) {
+        assert(MaxTenuringThreshold == 0 || MaxTenuringThreshold == markWord::max_age + 1,
+               "MaxTenuringThreshold should be 0 or markWord::max_age + 1, but is %u", MaxTenuringThreshold);
+        result = MaxTenuringThreshold;
+    } else {
+        // 2. 正常动态年龄阈值计算
+        size_t total = 0;	// 对象累计大小
+        uint age = 1;		// 从age=1开始
+        // 3. 边界保护[断言]：所有年龄<1的都不计入动态年龄计算
+        assert(sizes[0] == 0, "no objects with age zero should be recorded");
+        while (age < table_size) {
+            total += sizes[age];
+            // 4. 检查对象累计大小total是否大于desired_survivor_size（默认`Survivor`区一半）
+            //	  是则退出循环，否则继续下一次循环
+            if (total > desired_survivor_size) break;
+            age++;
+        }
+        // 5. 动态年龄阈值取 触发age 和 MaxTenuringThreshold（默认15） 的较小值。
+        result = age < MaxTenuringThreshold ? age : MaxTenuringThreshold;
+    }
+
+
+    log_debug(gc, age)("Desired survivor size %zu bytes, new threshold %zu (max threshold %u)",
+                       desired_survivor_size * oopSize, (uintx) result, MaxTenuringThreshold);
+
+    return result;
+}
+
+```
 
 
 
