@@ -2810,3 +2810,219 @@ uint AgeTable::compute_tenuring_threshold(size_t desired_survivor_size) {
 
 ### 8.10.2 逃逸分析：代码优化
 
+逃逸分析使编译器能够实施以下三项关键优化：
+
++ **栈上分配（Stack Allocation）**：若一个对象在方法内创建且未逃逸，编译器可将其分配在栈帧中，而非堆上，从而免于GC回收。
++ **锁消除（Lock Elimination）**：若一个对象未逃逸出当前线程，则对该对象的同步锁（`synchronized`）是无效的，编译器可直接移除锁指令，消除同步开销。
++ **标量替换（Scalar Replacement）**：若一个对象未逃逸，编译器可将其"拆散"，用独立的成员变量（标量）替代该对象，使其不再需要连续的内存结构。这些标量随后可能被分配到栈上，或由寄存器分配器优化到CPU寄存器中。
+
+
+
+
+
+#### 8.10.2.1 栈上分配
+
+JIT编译器在编译期间根据逃逸分析的结果，如果发现一个对象并没有逃逸出方法，就可能将其优化为栈上分配。该对象被分配在当前方法的栈帧中，随着方法的执行而存在。当方法执行结束，其栈帧被弹出，栈上分配的对象也随之自动销毁，整个回收过程无需GC介入。
+
+
+
+演示：
+
+```java
+// 选项：-Xms1g -Xmx1g -XX:+DoEscapeAnalysis -XX:+PrintGCDetails
+public class StackAllocation {
+    public static void main(String[] args) {
+        long start = System.currentTimeMillis();
+        
+        for (int i = 0; i < 10000000; i++) {
+            alloc();
+        }
+        
+        // 查看执行时间
+        long end = System.currentTimeMillis();
+        System.out.println("花费时间：" + (end - start) + "ms");
+
+        // 为了方便查看内存个数，进行延时
+        try {
+            Thread.sleep(1000000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void alloc() {
+        User user = new User(); // 未发生逃逸
+    }
+    
+    static class User {}
+}
+```
+
+通过选项`-XX:+DoEscapeAnalysis`打开和关闭逃逸分析选项的对比：
+
+![image-20260813151447162](JVM-1.assets/image-20260813151447162.png)
+
+通过选项`-Xms256m`和`-Xmx256m`设置小一点堆空间，关闭逃逸分析后堆内存不足会执行数次GC：
+
+![image-20260813152318111](JVM-1.assets/image-20260813152318111.png)
+
+
+
+
+
+#### 8.10.2.2 同步省略
+
+线程同步的代价相当高，会降低并发性和性能。
+
+在JIT编译同步块时，编译器会借助逃逸分析判断锁对象是否逃逸出当前线程（即是否可能被其他线程访问）。如果锁对象未逃逸（仅被当前线程访问），则JIT编译器会移除该同步块的锁指令，这个优化过程称为**同步省略**（Synchronization Elimination），也叫**锁消除**（Lock Elimination），从而显著提升并发性能。
+
+
+
+源文件编译后，字节码文件中仍保留同步代码块的部分。
+
+```java
+public class SynchronizedTest {
+    public void f() {
+        Object lock = new Object();
+        synchronized (lock) {
+            System.out.println(lock);
+        }
+    }
+}
+```
+
+编译后的字节码文件`f()`方法，会发现有监视锁的指令`minitorenter`和`minitorexit`。
+
+```shell
+// === 准备阶段：创建锁对象 ===
+0 new #2           // 创建Object对象
+3 dup              // 复制引用（一份给astore_1，一份给monitorenter）
+4 invokespecial    // 调用构造方法
+7 astore_1         // 将对象引用存入局部变量槽1（lock变量）
+
+// === 准备进入同步块 ===
+8 aload_1          // 加载lock对象
+9 dup              // 复制引用（一份给astore_2，一份给monitorenter）
+10 astore_2        // ★ 将lock引用备份到局部变量槽2（用于异常路径释放锁）
+
+// === 加锁 ===
+11 monitorenter    // 获取lock的锁
+
+// === 同步块内的正常代码 ===
+12 getstatic #3    // 获取System.out
+15 aload_1         // 加载lock对象（作为println的参数）
+16 invokevirtual #4 // 调用println，打印lock对象
+
+// === 正常路径：释放锁 ===
+19 aload_2         // 加载备份的lock引用
+20 monitorexit     // ★ 第1个monitorexit：正常释放锁
+21 goto 29         // 跳转到方法结尾（return）
+
+// === 异常路径：释放锁 ===
+24 astore_3        // 捕获异常，存入局部变量槽3
+25 aload_2         // 加载备份的lock引用
+26 monitorexit     // ★ 第2个monitorexit：异常时也要释放锁
+27 aload_3         // 加载异常对象
+28 athrow          // 重新抛出异常
+
+// === 方法返回 ===
+29 return
+```
+
+等程序启动后，JIT编译器才会进行逃逸分析和优化工作，这个时候同步锁才会被优化掉。
+
+
+
+
+
+#### 8.10.2.3 标量替换
+
+**标量**（Scalar）是指一个无法再分解成更小的数据的数据。Java中的原始数据类型就是标量。 
+
+相对的，那些还可以分解的数据叫做**聚合量**（Aggregate），Java中的对象就是聚合量，因为他可以分解成其他聚合量和标量。 
+
+在JIT阶段，如果经过逃逸分析，发现一个对象不会被外界访问的话，那么经过JIT优化，就会把这个对象拆解成若干个成员变量来代替。这个过程就是**标量替换**。
+
+> 通过`-XX:+EliminateAllocations`开启标量替换，默认开启。
+
+
+
+**标量替换前后对比：**
+
+```java
+// 原始代码
+public void test() {
+    Point p = new Point(1, 2);
+    System.out.println(p.x + p.y);
+}
+
+// 经过标量替换后
+public void test() {
+    int x = 1;   // 不再有Point对象
+    int y = 2;   // 字段直接变成局部变量
+    System.out.println(x + y);
+}
+```
+
+
+
+**标量替换演示：**
+
+```java
+// 选项：-Xmx100m -Xms100m -XX:+DoEscapeAnalysis -XX:+PrintGC -XX:+EliminateAllocations
+public class ScalarReplace {
+    public static class User {
+        public int id;
+        public String name;
+    }
+
+    public static void alloc() {
+        User user = new User();    // 未发生逃逸
+        user.id = 5;
+        user.name = "piggy";
+    }
+
+    public static void main(String[] args) {
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 10000000; i++) {
+            alloc();
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("花费时间: " + (end - start) + "ms");
+    }
+}
+```
+
+![image-20260813174042018](JVM-1.assets/image-20260813174042018.png)
+
+
+
+
+
+扩展：
+
+> + 标量替换是栈上分配的具体实现。在java/HotSpot中关闭标量替换实际上就是禁止了栈上分配。
+> + Java只能做标量替换，不允许将完整对象在栈上分配。（具体原因后续补充）
+>
+> 综上，逃逸分析的优化手段主要是**标量替换**和**锁消除**。其中标量替换只是栈上分配的具体实现。
+>
+> 因此在上面的代码演示中，关闭标量替换就是禁止了线上分配，所有对象只能在堆中分配，GC压力会明显增加。
+
+
+
+
+
+#### 8.10.2.4 逃逸分析并不成熟
+
+逃逸分析的论文在1999年就已发表，但直到JDK 1.6才在HotSpot中实现，且至今仍非尽善尽美。其根本原因是逃逸分析需要进行跨方法的全局数据流分析，编译开销较大，而优化收益并不总是能覆盖分析成本——极端情况下，分析完可能发现所有对象均逃逸，导致优化完全失效。
+
+虽然通过逃逸分析可以实现标量替换、栈上分配和锁消除，但Oracle HotSpot JVM**并未实现完整对象在栈上的分配**，而是仅通过**标量替换**达到栈上化效果。未被标量替换优化的对象实例，仍然分配在堆上。
+
+随着JDK演进，intern字符串缓存和静态变量已从永久代移至堆上分配，这一变化并未改变HotSpot"对象实例分配在堆上"的基本事实。
+
+> 这段个人理解为对象被标量替换为其他变量（对象头都消除了），已经不能算作一个对象，因此能够被分配的对象只能在堆中分配了。
+
+
+
+
+
