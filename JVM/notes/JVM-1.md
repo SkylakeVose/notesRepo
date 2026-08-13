@@ -2707,5 +2707,106 @@ uint AgeTable::compute_tenuring_threshold(size_t desired_survivor_size) {
 
 ## 8.10 堆是分配对象的唯一选择吗？
 
+在《深入理解Java虚拟机》中关于Java堆内存有这样一段描述：
 
+随着JIT编译期的发展与**逃逸分析技术**逐渐成熟，**栈上分配**、**标量替换优化技术**将会导致一些微妙的变化，所有的对象都分配到堆上也渐渐变得不那么“绝对”了。
+
+
+
+在Java虚拟机中，对象是在Java堆中分配内存的，这是一个普遍的常识。但是，有一种特殊情况，那就是**如果经过逃逸分析（Escape Analysis）后发现，一个对象并没有逃逸出方法的话，那么就可能被优化成栈上分配**。这样就无需在堆上分配内存，也无须进行垃圾回收了。这也是最常见的堆外存储技术。
+
+
+
+
+
+### 8.10.1 逃逸分析概述
+
+**逃逸分析（Escape Analysis）**是一种**静态代码分析技术**，由编译器在编译期执行。它的核心目的是：**判断一个对象（或变量）的“生命周期”是否超出了它被定义的“作用域”**。
+
+
+
+逃逸分析是一种跨函数的全局数据流分析算法，是Java HotSpot编译器实现栈上分配、标量替换和同步锁消除等优化手段的前置依据。
+
+其基本行为是分析对象的**动态作用域**：
+
++ 当一个对象在方法内被定义后，若该对象仅在此方法内部使用（即未被外部方法存储、未被赋值给全局变量、未跨线程传递），则认为**未发生逃逸**，编译器可将其分配在栈上，随方法结束自动销毁，从而减轻GC压力。
++ 反之，若该对象的引用被赋值给成员变量、静态变量，或**被外部方法持有并存储到堆中**，则认为**发生逃逸**，此时必须分配在堆上，以保证其生命周期与持有者一致。
+
+
+
+
+
+**逃逸分析示例：**
+
+快速判断是否发生了逃逸？主要看`new`的对象实体是否可能在方法外被调用。
+
+1. 案例一：
+
+   ```java
+   //纯局部使用，没有发生逃逸
+   public void noEscape() {
+       Object obj = new Object();
+       // ...
+       obj = null;
+   }
+   ```
+
+   
+
+2. 案例二：
+
+   ```java
+   // 返回了new对象实体，发生了逃逸
+   public static StringBuffer createStringBuffer(String s1, String s2) {
+       StringBuffer sb = new StringBuffer();
+       sb.append(s1);
+       sb.append(s2);
+       return sb;
+   }
+   
+   // 返回新的String，但StringBuffer并没有逃逸
+   public static String createStringBuffer(String s1, String s2) {
+       StringBuffer sb = new StringBuffer();
+       sb.append(s1);
+       sb.append(s2);
+       return sb.toString();
+   }
+   ```
+
+   
+
+3. 案例三：
+
+   ```java
+   public class EscapeAnalysis {
+   	
+       public EscapeAnalysis obj;	// 成员变量
+   
+       // 方法返回EscapeAnalysis对象，发生逃逸
+       public EscapeAnalysis getInstance() {
+           return obj == null ? new EscapeAnalysis() : obj;
+       }
+   
+       // 为成员属性数值，发生逃逸
+       public void setObj() {
+           this.obj = new EscapeAnalysis();
+       }
+   
+       // 对象的作用域仅在当前方法中被使用，没有发生逃逸
+       public void useEscapeAnalysis() {
+           EscapeAnalysis e = new EscapeAnalysis();
+       }
+   
+       // 引用成员变量的值，发生逃逸
+       public void useEscapeAnalysis1() {
+           EscapeAnalysis e = getInstance();
+       }
+   }
+   ```
+
+
+
+
+
+### 8.10.2 逃逸分析：代码优化
 
