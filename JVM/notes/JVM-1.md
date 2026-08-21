@@ -3144,6 +3144,88 @@ public class ScalarReplace {
 
 ## 9.3 设置方法区大小与OOM
 
+### 9.3.1 设置方法区内存的大小
+
++ 方法区大小不必是固定的，jvm可以根据应用的需求来动态调整。
++ jdk7及以前：
+  + 通过`-XX:PermSize`来设置永久代初始分配空间，默认值是20.75M。
+  + 通过`-XX:MaxPermSize`来设置永久代最大可分配空间，32位机器默认是64M，64位机器默认是82M。
+  + 当JVM加载的类信息容量超过了这个值，会报异常`OutOfMemoryError:PermGen space`。
++ jdk8及以后：
+  + 元数据区大小可以使用参数`-XX:MetaspaceSize`和`-XX:MaxMetaspaceSize`指定，替代jdk7原有的设置永久代大小的两个参数。
+  + 默认值依赖于平台：windows下,`-XX:MetaspaceSize`是21M，`-XX:MaxMetaspaceSize` 的值是-1，即没有限制。
+  + 与永久代不同，如果不指定大小，默认情况下，虚拟机会耗尽所有可用的系统内存。如果元数据区发生溢出，虚拟机一样会抛出异`OutOfMemoryError:Metaspace`
+  + 通过`-XX:MetaspaceSize`设置初始的元空间大小。对于一个64位的服务器端JVM来说，其默认的`-XX:MetaspaceSize`值为21MB。
+  + `MetaspaceSize`默认值就是初始的高水位线，一旦触及这个水位线，`FullGC`将会被触发并卸载没用的类（这些类对应的类加载器不再存活），然后这个高水位线将会重置，新的高水位线的值取决于GC后释放了多少元空间。如果释放的空间不足，那么在不超过`MaxMetaspaceSize`时，适当提高该值。如果释放空间过多，则适当降低该值。
+  + 如果初始化的高水位线设置过低，上述高水位线调整情况会发生很多次。通过垃圾回收器的日志可以观察到`FullGC`多次调用。为了避免频繁地GC，建议将`-XX:MetaspaceSize`设置为一个相对较高的值。
+
+
+
+查看方法区大小，可使用`jps`和`jinfo`指令查看指定程序的方法区参数：
+
+```shell
+# 列出Java程序
+> jps
+
+# 查看jdk7程序的永久代大小参数（单位为Byte）
+> jinfo -flag PermSize <PID>	# 21757952
+> jinfo -flag MaxPermSize <PID>	# 85983232
+
+# 查看jdk8程序的永久代大小参数（单位为Byte）
+> jinfo -flag MetaspaceSize <PID>	# 21807104
+> jinfo -flag MaxMetaspaceSize <PID>
+```
+
+
+
+
+
+### 9.3.2 方法区OOM
+
+#### 9.3.2.1 OOM演示
+
+测试代码：
+
+```java
+public class OOMTest extends ClassLoader {
+    public static void main(String[] args) {
+        int j = 0;
+        try {
+            OOMTest test = new OOMTest();
+            for (int i = 0; i < 10000; i++) {
+                // 创建ClassWriter对象，用于生成类的二进制字节码
+                ClassWriter classWriter = new ClassWriter(0);
+                // 指明版本号，修饰符，类名，包名，父类，接口
+                classWriter.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, "Class" + i, null, "java/lang/Object", null);
+                // 返回byte[]
+                byte[] code = classWriter.toByteArray();
+                // 类的加载
+                test.defineClass("Class" + i, code, 0, code.length);    // Class对象
+                j++;
+            }
+        } finally {
+            System.out.println(j);
+        }
+    }
+}
+```
+
+测试结果：
+
+```shell
+# 不设置方法区大小，方法区自行调整
+10000
+
+# -XX:MetaspaceSize=10m -XX:MaxMetaspaceSize=10m
+Exception in thread "main" java.lang.OutOfMemoryError: Compressed class space
+......
+3136
+```
+
+
+
+#### 9.3.2.2 如何解决OOM？
+
 
 
 
