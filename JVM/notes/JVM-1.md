@@ -3226,7 +3226,9 @@ Exception in thread "main" java.lang.OutOfMemoryError: Compressed class space
 
 #### 9.3.2.2 如何解决OOM？
 
-
+1. 要解决OOM异常或heap space的异常，一般的手段是首先通过内存映像分析工具（如Eclipse Memory Analyzer）对dump出来的堆转储快照进行分析，重点是确认内存中的对象是否是必要的，也就是要先分清楚到底是出现了内存泄漏（Memory Leak）还是内存溢出（Memory Overflow）。
+2. 如果是内存泄漏，可进一步通过工具查看泄漏对象到GCRoots的引用链。找到泄漏对象是如何与GC Roots建立关联并导致垃圾收集器无法自动回收它们的，掌握了泄漏对象的类型以及GC Roots引用链的信息，就可以比较准确地定位出泄漏代码的位置。
+3. 如果不存在内存泄漏，内存中的对象确实仍被需要无法回收，那就应当检查虚拟机的堆参数（`-Xmx`与`-Xms`），与机器物理内存对比判断是否还可以调大，或是从代码上检查是否存在某些对象生命周期过长、持有状态时间过长的情况，尝试减少程序运行期的内存消耗。
 
 
 
