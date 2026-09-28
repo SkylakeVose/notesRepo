@@ -3236,6 +3236,111 @@ Exception in thread "main" java.lang.OutOfMemoryError: Compressed class space
 
 ## 9.4 方法区的内部结构
 
+<img src="JVM-1.assets/image-20260928111545260.png" alt="image-20260928111545260" style="zoom:80%;" />
+
+
+
+### 9.4.1 方法区的存储什么？
+
+《深入理解Java 虚拟机》书中对方法区（Method Area）存储内容描述如下：它用于存储已被虚拟机加载的**类型信息**、**常量**、**静态变量**、**即时编译器编译后的代码缓存**等。
+
+<img src="JVM-1.assets/image-20260928112048068.png" alt="image-20260928112048068" style="zoom:80%;" />
+
+> 以上概述只是书中的一个基本概括，实际情况会根据JDK版本会有所变化。
+
+
+
+
+
+### 9.4.2 方法区内部结构
+
+#### 9.4.2.1 类型信息
+
+对每个加载的类型（类`class`、接口`interface`、枚举`enum`、注解`annotation`），JVM必
+
+须在方法区中存储以下类型信息：
+
++ 这个类型的完整有效名称（全名 = 包名.类名）。
++ 这个类型直接父类的完整有效名（除了`interface`或是`java.lang.Object`，这两个类都没有父类）。
++ 这个类型的修饰符（`public`、`abstract`、`final`的某个子集）。
++ 这个类型直接接口的一个有序列表。
+
+
+
+#### 9.4.2 域（Field）信息
+
++ JVM必须在方法区中保存类型的所有域的相关信息以及域的声明顺序。
++ 域的相关信息包括：域名称、域类型、域修饰符（`public`、`private`、`protected`、`static`、`final`、`volatile`、`transient`的某个子集)。
+
+
+
+#### 9.4.3 方法（Method）信息
+
+JVM必须保存所有方法的以下信息，同域信息一样包括声明顺序：
+
++ 方法名称
++ 方法的返回类型（或void）
++ 方法参数的数量和类型（按顺序）
++ 方法的修饰符（`public`、`private`、`protected`、`static`、`final`、`synchronized`、`native`、`abstract`的一个子集）
++ 方法的字节码（bytecodes）、操作数浅、局部变量表及大小（抽象方法和本地方法除外）
++ 异常表（`abstract`和`native`方法除外）
+  + 每个异常处理的开始位置、结束位置、代码处理在程序计数器中的偏移地址、被捕获的异常类的常量池索引。
+
+
+
+
+
+### 9.4.3 代码演示
+
+编写测试程序：
+
+```java
+public class MethodInnerStaticTest extends Object implements Comparable<String>, Serializable {
+    // 属性
+    public int num = 10;
+    private static String str = "测试方法的内部结构";
+
+    // 构造器
+    // 方法
+    public void test1() {
+        int count = 20;
+        System.out.println("count = " + count);
+    }
+
+    public static int test2(int cal) {
+        int result = 0;
+        try {
+            int value = 30;
+            result = value / cal;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    @Override
+    public int compareTo(String o) {
+        return 0;
+    }
+}
+```
+
+> 编译后使用jclasslib进行查看，或者使用反编译命令`javap -v -p MethodInneStructTest.class > test.txt`生成并写入文档进行查看。
+>
+> 
+>
+> 注意：此时我们只是查看字节码文件的信息，只做大概了解其信息结构，并非查看JVM方法区中完整的信息。（比如在实际运行方法区中还会记录该类是由哪个加载器加载进来的，但在字节码文件中是没有记录的）
+
+
+
+**反编译后的信息结构：**
+
+![image-20260928174755662](JVM-1.assets/image-20260928174755662.png)
+
+![image-20260928174948430](JVM-1.assets/image-20260928174948430.png)
+
+![image-20260928175118547](JVM-1.assets/image-20260928175118547.png)
+
 
 
 
