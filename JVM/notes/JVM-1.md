@@ -3345,6 +3345,70 @@ public class MethodInnerStaticTest extends Object implements Comparable<String>,
 
 
 
+### 9.4.4 补充 - 类变量
+
+**类变量**（class variable）通常指用 `static` 修饰的成员变量，它属于类本身，而不是某个对象实例。所有实例共享同一份。
+
+类变量可以被区分成两种形式：
+
++ `final`的类变量：被`final`修饰的类变量；只能被赋值一次，之后不能再被改变。
++ `non-final`的类变量：被`static`修饰，但没有被`final`修饰的类变量；再程序运行期间可以被重新赋值。
+
+
+
+**混淆点 - 类的成员变量区分：**
+
++ 类变量（被`static`修饰）
+  + `non-final` 类变量（无`final`修饰）
+  + `final` 类变量（被`final`修饰）
++ 实例变量（无`static`修饰）
+
+
+
+**类变量的特点：**
+
++ 静态变量随类的加载而加载，成为类数据的一部分。
++ 类变量被所有实例共享，并且只要类已被加载，即使没有任何实例，也可以通过类名访问它。
+
+
+
+**程序演示：**
+
+```java
+public class MethodAreaTest {
+    public static void main(String[] args) {
+        Order order = null;	// 没有实例化
+        order.hello();		// hello!
+        System.out.println(order.count);	// 1
+    }
+}
+
+class Order {
+    public static int count = 1;	// non-final 类变量
+    public static final int number = 2; // static-final 类变量
+
+    public static void hello() {
+        System.out.println("hello!");
+    }
+}
+```
+
+> 变量`order` 虽然为 `null`，但 `order.hello()` 和 `order.count` 在编译期就被改写为 `Order.hello()` 和 `Order.count`，**实际操作的是类而非对象**，所以不会 NPE；同时这两句会触发 `Order` 类加载，使 `count` 完成初始化变为 `1`，最终输出 `hello!` 和 `1`。
+
+
+
+**全局变量：`static final`修饰的类变量**
+
+对于 `static final` 修饰的编译期常量，编译器在编译阶段就会把它的值计算出来，并在使用处直接内联（把引用替换成常量值）；而在类加载的准备阶段，这类常量会直接被赋为常量值，而不是先赋默认值。
+
+反编译`Order.class`可以看到`final`类变量已经被内联了。
+
+> 内联：**编译器在使用常量的地方，直接把这个常量的值填进去，而不是保留对它的引用。**
+
+![image-20260929151320989](JVM-1.assets/image-20260929151320989.png)
+
+
+
 
 
 ## 9.5 方法区使用举例
