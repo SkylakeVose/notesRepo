@@ -78,6 +78,8 @@ Vue是一套动态构建用户界面的渐进式JavaScript框架。
 
 ## 1.2 初识Vue
 
+### 1.2.1 创建工程
+
 访问Vue官网，找到导航栏 学习 -> 教程 ，切换到`2.x`版本，找到`直接用<script>引入`侧边栏内容：
 
 ![image-20261012172811716](vue2.assets/image-20261012172811716.png)
@@ -112,11 +114,57 @@ Vue是一套动态构建用户界面的渐进式JavaScript框架。
 
 
 
-VS Code右键菜单 -> `Open with Live Server`（需要安装`Live Server`），打开浏览器F12进入控制台：
+VS Code右键菜单 -> `Open with Live Server`（需要安装`Live Server`），打开浏览器F12进入控制台，可以看到Vue对象已经被引入了。
 
 ![image-20261012174012116](vue2.assets/image-20261012174012116.png)
 
 
+
+
+
+### 1.2.2 关闭开发版本提示
+
+每次打开的时候都会出现开发版本的提示：
+
+![image-20261013150218545](vue2.assets/image-20261013150218545.png)
+
+我们可以查看官网API的`全局配置`部分，`Vue.config`包含对Vue的全局配置设置，里面`productionTip`负责生产提示的开启关闭。
+
+<img src="vue2.assets/image-20261013150657537.png" alt="image-20261013150657537" style="zoom:80%;" />
+
+在代码中添加关闭生产提示，并重新启动，生产提示不再出现。
+
+![image-20261013151635671](vue2.assets/image-20261013151635671.png)
+
+
+
+
+
+### 1.2.3 安装vue调试工具
+
+可以直接在谷歌扩展应用商城中获取。
+
+最新版本的vue devtools 不支持v2版本的vue，因此需要使用官方停止更新的版本vue devtool 5.x。[v2 devtools](https://chromewebstore.google.com/detail/vuejs-devtools-v5/hkddcnbhifppgmfgflgaelippbigjpjo)
+
+
+
+
+
+### 1.2.4 使用vue实现一个页面
+
+<img src="vue2.assets/image-20261013174032522.png" alt="image-20261013174032522" style="zoom:80%;" />
+
+效果如图：
+
+<img src="vue2.assets/image-20261013174053394.png" alt="image-20261013174053394" style="zoom:80%;" />
+
+
+
+**总结：**
+
+1. 想让Vue工作，就必须创建一个Vue实例，且要传入一个配置对象。
+2. root容器里的代码依然符合html规范，只不过混入了一些特殊的Vue语法。
+3. root容器里的代码被称为 **Vue模板**。
 
 
 
